@@ -182,5 +182,38 @@
     ok('tắt chế độ Tiểu học', !document.body.classList.contains('tieuhoc') && vis('[data-cmd="ins-graph"]'));
   });
 
+  await step('Hình minh hoạ, mẫu theo bài, trình chiếu', async () => {
+    __clear(); window.__run('tieuhoc'); await w(150);
+    document.getElementById('mhKind').value = 'bdcot';
+    document.querySelector('[data-cmd="ins-minhhoa"]').click(); await w(200);
+    const mh = document.querySelector('#page .obj.minhhoa');
+    ok('chèn biểu đồ cột từ nhóm Tiểu học', !!mh && mh.querySelectorAll('rect').length >= 4);
+    const ta = document.querySelector('#props textarea[data-k="dulieu"]');
+    ta.value = 'A | 3\nB | 9'; ta.dispatchEvent(new Event('input')); ta.dispatchEvent(new Event('change')); await w(150);
+    ok('sửa số liệu ở khung Thuộc tính, biểu đồ vẽ lại', /9/.test(document.querySelector('#page .obj.minhhoa').textContent));
+    __clear();
+    window.__run('mau'); await w(250);
+    document.querySelector('#maudlg [data-lop="2"]').click(); await w(150);
+    const row = [...document.querySelectorAll('#maudlg .maubai')].find((x) => /Bài 60/.test(x.textContent));
+    row.querySelector('button').click(); await w(400);
+    ok('chèn mẫu theo bài (lớp 2, bài 60): đề bài và 3 phép đặt tính', document.querySelectorAll('#page .obj.dattinh').length === 3 && document.querySelectorAll('#page .obj.baitap').length === 1);
+    const dt = document.querySelector('#page .obj.dattinh'), x0 = dt.style.left;
+    window.__run('present'); await w(400);
+    ok('vào trình chiếu: ẩn thanh công cụ', document.body.classList.contains('present') && getComputedStyle(document.getElementById('ribbon')).display === 'none');
+    const dt2 = document.querySelector('#page .obj.dattinh'), n0 = dt2.querySelectorAll('text').length;
+    const r = dt2.getBoundingClientRect();
+    dt2.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.left + 4, clientY: r.top + 4 })); window.dispatchEvent(new PointerEvent('pointerup', {})); await w(120);
+    ok('nhấp vào phép đặt tính: hiện thêm một bước', document.querySelector('#page .obj.dattinh').querySelectorAll('text').length > n0);
+    const el = document.querySelector('#page .obj.dattinh'), r2 = el.getBoundingClientRect();
+    el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r2.left + 4, clientY: r2.top + 4 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { clientX: r2.left + 120, clientY: r2.top + 60 })); window.dispatchEvent(new PointerEvent('pointerup', {})); await w(120);
+    ok('kéo thả khi trình chiếu', document.querySelector('#page .obj.dattinh').style.left !== x0);
+    key('Delete'); await w(80);
+    ok('phím Delete không xoá gì khi đang chiếu', document.querySelectorAll('#page .obj').length === 4);
+    key('Escape'); await w(300);
+    ok('thoát trình chiếu: vị trí trở lại như cũ', !document.body.classList.contains('present') && document.querySelector('#page .obj.dattinh').style.left === x0);
+    window.__run('tieuhoc'); await w(100);
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

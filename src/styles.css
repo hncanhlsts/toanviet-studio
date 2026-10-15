@@ -313,3 +313,19 @@ body.tieuhoc #modeBadge { background: #fff4d6; border-color: #e0b84c; color: #7a
 .th-tag { display: inline-block; background: #fbd97a; border-radius: .3em; padding: 0 .3em; line-height: 1.35; }
 .th-box.th-hoi, .th-mbox.th-hoi { border-color: #e0a93b; color: #555; }
 .th-mbox.th-first { border-radius: 50%; background: #fbd97a; border-color: #e0a93b; min-width: 1.9em; height: 1.9em; line-height: 1.85em; padding: 0; }
+/* trình chiếu */
+body.present #ribbon, body.present #panel, body.present #status, body.present #officebar { display: none !important; }
+body.present #stage { background: #3a3f47; padding: 24px 24px 80px; }
+body.present #page { box-shadow: 0 0 30px rgba(0, 0, 0, .5); }
+body.present .obj .handle, body.present .pth, body.present .plh, body.present .roth { display: none !important; }
+body.present .obj { cursor: pointer; outline: none !important; }
+#presbar { position: fixed; right: 18px; bottom: 16px; z-index: 99; display: flex; gap: 6px; align-items: center; background: rgba(20, 24, 30, .78); padding: 6px 8px; border-radius: 10px; color: #dfe6ee; font: 12px "Segoe UI", sans-serif; }
+#presbar button { background: #fff; border: 0; border-radius: 6px; padding: 5px 11px; font: 600 13px "Segoe UI", sans-serif; cursor: pointer; }
+#presbar span { max-width: 360px; opacity: .8; margin-left: 4px; }
+/* hộp mẫu theo bài */
+.maulist { max-height: 60vh; overflow: auto; margin-top: 6px; }
+.maucd { font-weight: 700; color: #1f3f7a; margin: 10px 0 4px; }
+.maubai { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: 6px; }
+.maubai:hover { background: #f1f5fb; }
+.maubai span:first-child { flex: 1; }
+.maucnt { color: #8090a0; font-size: 12px; }

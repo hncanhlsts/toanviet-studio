@@ -56,7 +56,7 @@ const FONT = 'Arial, Helvetica, sans-serif';
     const topBrace = (xa, xb, y, t) => { if (t) out.push(braceH(xa, xb, y - 9, -1, col), lab((xa + xb) / 2, y - 31, t)); };
     const botBrace = (xa, xb, y, t) => { if (t) out.push(braceH(xa, xb, y + 9, 1, col), lab((xa + xb) / 2, y + 26 + s * 0.8, t)); };
     // ngoặc phần chênh lệch: dưới đoạn trên, ở khoảng giữa hai dòng
-    const midBrace = (xa, xb, t) => { if (t) out.push(braceH(xa, xb, y1 + 8, 1, col), lab(xb + 6, y1 + 22 + s * 0.35, t, 'start')); };
+    const midBrace = (xa, xb, t) => { if (t) out.push(braceH(xa, xb, y1 + 8, 1, col), lab((xa + xb) / 2, y1 + 22 + s * 0.85, t)); };
     const rightBrace = (xr, t) => { if (t) out.push(braceV(y1 - 7, y2 + 7, xr, 1, col), lab(xr + 19, (y1 + y2) / 2 + s * 0.35, t, 'start')); };
     if (dang === 'tongti' || dang === 'hieuti') {
       const u = span / Math.max(m, n);
@@ -72,13 +72,16 @@ const FONT = 'Arial, Helvetica, sans-serif';
     } else if (dang === 'tonghieu') {
       const t = num(o.tong), d = num(o.hieu);
       let big = 0.62, small = 0.38;
+      // độ dài hai đoạn theo số liệu: từ tổng và hiệu, hoặc từ hai số đã biết (bài "hơn, kém nhau bao nhiêu")
+      const a1 = num(o.hoi1), a2 = num(o.hoi2);
       if (isFinite(t) && isFinite(d) && t > d && d >= 0) { big = (t + d) / 2 / t; small = (t - d) / 2 / t; }
+      else if (isFinite(a1) && isFinite(a2) && a1 > a2 && a2 > 0) { big = 1; small = a2 / a1; }
       const Lb = span * 0.98, Ls = Lb * small / big;
       out.push(seg(x0, x0 + Lb, 1, y1), tick(x0 + Ls, y1, 4.5), seg(x0, x0 + Ls, 1, y2));
       out.push(L(x0 + Ls, y1 + 6, x0 + Ls, y2 - 6, col, 0.9, true));
       midBrace(x0 + Ls, x0 + Lb, o.hieu || '?');
       topBrace(x0, x0 + Lb, y1, o.hoi1); botBrace(x0, x0 + Ls, y2, o.hoi2);
-      rightBrace(x0 + Lb + 8, o.tong || '?');
+      rightBrace(x0 + Lb + 8, o.tong === '' ? '' : o.tong || '?');
     } else if (dang === 'giamdi') {
       // giảm một số đi nhiều lần: đoạn trên n phần, đoạn dưới 1 phần
       const u = span / n;

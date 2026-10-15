@@ -122,3 +122,27 @@ thu('mọi mẫu hình minh hoạ vẽ không lỗi và giữ đúng ảnh chu�
   }
   bang(bad, []);
 });
+
+nhom('Mẫu theo bài (maukntt.js)');
+thu('đủ 5 lớp; mọi bài mẫu dựng được, không lỗi', () => {
+  bang(MauKNTT.map((x) => x.lop), [1, 2, 3, 4, 5]);
+  const bad = []; let n = 0;
+  MauKNTT.forEach((L) => L.chude.forEach(([, bais]) => bais.forEach(([ten, items]) => {
+    n++;
+    items.forEach(([t, k, ex]) => {
+      try {
+        if (t === 'baitap') { const r = TieuHoc.renderBaiTap(Object.assign({ kind: k }, TieuHoc.BT_KINDS[k][1], ex)); if (r.errors.length) bad.push(L.lop + ' ' + ten + ': ' + r.errors[0]); }
+        else if (t === 'dattinh') TieuHoc.renderDatTinh(Object.assign({ size: 24 }, ex));
+        else if (t === 'minhhoa') { const o = Object.assign({}, MinhHoa.KINDS[k][1], ex); const r = MinhHoa.render(o, o.w, o.h); if (r.errors.length) bad.push(L.lop + ' ' + ten + ': ' + r.errors[0]); }
+        else if (t !== 'numline') bad.push(L.lop + ' ' + ten + ': loại lạ ' + t);
+      } catch (e) { bad.push(L.lop + ' ' + ten + ': ' + e.message); }
+    });
+  })));
+  dung(n >= 60, 'chỉ có ' + n + ' bài');
+  bang(bad, []);
+});
+thu('trình chiếu từng bước: số bước của phép chia bằng số chữ số của thương', () => {
+  bang(TieuHoc.renderDatTinh({ expr: '486 : 2', size: 24 }).buoc, 3);
+  const r0 = TieuHoc.renderDatTinh({ expr: '486 : 2', size: 24, _buoc: 0 }).svg;
+  dung(!/>2<\/text>.*>4<\/text>.*>3<\/text>/.test(r0), 'bước 0 không được hiện thương');
+});

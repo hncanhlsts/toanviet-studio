@@ -58,7 +58,7 @@
     const items = [], commas = [];
     const put = (n, r, k) => {
       const f = fromScaled(n, D), s = f.int + f.frac;
-      for (let i = 0; i < s.length; i++) items.push({ c: s.length - 1 - i, r, t: s[i], k });
+      for (let i = 0; i < s.length; i++) items.push({ c: s.length - 1 - i, r, t: s[i], k, s: s.length - i });
       if (D) commas.push({ c: D, r });
     };
     nums.forEach((n, i) => {
@@ -78,11 +78,11 @@
       if (op === '+') {
         const sum = vals.reduce((a, v) => a + digit(v, c), 0) + carry;
         carry = Math.floor(sum / 10);
-        if (carry && c + 1 < width) carries.push({ c: c + 1, r: -0.62, t: String(carry), k: 'n' });
+        if (carry && c + 1 < width) carries.push({ c: c + 1, r: -0.62, t: String(carry), k: 'n', s: c + 1 });
       } else {
         const a = digit(vals[0], c), b = digit(vals[1], c) + carry;
         carry = a < b ? 1 : 0;
-        if (carry && c + 1 < width) carries.push({ c: c + 1, r: 1 - 0.62, t: '1', k: 'n', small: true, dx: 0.42 });
+        if (carry && c + 1 < width) carries.push({ c: c + 1, r: 1 - 0.62, t: '1', k: 'n', small: true, dx: 0.42, s: c + 1 });
       }
     }
     return { items: items.concat(carries), commas, signs: [{ c: width, r: (nr - 1) / 2, t: op === '+' ? '+' : '−' }], lines: [{ r: nr - 1, c0: width, c1: -1 }], rows: nr + 1, width: width + 1 };
@@ -109,17 +109,17 @@
       if (bd.length === 1) {
         let carry = 0;
         const da = sa.split('').reverse().map(Number);
-        da.forEach((x, c) => { const p = x * bd[0] + carry; carry = Math.floor(p / 10); if (carry && c + 1 < da.length) carries.push({ c: c + 1, r: -0.62, t: String(carry), k: 'n' }); });
+        da.forEach((x, c) => { const p = x * bd[0] + carry; carry = Math.floor(p / 10); if (carry && c + 1 < da.length) carries.push({ c: c + 1, r: -0.62, t: String(carry), k: 'n', s: c + 1 }); });
       }
     } else {
-      parts.forEach((p) => { const s = p.v.toString(); for (let i = 0; i < s.length; i++) items.push({ c: s.length - 1 - i + p.sh, r, t: s[i], k: 'm' }); r++; });
+      parts.forEach((p, pi) => { const s = p.v.toString(); for (let i = 0; i < s.length; i++) items.push({ c: s.length - 1 - i + p.sh, r, t: s[i], k: 'm', s: pi + 1 }); r++; });
       const wP = Math.max(...items.filter((it) => it.k === 'm').map((it) => it.c)) + 1;
       signs.push({ c: wP, r: 2 + (parts.length - 1) / 2, t: '+' });
       lines.push({ r: r - 1, c0: wP, c1: -1 });
     }
     const f = fromScaled(prod, D), s = (f.int + f.frac).replace(/^0+(?=\d)/, '');
     const full = s.length < D + 1 ? s.padStart(D + 1, '0') : s;
-    for (let i = 0; i < full.length; i++) items.push({ c: full.length - 1 - i, r, t: full[i], k: 'k' });
+    for (let i = 0; i < full.length; i++) items.push({ c: full.length - 1 - i, r, t: full[i], k: 'k', s: parts.length > 1 ? parts.length + 1 : full.length - i });
     if (D) commas.push({ c: D, r });
     const width = Math.max(...items.map((it) => it.c), ...signs.map((x) => x.c - 1)) + 1;
     return { items: items.concat(carries), commas, signs, lines, rows: r + 1, width: width + 1 };
@@ -169,17 +169,17 @@
     steps.forEach((st, i) => {
       const ps = st.p.toString(), cs = st.cur.toString();
       if (full && !(i === 0 && st.p === 0n)) {
-        for (let j = 0; j < ps.length; j++) items.push({ L: st.pos - (ps.length - 1 - j), r, t: ps[j], k: 'm' });
+        for (let j = 0; j < ps.length; j++) items.push({ L: st.pos - (ps.length - 1 - j), r, t: ps[j], k: 'm', s: i + 1 });
         // sách Kết nối tri thức không ghi dấu trừ ở mỗi bước, chỉ kẻ vạch dưới tích
         if (o.dautru) signs.push({ L: st.pos - Math.max(ps.length, cs.length), r: r - 0.5, t: '−' });
-        lines.push({ r: r, L0: st.pos - Math.max(ps.length, cs.length) + 1, L1: st.pos + 1 });
+        lines.push({ r: r, L0: st.pos - Math.max(ps.length, cs.length) + 1, L1: st.pos + 1, s: i + 1 });
         r++;
       }
       // số dư, kèm chữ số hạ xuống ở bước sau ("04": dư 0, hạ 4)
       const nx = steps[i + 1];
       const wr = nx ? (st.r === 0n ? '0' + nx.cur.toString() : nx.cur.toString()) : st.r.toString();
       const rp = nx ? nx.pos : st.pos;
-      for (let j = 0; j < wr.length; j++) items.push({ L: rp - (wr.length - 1 - j), r, t: wr[j], k: 'm' });
+      for (let j = 0; j < wr.length; j++) items.push({ L: rp - (wr.length - 1 - j), r, t: wr[j], k: 'm', s: i + 1 });
       r++;
     });
     // bên phải: số chia, thương
@@ -187,8 +187,8 @@
     const right = [];
     const bs = b.int;
     for (let j = 0; j < bs.length; j++) right.push({ R: j, r: 0, t: bs[j], k: 'g' });
-    qs.forEach((x, j) => right.push({ R: j + (qComma >= 0 && j >= qComma ? 0.35 : 0), r: 1, t: x, k: 'k' }));
-    if (qComma >= 0) right.push({ R: qComma - 0.5 + 0.12, r: 1, t: ',', k: 'k', comma: true });
+    qs.forEach((x, j) => right.push({ R: j + (qComma >= 0 && j >= qComma ? 0.35 : 0), r: 1, t: x, k: 'k', s: j + 1 }));
+    if (qComma >= 0) right.push({ R: qComma - 0.5 + 0.12, r: 1, t: ',', k: 'k', comma: true, s: qComma + 1 });
     const leftW = Math.max(...items.map((it) => it.L)) + 1;
     return { div: true, items, right, commas, signs, lines, rows: Math.max(r, 2), leftW: Math.max(leftW, digs.length), digsW: digs.length, rightW: Math.max(bs.length, qs.length + (qComma >= 0 ? 0.4 : 0)), note };
   }
@@ -212,7 +212,8 @@
     else if (P.op === '×') L = layoutMul(P.nums);
     else L = layoutDiv(P.nums, o);
     if (L.note) errors.push(L.note);
-    const mode = o.an || 'none';
+    const stepMode = typeof o._buoc === 'number';
+    const mode = stepMode ? 'none' : o.an || 'none';
     // phần bị giấu
     const all = L.div ? L.items.concat(L.right) : L.items;
     const isRes = (it) => it.k === 'k' || it.k === 'm';
@@ -239,6 +240,7 @@
     const base = (r) => pad + size * 0.92 + r * rh;
     const box = (x, y) => `<rect x="${r1(x - cw * 0.46)}" y="${r1(y - size * 0.82)}" width="${r1(cw * 0.92)}" height="${r1(size * 1.02)}" fill="#fff" stroke="${col}" stroke-width="1"/>`;
     const drawDigit = (it, i, x) => {
+      if (stepMode && it.s > o._buoc) return;
       const y = base(it.r);
       if (it.k === 'n') { if (o.nho) svg.push(`<text x="${r1(x + (it.dx || 0.3) * cw)}" y="${r1(base(0) + it.r * rh + size * 0.1)}" text-anchor="middle" fill="${red}" font-family="${FAM}" font-size="${r1(size * 0.5)}">${escH(it.t)}</text>`); return; }
       if (it.comma) { svg.push(T(x, y, ',', hid.has(i) && !o.dapan ? 'transparent' : col)); return; }
@@ -270,7 +272,8 @@
       L.items.forEach((it, i) => { if (blankRows && it.r > 0) return; drawDigit(it, i, XL(it.L)); });
       L.commas.forEach((cm) => svg.push(T(XL(cm.L) + cw * 0.5, base(cm.r) + size * 0.02, ',', col)));
       if (!blankRows) L.signs.forEach((s) => svg.push(SG(XL(s.L) + cw * 0.2, base(s.r), s.t)));
-      if (!blankRows) L.lines.forEach((ln) => { const y = r1(base(ln.r) + size * 0.3); svg.push(`<line x1="${r1(XL(ln.L0) - cw * 0.5)}" y1="${y}" x2="${r1(XL(ln.L1) - cw * 0.5)}" y2="${y}" stroke="${col}" stroke-width="1"/>`); });
+      if (!blankRows) L.lines.forEach((ln) => {
+        if (stepMode && ln.s > o._buoc) return; const y = r1(base(ln.r) + size * 0.3); svg.push(`<line x1="${r1(XL(ln.L0) - cw * 0.5)}" y1="${y}" x2="${r1(XL(ln.L1) - cw * 0.5)}" y2="${y}" stroke="${col}" stroke-width="1"/>`); });
       L.right.forEach((it, j) => {
         const i = L.items.length + j;
         if (it.comma) { if (!(hid.size && mode !== 'ngaunhien' && !o.dapan)) svg.push(T(XR(it.R) , base(1) + size * 0.02, ',', hid.has(i - 0) && !o.dapan && mode !== 'ngaunhien' ? 'transparent' : col)); return; }
@@ -283,7 +286,8 @@
       W = Math.max(barX + rw + pad, XL(L.leftW - 1) + cw / 2 + pad);
       H = base((blankRows ? 2 : L.rows) - 1) + size * 0.35 + pad + (blankRows ? rh * Math.max(0, L.rows - 2) : 0);
     }
-    return { svg: svg.join(''), labels: [], errors, w: Math.ceil(W), h: Math.ceil(H) };
+    const buoc = Math.max(0, ...all.map((it) => it.s || 0));
+    return { svg: svg.join(''), labels: [], errors, w: Math.ceil(W), h: Math.ceil(H), buoc };
   }
 
   // ---------- Tính giá trị biểu thức tiểu học (để tự điền đáp án) ----------

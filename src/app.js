@@ -950,6 +950,8 @@
   let modal, libThumb, openLib, openReport;
   // ---------- Soạn đề kiểm tra theo cấu trúc 2025, xuất sang Word: src/mod/soande.js ----------
   let openExam;
+  // ---------- Trình chiếu tương tác, mẫu theo bài sách Kết nối tri thức: src/mod/trinhchieu.js ----------
+  let startPresent, stopPresent, openMau, isPresenting;
   function setFormulaFont(times) {
     document.body.classList.toggle('ftimes', !!times);
     try { localStorage.setItem('tvs-font-times', times ? '1' : '0'); } catch (e) { /* bỏ qua */ }
@@ -1001,6 +1003,9 @@
     'ins-baitap': () => { insert('baitap', $('#btKind').value); commit(); },
     'ins-minhhoa': () => { const v = $('#mhKind').value; if (v === 'tiaso') insert('numline', 'tiaso'); else insert('minhhoa', v); commit(); },
     'ins-phieu': () => phieuMau(),
+    mau: () => openMau(),
+    present: () => startPresent(false),
+    'present-step': () => startPresent(true),
     tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
     'ins-line': () => { insert('shape', 'line'); commit(); },
     'ins-arrow': () => { insert('shape', 'arrow'); commit(); },
@@ -1257,6 +1262,7 @@
   ({ isSel, selObjs, many, cleanObj, paintSel, groupOf, setSel, toggleSel, elOf, boxOf, groupData, pasteGroup, pasteMany, multiProps, rubberBand, snapper } = TVM.chonnhieu({ page, props, S, msg, get, commit, title, renderObj, pagePt, buildProps, run }));
   ({ ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag } = TVM.keodiem({ $, S, msg, cur, commit, title, renderObj, buildProps }));
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
+  ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));
 
   loadDoc([], null);
