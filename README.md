@@ -57,7 +57,17 @@ Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS -
     npm test                 # chạy toàn bộ kiểm thử tự động (test/*.test.js)
     npm test -- --cap-nhat   # khi cố ý đổi hình mẫu: cập nhật ảnh chuẩn trong test/anh-chuan.json
 
-## Sao lưu mã nguồn
+## Quản lý phiên bản (Git)
+
+Mỗi phiên bản phát hành là một mốc (tag) `vX.Y.Z`.
+
+    git log --oneline --decorate     # xem lịch sử
+    git diff v2.0.8                  # xem thay đổi so với bản 2.0.8
+    git checkout v2.0.8 -- src/app.js   # lấy lại một tệp từ bản cũ
+
+Quy trình phát hành: `npm test` đạt hết → tăng `version` trong package.json → `npm run installer` → `git commit` → `git tag -a vX.Y.Z`.
+
+## Sao lưu mã nguồn (tệp nén)
 
     powershell -File build\sao-luu.ps1
 
