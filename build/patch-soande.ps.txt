@@ -1,0 +1,43 @@
+  } elseif ($act -eq 'buildexam') {
+    # dựng đề kiểm tra thành một tài liệu Word mới: chữ thường + công thức Equation, hình chèn sau theo chỗ đánh dấu
+    $a = GetApp 'Word.Application'
+    if (-not $a) { $a = New-Object -ComObject Word.Application }
+    $a.Visible = $true
+    $job = [IO.File]::ReadAllText($env:TVS_JOB, [Text.Encoding]::UTF8) | ConvertFrom-Json
+    $doc = $a.Documents.Add()
+    $pg = $doc.PageSetup; $pg.TopMargin = 56.7; $pg.BottomMargin = 56.7; $pg.LeftMargin = 56.7; $pg.RightMargin = 56.7
+    $st = $doc.Styles.Item(-1); $st.Font.Name = 'Times New Roman'; $st.Font.Size = 12
+    $st.ParagraphFormat.SpaceBefore = 0; $st.ParagraphFormat.SpaceAfter = 0; $st.ParagraphFormat.LineSpacingRule = 0
+    $sb = New-Object Text.StringBuilder; $np = 0
+    foreach ($bk in $job.blocks) {
+      $ppr = ''
+      if ($bk.pageBreak) { $ppr += '<w:pageBreakBefore/>' }
+      if ($bk.tabs) { $ppr += '<w:tabs>' + (($bk.tabs | ForEach-Object { '<w:tab w:val="left" w:pos="' + [int]$_ + '"/>' }) -join '') + '</w:tabs>' }
+      $ppr += '<w:spacing w:before="' + ([int]$bk.before * 20) + '" w:after="' + ([int]$bk.after * 20) + '" w:line="276" w:lineRule="auto"/>'
+      if ($bk.indent) { $ppr += '<w:ind w:left="' + [int]$bk.indent + '"/>' }
+      if ($bk.align -eq 'center') { $ppr += '<w:jc w:val="center"/>' } elseif ($bk.justify) { $ppr += '<w:jc w:val="both"/>' }
+      [void]$sb.Append('<w:p><w:pPr>' + $ppr + '</w:pPr>')
+      foreach ($sg in $bk.segs) {
+        if ($sg.m) { [void]$sb.Append((MmlToOmml $a ([string]$sg.m))); continue }
+        $rpr = ''; if ($sg.b -or $bk.bold) { $rpr += '<w:b/>' }; if ($bk.italic) { $rpr += '<w:i/>' }
+        $parts = ([string]$sg.t).Split([char]9)
+        for ($i = 0; $i -lt $parts.Length; $i++) {
+          if ($i -gt 0) { [void]$sb.Append('<w:r><w:rPr>' + $rpr + '</w:rPr><w:tab/></w:r>') }
+          if ($parts[$i]) { [void]$sb.Append('<w:r><w:rPr>' + $rpr + '</w:rPr><w:t xml:space="preserve">' + [Security.SecurityElement]::Escape($parts[$i]) + '</w:t></w:r>') }
+        }
+      }
+      [void]$sb.Append('</w:p>'); $np++
+    }
+    $head = $pkgA.Replace('<w:body><w:p>', '<w:body>'); $tail = $pkgB.Replace('</w:p></w:body>', '</w:body>')
+    $doc.Content.InsertXML($head + $sb.ToString() + $tail)
+    foreach ($im in $job.images) {
+      $rg = $doc.Content
+      if ($rg.Find.Execute([string]$im.key)) {
+        $rg.Text = ''
+        $p = $doc.InlineShapes.AddPicture([string]$im.file, $false, $true, $rg)
+        $p.LockAspectRatio = 0; $p.Width = [double]$im.w; $p.Height = [double]$im.h; $p.LockAspectRatio = -1
+      }
+    }
+    try { $doc.Range(0, 0).Select(); $a.Activate() } catch {}
+    "OK:$np"
+  } elseif ($act -eq 'inserteq') {

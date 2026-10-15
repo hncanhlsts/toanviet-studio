@@ -41,6 +41,7 @@ function createWindow() {
       { type: 'separator' },
       { label: 'Tài liệu mẫu', click: send('demo') },
       { label: 'Thư viện của tôi…', accelerator: 'Ctrl+L', click: send('lib') },
+      { label: 'Soạn đề kiểm tra…', accelerator: 'Ctrl+Shift+D', click: send('exam') },
       { type: 'separator' },
       { label: 'Thoát', accelerator: 'Ctrl+Q', role: 'quit' },
     ] },
@@ -52,6 +53,9 @@ function createWindow() {
       { label: 'Phóng to', accelerator: 'Ctrl+=', click: send('zoomin') },
       { label: 'Thu nhỏ', accelerator: 'Ctrl+-', click: send('zoomout') },
       { label: '100%', accelerator: 'Ctrl+0', click: send('zoom100') },
+      { type: 'separator' },
+      { label: 'Phông công thức: kiểu Times New Roman', click: send('font-times') },
+      { label: 'Phông công thức: mặc định', click: send('font-tex') },
       { type: 'separator' },
       { label: 'Toàn màn hình', role: 'togglefullscreen' },
       { label: 'Công cụ lập trình', role: 'toggleDevTools' },
@@ -321,6 +325,48 @@ try {
       }
     } finally { $a.ScreenUpdating = $true; try { $a.Options.SmartCutPaste = $scp } catch {}; try { if ($ur) { $ur.EndCustomRecord() } } catch {} }
     "OK:$n"
+  } elseif ($act -eq 'buildexam') {
+    # dựng đề kiểm tra thành một tài liệu Word mới: chữ thường + công thức Equation, hình chèn sau theo chỗ đánh dấu
+    $a = GetApp 'Word.Application'
+    if (-not $a) { $a = New-Object -ComObject Word.Application }
+    $a.Visible = $true
+    $job = [IO.File]::ReadAllText($env:TVS_JOB, [Text.Encoding]::UTF8) | ConvertFrom-Json
+    $doc = $a.Documents.Add()
+    $pg = $doc.PageSetup; $pg.TopMargin = 56.7; $pg.BottomMargin = 56.7; $pg.LeftMargin = 56.7; $pg.RightMargin = 56.7
+    $st = $doc.Styles.Item(-1); $st.Font.Name = 'Times New Roman'; $st.Font.Size = 12
+    $st.ParagraphFormat.SpaceBefore = 0; $st.ParagraphFormat.SpaceAfter = 0; $st.ParagraphFormat.LineSpacingRule = 0
+    $sb = New-Object Text.StringBuilder; $np = 0
+    foreach ($bk in $job.blocks) {
+      $ppr = ''
+      if ($bk.pageBreak) { $ppr += '<w:pageBreakBefore/>' }
+      if ($bk.tabs) { $ppr += '<w:tabs>' + (($bk.tabs | ForEach-Object { '<w:tab w:val="left" w:pos="' + [int]$_ + '"/>' }) -join '') + '</w:tabs>' }
+      $ppr += '<w:spacing w:before="' + ([int]$bk.before * 20) + '" w:after="' + ([int]$bk.after * 20) + '" w:line="276" w:lineRule="auto"/>'
+      if ($bk.indent) { $ppr += '<w:ind w:left="' + [int]$bk.indent + '"/>' }
+      if ($bk.align -eq 'center') { $ppr += '<w:jc w:val="center"/>' } elseif ($bk.justify) { $ppr += '<w:jc w:val="both"/>' }
+      [void]$sb.Append('<w:p><w:pPr>' + $ppr + '</w:pPr>')
+      foreach ($sg in $bk.segs) {
+        if ($sg.m) { [void]$sb.Append((MmlToOmml $a ([string]$sg.m))); continue }
+        $rpr = ''; if ($sg.b -or $bk.bold) { $rpr += '<w:b/>' }; if ($bk.italic) { $rpr += '<w:i/>' }
+        $parts = ([string]$sg.t).Split([char]9)
+        for ($i = 0; $i -lt $parts.Length; $i++) {
+          if ($i -gt 0) { [void]$sb.Append('<w:r><w:rPr>' + $rpr + '</w:rPr><w:tab/></w:r>') }
+          if ($parts[$i]) { [void]$sb.Append('<w:r><w:rPr>' + $rpr + '</w:rPr><w:t xml:space="preserve">' + [Security.SecurityElement]::Escape($parts[$i]) + '</w:t></w:r>') }
+        }
+      }
+      [void]$sb.Append('</w:p>'); $np++
+    }
+    $head = $pkgA.Replace('<w:body><w:p>', '<w:body>'); $tail = $pkgB.Replace('</w:p></w:body>', '</w:body>')
+    $doc.Content.InsertXML($head + $sb.ToString() + $tail)
+    foreach ($im in $job.images) {
+      $rg = $doc.Content
+      if ($rg.Find.Execute([string]$im.key)) {
+        $rg.Text = ''
+        $p = $doc.InlineShapes.AddPicture([string]$im.file, $false, $true, $rg)
+        $p.LockAspectRatio = 0; $p.Width = [double]$im.w; $p.Height = [double]$im.h; $p.LockAspectRatio = -1
+      }
+    }
+    try { $doc.Range(0, 0).Select(); $a.Activate() } catch {}
+    "OK:$np"
   } elseif ($act -eq 'inserteq') {
     # chèn công thức dạng Equation gốc của Word (OMML) tại con trỏ, hoặc thay cho công thức đang sửa
     $a = GetApp 'Word.Application'
@@ -521,6 +567,15 @@ ipcMain.handle('office', async (e, opts) => {
     const m = out.match(/^OK:(Word|PPT|WordEq|MathType):(.+)$/);
     if (m) return { ok: true, from: m[1], data: m[2] };
     return { ok: false, error: out === 'ERR:NOSEL' ? 'Hãy chọn (nhấp vào) một hình ToanViet trong Word hoặc PowerPoint trước' : 'Lỗi: ' + out.slice(4) };
+  }
+  if (opts.action === 'buildexam') {
+    const jf = path.join(app.getPath('temp'), 'toanviet-de-' + Date.now() + '.json');
+    fs.writeFileSync(jf, JSON.stringify(opts.job), 'utf8');
+    const out = await runOffice({ TVS_ACT: 'buildexam', TVS_JOB: jf });
+    fs.unlink(jf, () => {});
+    (opts.job.images || []).forEach((im) => fs.unlink(im.file, () => {}));
+    const m = out.match(/^OK:(\d+)$/);
+    return m ? { ok: true, count: +m[1] } : { ok: false, error: 'Lỗi khi tạo đề trong Word: ' + out.slice(4) };
   }
   if (opts.action === 'inserteq') {
     const hideNow = !!office && !!opts.quick && win && !shotArg;

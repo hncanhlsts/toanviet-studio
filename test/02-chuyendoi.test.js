@@ -26,3 +26,16 @@ CASES.forEach((tex) => thu('khứ hồi ' + tex, () => {
   const k = (s) => s.replace(/[{}]/g, '').replace(/\\leq?/g, '\\le');
   bang(k(back), k(norm(tex)));
 }));
+
+nhom('LaTeX → MathML cho Word (mmlfix.js)');
+[['\\widehat{BAC}', '^', 'BAC'], ['\\overarc{AB}', '⏜', 'AB'], ['\\overrightarrow{AB}', '⃗', 'AB'], ['\\overline{AB}', '¯', 'AB'], ['\\widetilde{x}', '~', 'x'], ['\\overleftrightarrow{MN}', '⃡', 'MN'], ['\\vec{u}', '⃗', 'u']].forEach(([tex, ch, base]) => thu(tex + ' có dấu và có thân', () => {
+  const m = MmlFix.convert(tex);
+  dung(!/undefined/.test(m), 'còn "undefined": ' + m);
+  dung(m.includes('<mo>' + ch + '</mo>'), 'thiếu dấu: ' + m);
+  dung(m.replace(/<[^>]+>/g, '').replace(/&#\d+;/g, '').replace(ch, '').includes(base), 'mất phần thân: ' + m);
+}));
+thu('lồng nhau và lẫn công thức khác', () => {
+  const m = MmlFix.convert('\\widehat{xOy}+\\frac{\\overline{AB}}{2}=\\overrightarrow{AB}\\cdot\\vec{u}');
+  dung(!/undefined|QQ\d+QQ/.test(m), m);
+  dung((m.match(/<mover/g) || []).length === 4, 'phải có 4 dấu: ' + m);
+});

@@ -40,6 +40,7 @@
   .ribbon .col { text-align: left; line-height: 1.75; white-space: nowrap; }
   .ribbon .cap { color: #6b7785; margin-top: 4pt; }
   .toc { columns: 2; column-gap: 24pt; } .toc li { margin: 3pt 0; break-inside: avoid; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; page-break-inside: avoid; }
 </style>
 </head>
 <body>
@@ -49,7 +50,7 @@
   <div class="sub">Hướng dẫn sử dụng — từ làm quen đến thành thạo</div>
   <p>Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí – Hoá học – Sinh học<br>cho chương trình phổ thông Việt Nam, dùng độc lập hoặc ngay trong Word và PowerPoint.</p>
   <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
-  <div class="ver">Phiên bản 2.3.0 · © 2026 Hoàng Ngọc Cảnh</div>
+  <div class="ver">Phiên bản 2.4.0 · © 2026 Hoàng Ngọc Cảnh</div>
 </div>
 
 <h2>Mục lục</h2>
@@ -73,7 +74,7 @@
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
   <li>Đóng hết Word và PowerPoint.</li>
-  <li>Chạy tệp <code>ToanVietStudio-Setup-2.3.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.4.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
   <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
   <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
 </ol>
@@ -448,7 +449,21 @@ vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74
   <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd></td><td>Mở đầy đủ ToanViet Studio</td></tr>
 </table>
 
-<h2>10. Thống nhất định dạng công thức, dán bài từ trợ lí AI <span class="level l3">Nâng cao</span></h2>
+<h3>9.5. Soạn đề kiểm tra và xuất sang Word <span class="level l2">Thường dùng</span></h3>
+<p>Nút <b>Soạn đề</b> (Ctrl+Shift+D) mở hộp thoại soạn đề theo <b>cấu trúc 2025</b>: Phần I trắc nghiệm 4 phương án, Phần II đúng/sai, Phần III trả lời ngắn, thêm Phần IV tự luận nếu cần. Câu hỏi <b>tự đánh số</b> trong từng phần.</p>
+<ol>
+  <li>Mở mục <b>Thông tin đầu đề</b> để điền sở, trường, tên đề, năm học, môn, thời gian, mã đề.</li>
+  <li>Bấm <b>＋</b> ở phần cần thêm câu, hoặc bấm <b>Khung đề 2025 (12 – 4 – 6)</b> để có sẵn 22 câu trống; <b>Đề ví dụ</b> để xem một đề mẫu.</li>
+  <li>Gõ nội dung; công thức đặt giữa hai dấu <code>$</code> hoặc bấm <b>∑ Chèn công thức</b> (Ctrl+M) để soạn bằng hộp soạn quen thuộc. Phần xem trước cập nhật ngay.</li>
+  <li>Chọn đáp án đúng: nút tròn A–D (Phần I), Đúng/Sai cho từng ý (Phần II), đáp số (Phần III).</li>
+  <li>Muốn có hình: chọn hình hoặc công thức trên trang (hình phẳng, đồ thị, khối…), mở lại Soạn đề, bấm <b>Lấy hình đang chọn trên trang</b>.</li>
+  <li>Bấm <b>Xuất sang Word</b>: phần mềm tạo một tài liệu Word mới, phông Times New Roman 12, lề 2 cm. <b>Chữ sửa được, công thức là Equation của Word</b>, 4 phương án tự xếp 4 / 2 / 1 phương án trên một dòng tuỳ độ dài, hình đặt giữa dòng; Word tự chia trang. Đánh dấu <b>Kèm đáp án</b> để thêm trang đáp án ở cuối.</li>
+</ol>
+<div class="two"><figure><img src="img/soan-de.png"><figcaption>Hộp thoại Soạn đề</figcaption></figure><figure><img src="img/de-word.png"><figcaption>Đề được tạo trong Word</figcaption></figure></div>
+<p>Đề được lưu cùng tệp .tvs, mở lại tệp là soạn tiếp được. Đã có công thức trong Word thì dùng các nút "Thống nhất định dạng" (chương 10) như bình thường.</p>
+<h3>9.6. Phông công thức kiểu Times</h3>
+<p>Công thức chèn dạng ảnh mặc định dùng phông kiểu sách toán (giống LaTeX). Vào <b>Xem ▸ Phông công thức: kiểu Times New Roman</b> để chữ trong công thức cùng kiểu với chữ thường của Word; chọn lại <b>Phông công thức: mặc định</b> để trở về. Phần mềm nhớ lựa chọn cho lần sau.</p>
+<figure><img src="img/phong-times.png" style="width:70%"><figcaption>Cùng một công thức với hai kiểu phông</figcaption></figure><h2>10. Thống nhất định dạng công thức, dán bài từ trợ lí AI <span class="level l3">Nâng cao</span></h2>
 <p>Sáu nút trong nhóm <b>Thống nhất định dạng công thức</b> của Word chuyển <b>toàn bộ</b> công thức một loại trong tài liệu đang mở sang loại khác:</p>
 <table>
   <tr><th style="width:30%">Nút</th><th>Tác dụng</th></tr>
