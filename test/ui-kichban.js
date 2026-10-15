@@ -234,6 +234,11 @@
     // hỗn số: 2, phím cách, 1, phân số
     mf.setValue(''); mf.insert('2'); mf.executeCommand(['typedText', ' ']); mf.insert('1'); mf.insert(B + 'frac{#@}{#?}', { selectionMode: 'placeholder' }); mf.insert('3'); await w(80);
     ok('gõ hỗn số 2 1/3 bằng phím cách', tx.value === '2' + B + 'frac{1}{3}', tx.value);
+    const gapOf = () => { const sp = [...mf.shadowRoot.querySelectorAll('span')].filter((s) => !s.children.length); return sp.find((s) => s.textContent === '1').getBoundingClientRect().left - sp.find((s) => s.textContent === '2').getBoundingClientRect().right; };
+    const gGo = gapOf(); mf.setValue('2' + B + 'frac{1}{3}'); await w(60); const gChuan = gapOf();
+    ok('hỗn số gõ bằng phím cách hiện liền như hỗn số chuẩn (không có khoảng trống thừa)', Math.abs(gGo - gChuan) < 1, gGo + ' / ' + gChuan);
+    mf.setValue(''); mf.insert('1'); mf.executeCommand(['typedText', ' ']); mf.insert('000'); await w(80);
+    ok('gõ 1 000 bằng phím cách ra số tách lớp', tx.value === '1' + B + ',000', tx.value);
     // phân số viết gọn \frac12 được viết lại đủ ngoặc
     mf.setValue(B + 'frac12+' + B + 'sqrt2'); mf.dispatchEvent(new Event('input')); await w(80);
     ok('viết lại đủ ngoặc: \\frac{1}{2}, \\sqrt{2}', tx.value === B + 'frac{1}{2}+' + B + 'sqrt{2}', tx.value);

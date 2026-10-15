@@ -261,10 +261,11 @@
   mf.mathVirtualKeyboardPolicy = 'manual';
   mf.macros = Object.assign({}, mf.macros, { dongdang: SIM_TEX });
   mf.inlineShortcuts = Object.assign({}, mf.inlineShortcuts, { dongdang: '\\dongdang' });
-  // Phím cách trong ô toán chèn khoảng \: để ngắt nhóm chữ số: gõ "2 1/3" ra hỗn số (không gộp 21 làm tử số),
-  // gõ "1 000" ra số tách lớp. Khi lấy giá trị: giữa hai chữ số thành \, (tách lớp), các chỗ khác bỏ đi.
-  mf.mathModeSpace = '\\:';
-  const spaceFix = (v) => v.replace(/(\d)\s*\\:\s*(?=\d)/g, '$1\\,').replace(/\\:\s*/g, '');
+  // Phím cách trong ô toán chèn một khoảng rộng 0 (\kern0pt) để ngắt nhóm chữ số: gõ "2 1/3" ra hỗn số liền như sách
+  // (không gộp 21 làm tử số, không có khoảng trống thừa), gõ "1 000" ra số tách lớp.
+  // Khi lấy giá trị: giữa hai chữ số thành \, (tách lớp), các chỗ khác bỏ đi.
+  mf.mathModeSpace = '\\kern0pt';
+  const spaceFix = (v) => v.replace(/(\d)\s*\\(?:kern|hspace\{?)0pt\}?\s*(?=\d)/g, '$1\\,').replace(/\\(?:kern|hspace\{?)0pt\}?\s*/g, '').replace(/(\d)\s*\\:\s*(?=\d)/g, '$1\\,').replace(/\\:\s*/g, '');
   let simInShadow = false;
   // MathLive viết gọn \frac12, \sqrt2: viết lại đủ ngoặc cho dễ đọc ở ô LaTeX và cho các bộ chuyển (MathType, Equation)
   const braceFix = (v) => v.replace(/\\(dfrac|tfrac|frac|binom)(\d)(\d)/g, '\\$1{$2}{$3}').replace(/\\(dfrac|tfrac|frac|binom)(\d)(?=\{)/g, '\\$1{$2}')
