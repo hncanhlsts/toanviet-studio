@@ -137,6 +137,11 @@
       } else if (o.type === 'text') {
         el.style.cssText += `width:${o.w}px;font-size:${o.size}px;color:${o.color || '#000'};text-align:${o.align || 'left'};font-weight:${o.bold ? 700 : 400};font-style:${o.italic ? 'italic' : 'normal'};`;
         html = textHtml(o);
+      } else if (o.type === 'baitap') {
+        // dạng bài tiểu học: khối chữ tự xuống dòng như văn bản, chiều cao tự theo nội dung
+        el.style.cssText += `width:${o.w}px;`;
+        const res = TieuHoc.renderBaiTap(o);
+        html = res.html; o._err = res.errors.join('\n');
       } else {
         let res;
         if (o.type === 'graph') res = Graph.renderGraph(o, o.w, o.h);
@@ -148,6 +153,7 @@
         else if (o.type === 'sym') res = SGK.render(o, o.w, o.h);
         else if (o.type === 'numline') res = NumLine.render(o, o.w, o.h);
         else if (o.type === 'venn') res = NumLine.renderVenn(o, o.w, o.h);
+        else if (o.type === 'dattinh') { res = TieuHoc.renderDatTinh(o); o.w = res.w; o.h = res.h; }
         else res = { svg: shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
@@ -198,6 +204,8 @@
       case 'plane': return { kind, w: 340, h: 280, script: Plane.scriptOf(kind), labels: true, dots: false, stroke: 1.5, color: '#111111' };
       case 'numline': return Object.assign({ kind, color: '#111111', pcolor: '#d62728', ncolor: '#1f77b4', xname: '' }, JSON.parse(JSON.stringify(NumLine.KINDS[kind][1])));
       case 'venn': return Object.assign({ kind, color: '#111111' }, JSON.parse(JSON.stringify(NumLine.VKINDS[kind][1])));
+      case 'dattinh': return Object.assign({ kind, expr: '356 + 278', size: 26, an: 'none', nan: 3, seed: 1, dapan: false, nho: false, kieuchia: 'day', thapphan: 0, color: '#111111', acolor: '#d62728', w: 100, h: 100 }, TieuHoc.DT_KINDS[kind][1]);
+      case 'baitap': return Object.assign({ kind, de: '', text: '', size: 20, cols: 1, dapan: false, seed: 1, head: false, headcol: false, nrow: 4, color: '#111111', acolor: '#d62728', w: 640 }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[kind][1])));
       case 'shape': return { kind, w: kind === 'line' || kind === 'arrow' ? 160 : 140, h: kind === 'line' || kind === 'arrow' ? 60 : 100, color: '#111111', sw: 1.5, dash: false, nofill: true, fill: '#aed6f1', flip: false };
     }
   }
@@ -219,7 +227,7 @@
 
   // ---------- Hộp soạn công thức (theo thiết kế của Bảng vẽ Toán) ----------
   const dlg = $('#fxdlg'), fTex = $('#fTex'), fPrev = $('#fPrev');
-  let fxDone = null, fMode = 'v', fTab = 0, pfx = null, fT = 0;
+  let fxDone = null, fMode = 'v', fTab = 1, pfx = null, fT = 0; // thẻ 0 (Tiểu học) mở sẵn ở chế độ Tiểu học
   const fSt = { size: 16, color: '#000000', bold: false };
   // Cỡ chữ hiển thị theo point như Word (12 pt = 16 px trên trang)
   const toPt = (px) => Math.round(px * 0.75 * 2) / 2, toPx = (pt) => pt / 0.75;
@@ -418,7 +426,7 @@
     $('#fxback').hidden = true;
     try { if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.hide(); } catch (e) { /* không có bàn phím ảo */ }
     const d = fxDone; fxDone = null;
-    if (d) d(ok ? v : null);
+    if (d) d(ok ? thFix(v) : null);
   }
   $('#fxok').onclick = () => closeFx(true);
   $('#fxcancel').onclick = () => closeFx(false);
@@ -507,7 +515,8 @@
         return;
       }
       if (o.type === 'formula') o.size = Math.max(8, Math.min(96, Math.round(st.size * (st.bw + dx) / st.bw)));
-      else if (o.type === 'text') o.w = Math.max(60, Math.round(st.w + dx));
+      else if (o.type === 'text' || o.type === 'baitap') o.w = Math.max(60, Math.round(st.w + dx));
+      else if (o.type === 'dattinh') o.size = Math.max(10, Math.min(96, Math.round(st.size * (st.w + dx) / st.w)));
       else {
         o.w = Math.max(o.type === 'shape' ? 4 : 80, Math.round(st.w + dx));
         o.h = Math.max(o.type === 'shape' ? 2 : 50, Math.round(st.h + dy));
@@ -854,6 +863,47 @@
       row(field('style', 'Kiểu tô', 'sel', { fill: 'Tô màu', hatch: 'Gạch chéo' }), field('fill', 'Màu tô', 'color'));
       add(field('colorful', 'Mỗi tập một màu viền', 'chk'));
       row(field('esize', 'Cỡ chữ phần tử', 'num'), field('stroke', 'Độ dày nét', 'num', 0.1), field('color', 'Màu', 'color'));
+    } else if (o.type === 'dattinh') {
+      const kinds = { __on: (k) => Object.assign(o, { kieuchia: 'day', thapphan: 0 }, TieuHoc.DT_KINDS[k][1]) };
+      for (const k in TieuHoc.DT_KINDS) kinds[k] = TieuHoc.DT_KINDS[k][0];
+      add(field('kind', 'Mẫu', 'sel', kinds));
+      add(field('expr', 'Phép tính')).querySelector('input').addEventListener('change', () => buildProps());
+      help('Gõ <code>356 + 278</code> · <code>732 - 458</code> · <code>236 x 47</code> · <code>4536 : 12</code> · số thập phân dùng dấu phẩy: <code>45,08 + 24,9</code>. Phép cộng được nhiều số hạng: <code>125 + 348 + 207</code>.');
+      if (/:|÷/.test(o.expr)) {
+        add(field('kieuchia', 'Cách viết phép chia', 'sel', { day: 'Đầy đủ: ghi tích và dấu trừ ở từng bước (lớp 3)', gon: 'Viết gọn: chỉ ghi số dư (lớp 4, 5)' }));
+        add(field('thapphan', 'Chia tiếp đến số chữ số ở phần thập phân của thương (0 = dừng, ghi số dư)', 'num', 1));
+      }
+      h4('Dùng làm bài tập');
+      add(field('an', 'Phần cho học sinh làm', 'sel', { none: 'Hiện đầy đủ (bài mẫu)', kq: 'Để trống kết quả (học sinh tự tính)', otrong: 'Ô trống ở từng chữ số của kết quả', ngaunhien: 'Điền chữ số còn thiếu (giấu ngẫu nhiên)' }));
+      if (o.an === 'ngaunhien') row(field('nan', 'Số chữ số giấu', 'num', 1), field('seed', 'Số xáo (đổi để giấu chỗ khác)', 'num', 1));
+      add(field('dapan', 'Hiện đáp án (màu đỏ) — bản cho giáo viên', 'chk'));
+      add(field('nho', 'Ghi số nhớ nhỏ (cộng, nhân với số có một chữ số)', 'chk'));
+      row(field('size', 'Cỡ chữ số', 'num', 1), field('color', 'Màu', 'color'), field('acolor', 'Màu đáp án', 'color'));
+      help('Kéo ô vuông ở góc để phóng to, thu nhỏ.');
+    } else if (o.type === 'baitap') {
+      const kinds = { __on: (k) => Object.assign(o, { de: '', cols: 1, head: false, headcol: false }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[k][1]))) };
+      for (const k in TieuHoc.BT_KINDS) kinds[k] = TieuHoc.BT_KINDS[k][0];
+      add(field('kind', 'Dạng bài (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
+      if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('de', 'Đề bài (lệnh), vd: Bài 1. Số?'));
+      const TH_HELP = {
+        tieude: 'Dòng đầu là tên phiếu, các dòng sau ghi thêm. <code>{}</code> là chỗ chấm để học sinh viết, vd <code>Họ và tên: {} Lớp: {}</code>.',
+        otrong: 'Mỗi dòng một phép tính. <code>[]</code> ô trống (đáp án tự tính khi dòng có một ô trống), <code>[7]</code> ô trống có đáp án 7, <code>{30}</code> chỗ chấm có đáp án 30. Phân số viết <code>3/4</code>, nhân <code>x</code>, chia <code>:</code>.',
+        sosanh: 'Mỗi dòng một cặp, đặt <code>(?)</code> vào chỗ điền dấu: <code>27 + 8 (?) 35</code>. Dấu đúng tự tính.',
+        dungsai: 'Mỗi dòng một khẳng định. Đáp án tự tính với phép tính có dấu =, &lt;, &gt;; dòng khác thêm <code>[Đ]</code> hoặc <code>[S]</code> ở cuối.',
+        khoanh: 'Dòng đầu là câu hỏi, các dòng sau là phương án (chữ A, B, C, D tự thêm). Đặt dấu <code>*</code> trước phương án đúng. Các câu cách nhau một dòng trống.',
+        noi: 'Mỗi dòng một cặp đúng: <code>8 x 7 | 56</code>. Cột bên phải tự xáo thứ tự; đổi "Số xáo" để xáo kiểu khác.',
+        maytinh: 'Mỗi dòng một chuỗi: <code>12 -&gt; +5 -&gt; [] -&gt; x2 -&gt; []</code>. Số trong ô trống tự tính.',
+        bang: 'Mỗi dòng một hàng, các ô cách nhau bằng <code>|</code>. <code>[12]</code> là ô để trống, đáp án 12.',
+        oly: 'Mỗi dòng nội dung là chữ / số mẫu viết ở đầu một dòng ô li.',
+      };
+      add(field('text', 'Nội dung', 'area', { rows: 7 }));
+      help(TH_HELP[o.kind] || '');
+      if (o.kind === 'oly') add(field('nrow', 'Số dòng ô li', 'num', 1));
+      if (/otrong|sosanh|khoanh/.test(o.kind)) add(field('cols', 'Số cột', 'num', 1));
+      if (o.kind === 'noi') add(field('seed', 'Số xáo', 'num', 1));
+      if (o.kind === 'bang') row(field('head', 'Hàng đầu đậm', 'chk'), field('headcol', 'Cột đầu đậm', 'chk'));
+      if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('dapan', 'Hiện đáp án (màu đỏ) — bản cho giáo viên', 'chk'));
+      row(field('size', 'Cỡ chữ', 'num', 1), field('color', 'Màu chữ', 'color'), field('acolor', 'Màu đáp án', 'color'));
     } else if (o.type === 'shape') {
       row(field('color', 'Màu nét', 'color'), field('sw', 'Độ dày', 'num', 0.5));
       add(field('dash', 'Nét đứt', 'chk'));
@@ -862,7 +912,8 @@
     }
     h4('Vị trí' + (o.w && o.type !== 'formula' ? ' và kích thước' : ''));
     row(field('x', 'X', 'num'), field('y', 'Y', 'num'));
-    if (o.type !== 'formula' && o.type !== 'text') row(field('w', 'Rộng', 'num'), field('h', 'Cao', 'num'));
+    if (o.type === 'baitap') add(field('w', 'Rộng', 'num'));
+    else if (o.type !== 'formula' && o.type !== 'text' && o.type !== 'dattinh') row(field('w', 'Rộng', 'num'), field('h', 'Cao', 'num'));
     const er = add(mk('div', 'err')); er.id = 'perr'; er.textContent = o._err || '';
   }
 
@@ -888,6 +939,34 @@
     msg(times ? 'Công thức dùng phông kiểu Times New Roman (giống chữ trong Word)' : 'Công thức dùng phông mặc định');
   }
   try { if (localStorage.getItem('tvs-font-times') === '1') document.body.classList.add('ftimes'); } catch (e) { /* bỏ qua */ }
+  // Chế độ Tiểu học: hiện nhóm nút Tiểu học, ẩn công cụ cấp 2–3, công thức theo quy ước tiểu học
+  function setTieuHoc(on, quiet) {
+    document.body.classList.toggle('tieuhoc', !!on);
+    fTab = on ? 0 : 1;
+    try { localStorage.setItem('tvs-tieuhoc', on ? '1' : '0'); } catch (e) { /* bỏ qua */ }
+    const b = $('#modeBadge'); if (b) b.textContent = on ? 'Tiểu học' : 'THCS – THPT';
+    if (!quiet) msg(on ? 'Chế độ Tiểu học (lớp 1–5): nhóm nút Tiểu học ở thanh công cụ; công thức dùng dấu × và dấu phẩy thập phân' : 'Chế độ THCS – THPT: hiện đủ công cụ');
+  }
+  try { if (localStorage.getItem('tvs-tieuhoc') === '1') setTieuHoc(true, true); } catch (e) { /* bỏ qua */ }
+  // quy ước trình bày tiểu học trong công thức: 2,5 (không có khoảng trắng sau dấu phẩy), dấu nhân ×
+  const thFix = (v) => (document.body.classList.contains('tieuhoc') && v ? v.replace(/(\d),(?=\d)/g, '$1{,}').replace(/\\ast(?![a-zA-Z])|\*/g, '\\times ') : v);
+  // phiếu bài tập mẫu: tiêu đề và các dạng bài hay gặp, xếp lần lượt từ trên xuống
+  function phieuMau() {
+    let y = Math.round(30 + stage.scrollTop / S.zoom);
+    const ids = [];
+    const put = (type, kind, extra) => { const o = insert(type, kind, Object.assign({ x: 40, y }, extra)); ids.push(o.id); const el = elOf(o.id); y += (el ? el.offsetHeight : o.h || 60) + 14; return o; };
+    put('baitap', 'tieude', { w: 714 });
+    put('baitap', 'otrong', { w: 714 });
+    put('baitap', 'sosanh', { w: 714 });
+    put('baitap', 'dungsai', { w: 420 });
+    const de = put('baitap', 'otrong', { w: 714, de: 'Bài 4. Đặt tính rồi tính:', text: '' });
+    de.text = ''; renderObj(de);
+    y -= 6;
+    [['cong', 40], ['tru', 210], ['nhan2', 380], ['chia1', 550]].forEach(([k, x]) => { const o = insert('dattinh', k, { x, y, an: 'kq' }); ids.push(o.id); });
+    setSel(ids);
+    commit();
+    msg('Đã chèn phiếu bài tập mẫu — chọn từng phần để sửa nội dung ở khung Thuộc tính');
+  }
   const CMD = {
     'ins-formula': () => editFormula(insert('formula'), true),
     'ins-text': () => { S.placing = true; page.classList.add('placing'); msg('Nhấp vào vị trí bất kỳ trên trang để gõ chữ (Esc: thôi)'); },
@@ -898,8 +977,12 @@
     'ins-solid': () => { const v = $('#solidKind').value; if (v.startsWith('sp:')) insert('space', v.slice(3)); else insert('solid', v); commit(); },
     'ins-plane': () => { insert('plane', $('#planeKind').value); commit(); },
     'ins-sym': () => { insert('sym', $('#symKind').value); commit(); },
-    'ins-numline': () => { insert('numline', 'bpt'); commit(); },
+    'ins-numline': () => { insert('numline', document.body.classList.contains('tieuhoc') ? 'tiaso' : 'bpt'); commit(); },
     'ins-venn': () => { insert('venn', 'phantu'); commit(); },
+    'ins-dattinh': () => { insert('dattinh', $('#dtKind').value); commit(); },
+    'ins-baitap': () => { insert('baitap', $('#btKind').value); commit(); },
+    'ins-phieu': () => phieuMau(),
+    tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
     'ins-line': () => { insert('shape', 'line'); commit(); },
     'ins-arrow': () => { insert('shape', 'arrow'); commit(); },
     'ins-rect': () => { insert('shape', 'rect'); commit(); },
@@ -1004,6 +1087,7 @@
     if (CMD[cmd]) CMD[cmd]();
   }
   $('#ribbon').addEventListener('click', (e) => { const b = e.target.closest('button[data-cmd]'); if (b) run(b.dataset.cmd); });
+  $('#modeBadge').onclick = () => run('tieuhoc');
   if (api) api.onMenu(run);
   if (api && api.onLibFile) api.onLibFile(async (r) => {
     try {
@@ -1045,6 +1129,9 @@
   stage.addEventListener('wheel', (e) => { if (e.ctrlKey) { e.preventDefault(); setZoom(S.zoom + (e.deltaY < 0 ? 0.1 : -0.1)); } }, { passive: false });
 
   $('#credit').onclick = () => { if (api && api.about) api.about(); };
+  const dk = $('#dtKind'), bk = $('#btKind');
+  for (const k in TieuHoc.DT_KINDS) { const op = document.createElement('option'); op.value = k; op.textContent = TieuHoc.DT_KINDS[k][0]; dk.appendChild(op); }
+  for (const k in TieuHoc.BT_KINDS) { const op = document.createElement('option'); op.value = k; op.textContent = TieuHoc.BT_KINDS[k][0]; bk.appendChild(op); }
   const yk = $('#symKind');
   SGK.GROUPS.forEach((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } yk.appendChild(og); });
   const pk = $('#planeKind');

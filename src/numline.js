@@ -444,6 +444,7 @@
   const rowsH = (sets, extra) => Math.max(1, String(sets).split('\n').filter((t) => t.trim()).length) * 62 + (extra || 8);
   const LINE = (sets, more) => Object.assign({ sets, points: '', ticks: false, nums: true, zero: true, rowLabels: false, colorful: false, style: 'hatch', plabel: 'ten', step: 1, sub: 1, xmin: '', xmax: '', w: 480, h: rowsH(sets) }, more);
   const KINDS = {
+    tiaso: ['Tia số (lớp 1 – 5)', { sets: '', points: 'A = 30\nB = 70', ticks: true, zero: true, plabel: 'ten', step: 10, sub: 1, xmin: '0', xmax: '105', w: 560, h: 80 }],
     nguyen: ['Số nguyên trên trục số (lớp 6)', { sets: '', points: 'A = -3\nB = 2\nO = 0', ticks: true, zero: false, plabel: 'ten', step: 1, sub: 1, w: 520, h: 80 }],
     huuti: ['Số hữu tỉ: chia đơn vị thành phần bằng nhau (lớp 7)', { sets: '', points: 'C = -9/4\nB = -3/4\nO = 0\nA = 7/4', ticks: true, zero: false, plabel: 'ten', step: 1, sub: 4, w: 520, h: 80 }],
     thuc: ['Số thực trên trục số: giá trị ở trên, tên ở dưới (lớp 7)', { sets: '', points: '-2 1/3\nN = -sqrt(2)\n-3/5\nO = 0\n0,3\nM = sqrt(2)\nsqrt(3)\n2 1/3\n4,1(6)', ticks: true, zero: false, plabel: 'so', step: 1, sub: 1, w: 680, h: 110 }],

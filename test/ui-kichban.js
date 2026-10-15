@@ -155,5 +155,32 @@
     ok('tắt phông Times', !document.body.classList.contains('ftimes'));
   });
 
+  await step('Chế độ Tiểu học, đặt tính, phiếu mẫu', async () => {
+    __clear();
+    const vis = (sel) => { const e = document.querySelector(sel); return !!e && getComputedStyle(e.closest('.grp') || e).display !== 'none'; };
+    window.__run('tieuhoc'); await w(150);
+    ok('bật chế độ Tiểu học: hiện nhóm nút Tiểu học, ẩn Đồ thị', vis('#dtKind') && !vis('[data-cmd="ins-graph"]'));
+    document.getElementById('dtKind').value = 'chia2';
+    document.querySelector('[data-cmd="ins-dattinh"]').click(); await w(200);
+    const o = document.querySelector('#page .obj.dattinh');
+    ok('chèn phép đặt tính chia', !!o && /378/.test(o.textContent.replace(/\s/g, '')), o && o.textContent);
+    const inp = document.querySelector('#props input[data-k="expr"]');
+    inp.value = '648 : 3'; inp.dispatchEvent(new Event('input')); inp.dispatchEvent(new Event('change')); await w(150);
+    ok('đổi phép tính ở khung Thuộc tính', /216/.test(document.querySelector('#page .obj.dattinh').textContent.replace(/\s/g, '')));
+    const w0 = document.querySelector('#page .obj.dattinh').offsetWidth;
+    await dragFrom(document.querySelector('#page .obj.dattinh .handle'), 60, 0); await w(100);
+    ok('kéo góc phóng to chữ số', document.querySelector('#page .obj.dattinh').offsetWidth > w0 + 20);
+    __clear();
+    window.__run('ins-phieu'); await w(300);
+    ok('chèn phiếu bài tập mẫu', document.querySelectorAll('#page .obj.baitap').length === 5 && document.querySelectorAll('#page .obj.dattinh').length === 4);
+    const bt = document.querySelectorAll('#page .obj.baitap')[1];
+    await clickObj(bt.dataset.id);
+    const da = [...document.querySelectorAll('#props label.chk')].find((l) => /đáp án/.test(l.textContent)).querySelector('input');
+    da.click(); await w(150);
+    ok('bật đáp án: ô trống có số màu đỏ', /th-ans/.test(document.querySelector('[data-id="' + bt.dataset.id + '"]').innerHTML));
+    window.__run('tieuhoc'); await w(100);
+    ok('tắt chế độ Tiểu học', !document.body.classList.contains('tieuhoc') && vis('[data-cmd="ins-graph"]'));
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

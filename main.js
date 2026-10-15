@@ -54,6 +54,8 @@ function createWindow() {
       { label: 'Thu nhỏ', accelerator: 'Ctrl+-', click: send('zoomout') },
       { label: '100%', accelerator: 'Ctrl+0', click: send('zoom100') },
       { type: 'separator' },
+      { label: 'Chế độ Tiểu học (lớp 1–5): bật / tắt', accelerator: 'Ctrl+Shift+T', click: send('tieuhoc') },
+      { type: 'separator' },
       { label: 'Phông công thức: kiểu Times New Roman', click: send('font-times') },
       { label: 'Phông công thức: mặc định', click: send('font-tex') },
       { type: 'separator' },

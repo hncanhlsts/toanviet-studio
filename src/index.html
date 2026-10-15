@@ -24,7 +24,16 @@
       <button data-cmd="ins-text" title="Chèn văn bản, dùng $...$ để gõ công thức trong dòng"><i>T</i>Văn bản</button>
     </div><span>Soạn thảo</span>
   </div>
-  <div class="grp">
+  <div class="grp th-only">
+    <div class="btns">
+      <button data-cmd="ins-phieu" title="Chèn phiếu bài tập mẫu: tiêu đề, Số?, điền dấu, Đúng/Sai, đặt tính"><i>📄</i>Phiếu mẫu</button>
+    <div class="stack">
+      <div><label>Đặt tính</label><select id="dtKind" title="Đặt tính theo cột: cộng, trừ, nhân, chia kiểu Việt Nam"></select><button data-cmd="ins-dattinh" title="Chèn phép đặt tính đã chọn (đổi phép tính ở khung Thuộc tính)">Chèn</button></div>
+      <div><label>Dạng bài</label><select id="btKind" title="Các dạng bài trên phiếu bài tập tiểu học"></select><button data-cmd="ins-baitap" title="Chèn dạng bài đã chọn">Chèn</button></div>
+      <div><label></label><button data-cmd="ins-numline" title="Tia số, trục số">↔ Tia số</button><button data-cmd="ins-rect" title="Hình chữ nhật">▭</button><button data-cmd="ins-ellipse" title="Hình tròn">◯</button></div>
+    </div></div><span>Tiểu học (lớp 1–5)</span>
+  </div>
+  <div class="grp th-hide">
     <div class="btns">
       <button data-cmd="ins-graph" title="Đồ thị hàm số"><i>📈</i>Đồ thị</button>
       <button data-cmd="ins-bbt" title="Bảng biến thiên (lập tự động)"><i>⤴</i>Biến thiên</button>
@@ -38,7 +47,7 @@
     <div class="stack">
       <div><label>Hình không gian</label><select id="solidKind" title="Chọn hình không gian"></select><button data-cmd="ins-solid" title="Chèn hình không gian đã chọn">Chèn</button></div>
       <div><label>Hình phẳng</label><select id="planeKind" title="Chọn hình phẳng mẫu (đổi được thông số ở khung Thuộc tính)"></select><button data-cmd="ins-plane" title="Chèn hình phẳng đã chọn">Chèn</button></div>
-      <div><label>Ký hiệu SGK</label><select id="symKind" title="Ký hiệu, hình vẽ thường gặp trong SGK Vật lí, Hoá học, Sinh học"></select><button data-cmd="ins-sym" title="Chèn ký hiệu đã chọn">Chèn</button></div>
+      <div class="th-hide"><label>Ký hiệu SGK</label><select id="symKind" title="Ký hiệu, hình vẽ thường gặp trong SGK Vật lí, Hoá học, Sinh học"></select><button data-cmd="ins-sym" title="Chèn ký hiệu đã chọn">Chèn</button></div>
     </div><span>Hình học và ký hiệu Lí – Hoá – Sinh</span>
   </div>
   <div class="grp">
@@ -81,7 +90,7 @@
   <div id="stage"><div id="page"></div></div>
   <aside id="panel"><h3>Thuộc tính</h3><div id="props"></div></aside>
 </main>
-<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><span id="zoomlbl">100%</span></footer>
+<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><button id="modeBadge" data-cmd="tieuhoc" title="Nhấp để chuyển giữa chế độ Tiểu học (lớp 1–5) và THCS – THPT">THCS – THPT</button><span id="zoomlbl">100%</span></footer>
 
 <div id="fxback" hidden></div>
 <dialog id="fxdlg">
@@ -119,6 +128,7 @@
 <script src="sgk.js"></script>
 <script src="numline.js"></script>
 <script src="space.js"></script>
+<script src="tieuhoc.js"></script>
 <script src="mmlfix.js"></script>
 <script src="omml.js"></script>
 <script src="mtef.js"></script>

@@ -31,6 +31,7 @@ Tạo `cai-dat/ToanVietStudio-Setup-1.0.0.exe` (chọn thư mục cài, tạo l�
 - **Bảng biến thiên** và **bảng xét dấu**: lập tự động từ biểu thức (đạo hàm tượng trưng, tìm nghiệm, giới hạn), chỉnh tay được bằng LaTeX.
 - **Miền nghiệm** hệ bất phương trình bậc nhất hai ẩn: kiểu gạch bỏ như SGK hoặc tô miền nghiệm, ghi toạ độ đỉnh.
 - **Hình không gian**: chóp tam giác/tứ giác, tứ diện, hộp chữ nhật, lập phương, lăng trụ tam giác, chóp cụt, trụ, nón, nón cụt, cầu. Nét khuất tự vẽ đứt; thêm trung điểm, tâm, trọng tâm và đoạn nối.
+- **Toán Tiểu học** (Xem ▸ Chế độ Tiểu học, Ctrl+Shift+T): đặt tính theo cột (cộng, trừ, nhân, chia kiểu Việt Nam, số thập phân, dạng bài ô trống / điền chữ số), các dạng bài trên phiếu (Số?, điền dấu, Đúng/Sai, khoanh, nối, máy tính mũi tên, bảng số, ô li), phiếu mẫu, đáp án màu đỏ cho giáo viên.
 - **Hình vẽ**: đoạn thẳng, mũi tên, chữ nhật, elip.
 - **Xuất**: Ctrl+C chép ảnh nét cao để dán vào Word/PowerPoint, chép LaTeX, chép MathML, xuất PNG, xuất PDF A4. Lưu/mở tệp `.tvs`.
 
@@ -43,7 +44,7 @@ Ctrl+M công thức · Enter/nhấp đúp sửa · Delete xoá · Ctrl+D nhân b
 - `main.js`: tiến trình chính (menu, lưu/mở, cầu nối Word/PowerPoint bằng PowerShell, thư viện, thư mục dùng chung, cập nhật).
 - `src/app.js`: lõi giao diện (trang, vẽ đối tượng, khung Thuộc tính, hộp soạn công thức, lệnh).
 - `src/mod/*.js`: các mô-đun giao diện tách riêng (chonnhieu, keodiem, thuvien, soande). Mỗi mô-đun nhận các hàm dùng chung qua đối số `C` và trả về các hàm nó cung cấp; `app.js` gọi chúng ngay trước lần vẽ đầu tiên.
-- `src/*.js` khác: bộ vẽ (plane, space, graph, bbt, numline, sgk…) và bộ chuyển đổi (omml, mtef, mtefw, mmlfix).
+- `src/*.js` khác: bộ vẽ (plane, space, graph, bbt, numline, sgk, tieuhoc…) và bộ chuyển đổi (omml, mtef, mtefw, mmlfix).
 
 ## Bản quyền
 

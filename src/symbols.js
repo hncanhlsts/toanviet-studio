@@ -1,6 +1,11 @@
 // Bảng ký hiệu và mẫu công thức (theo Bảng vẽ Toán). #? là ô trống, #@ là phần đứng ngay trước con trỏ (hoặc phần đang bôi chọn).
 // Mỗi mục: mã chèn, hoặc [mã hiển thị trên nút, mã chèn].
 window.PALETTE = [
+  { name: 'Tiểu học', items: [
+    '+', '-', '\\times', ':', '=', '<', '>', ['\\boxed{\\phantom{00}}', '\\boxed{\\phantom{00}}'], '\\bigcirc', '\\ldots', '\\frac{#@}{#?}', ['2\\frac{1}{3}', '#?\\frac{#?}{#?}'], '\\%', ['2{,}5', '#?{,}#?'],
+    '\\text{mm}', '\\text{cm}', '\\text{dm}', '\\text{m}', '\\text{km}', '\\text{cm}^{2}', '\\text{dm}^{2}', '\\text{m}^{2}', '\\text{km}^{2}', '\\text{cm}^{3}', '\\text{dm}^{3}', '\\text{m}^{3}',
+    '\\text{g}', '\\text{kg}', '\\text{yến}', '\\text{tạ}', '\\text{tấn}', '\\text{ml}', '\\text{l}', '\\text{giờ}', '\\text{phút}', '\\text{giây}', '\\text{km/giờ}', '^{\\circ}\\text{C}', '\\text{đồng}',
+  ] },
   { name: 'Cơ bản', items: [
     '\\frac{#@}{#?}', '\\sqrt{#?}', '\\sqrt[#?]{#?}', '#@^{#?}', '#@_{#?}', '#@_{#?}^{#?}', '\\left(#?\\right)', '\\left[#?\\right]', '\\left\\{#?\\right\\}', '\\left|#?\\right|', '\\left\\|#?\\right\\|', '\\overline{#?}', '\\underline{#?}',
     '\\underbrace{#?}_{#?}', '\\overbrace{#?}^{#?}', '\\underset{#?}{#?}', '\\overset{#?}{#?}', '\\pm', '\\mp', '\\times', '\\div', '\\cdot', '\\infty', '^{\\circ}', '\\%', '\\ldots', '\\cdots', ['\\text{Văn bản}', '\\text{#?}'],
