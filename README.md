@@ -40,24 +40,16 @@ Ctrl+M công thức · Enter/nhấp đúp sửa · Delete xoá · Ctrl+D nhân b
 
 ## Cấu trúc mã
 
-- `main.js`, `preload.js`: tiến trình chính Electron (trình đơn, tệp, chụp ảnh, PDF).
-- `src/mathexpr.js`: phân tích biểu thức, đạo hàm, chuyển sang LaTeX.
-- `src/graph.js`: hệ trục, đồ thị, miền nghiệm. `src/bbt.js`: bảng biến thiên/xét dấu. `src/solid.js`: hình không gian.
-- `src/symbols.js`: bảng ký hiệu và mẫu công thức (thêm mẫu mới tại đây).
-- `src/app.js`: trang soạn thảo, thuộc tính, lệnh.
+- `main.js`: tiến trình chính (menu, lưu/mở, cầu nối Word/PowerPoint bằng PowerShell, thư viện, thư mục dùng chung, cập nhật).
+- `src/app.js`: lõi giao diện (trang, vẽ đối tượng, khung Thuộc tính, hộp soạn công thức, lệnh).
+- `src/mod/*.js`: các mô-đun giao diện tách riêng (chonnhieu, keodiem, thuvien, soande). Mỗi mô-đun nhận các hàm dùng chung qua đối số `C` và trả về các hàm nó cung cấp; `app.js` gọi chúng ngay trước lần vẽ đầu tiên.
+- `src/*.js` khác: bộ vẽ (plane, space, graph, bbt, numline, sgk…) và bộ chuyển đổi (omml, mtef, mtefw, mmlfix).
 
 ## Bản quyền
 
 Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com
 
 © 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.
-
-## Cấu trúc mã
-
-- `main.js`: tiến trình chính (menu, lưu/mở, cầu nối Word/PowerPoint bằng PowerShell, thư viện, thư mục dùng chung, cập nhật).
-- `src/app.js`: lõi giao diện (trang, vẽ đối tượng, khung Thuộc tính, hộp soạn công thức, lệnh).
-- `src/mod/*.js`: các mô-đun giao diện tách riêng (chonnhieu, keodiem, thuvien, soande). Mỗi mô-đun nhận các hàm dùng chung qua đối số `C` và trả về các hàm nó cung cấp; `app.js` gọi chúng ngay trước lần vẽ đầu tiên.
-- `src/*.js` khác: bộ vẽ (plane, space, graph, bbt, numline, sgk…) và bộ chuyển đổi (omml, mtef, mtefw, mmlfix).
 
 ## Kiểm thử
 
