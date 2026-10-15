@@ -13,6 +13,9 @@ thu('bỏ qua thẻ định dạng của Word (w:, w14:) — lỗi đã gặp �
   bang(norm(OMML.toLatex(xml)), 'a=b');
 });
 
+thu('chữ Hy Lạp không bị đọc thành chữ thường (lỗi \\text{Δ})', () => bang(norm(OMML.toLatex(M(R('Δ') + R('ABC')))), '\\DeltaABC'));
+thu('tiếng Việt vẫn là chữ', () => dung(/\\text\{/.test(OMML.toLatex(M(R('và'))))));
+
 nhom('LaTeX → MathType → LaTeX (mtefw.js, mtef.js)');
 const tron = (tex) => norm(MTEF.oleToLatex(MTEFW.buildOle(MTEFW.latexToMtef(tex))));
 const CASES = ['x^2+1', '\\frac{a}{b}', '\\sqrt{x+1}', 'a_{n}', '\\alpha+\\beta', 'x\\le y'];

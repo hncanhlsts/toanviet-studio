@@ -20,7 +20,9 @@
   const val = (n, prName, attrEl) => { const pr = n && kid(n, prName); const el = pr && kid(pr, attrEl); return el ? (el.getAttribute('m:val') !== null ? el.getAttribute('m:val') : el.getAttribute('val')) : null; };
   const arg = (n, name) => { const c = kid(n, name); return c ? conv(c) : ''; };
   function text(s, normal) {
-    if (normal || /[À-ỹ]/.test(s) || /[A-Za-zÀ-ỹ]{2,}\s+[A-Za-zÀ-ỹ]/.test(s)) return '\\text{' + s.replace(/[\\{}#%&$^_~]/g, '') + '}';
+    // chữ cái Hy Lạp (Δ, α…) nằm trong khoảng À–ỹ nhưng không phải chữ tiếng Việt
+    const vi = s.replace(/[Ͱ-Ͽ]/g, '');
+    if (normal || /[À-ỹ]/.test(vi) || /[A-Za-zÀ-ỹ]{2,}\s+[A-Za-zÀ-ỹ]/.test(vi)) return '\\text{' + s.replace(/[\\{}#%&$^_~]/g, '') + '}';
     let out = '';
     for (const ch of s) out += SYM[ch] !== undefined ? SYM[ch] : ch;
     return out;

@@ -5,6 +5,11 @@ const fs = require('fs');
 const path = require('path');
 const update = process.argv.includes('--cap-nhat');
 app.whenReady().then(async () => {
+  // kiểm tra cú pháp các tệp của tiến trình chính trước (lỗi ở đây làm phần mềm không mở được)
+  for (const f of ['main.js', 'preload.js']) {
+    try { new (require('vm').Script)(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), { filename: f }); console.log('✔ cú pháp ' + f); }
+    catch (e) { console.log('✘ cú pháp ' + f + ': ' + e.message); app.exit(1); return; }
+  }
   const win = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: false, contextIsolation: false } });
   let failed = 0;
   win.webContents.on('console-message', (e) => {

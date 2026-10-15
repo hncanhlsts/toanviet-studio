@@ -177,3 +177,5 @@ body.capturing #convveil { display: none; }
 .obj.sel .pth { display: block; }
 body.capturing .pth { display: none !important; }
 @media print { .pth { display: none !important; } }
+#fEqWrap { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 13px; color: #33445a; cursor: pointer; }
+#fEqWrap[hidden] { display: none; }

@@ -1,4 +1,4 @@
-﻿const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 const argVal = (name) => { const a = process.argv.find((t) => t.startsWith(name + '=')); return a ? a.slice(name.length + 1) : ''; };
 
@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('api', {
   quit: () => ipcRenderer.send('quit'),
   info: (msg) => ipcRenderer.invoke('info', msg),
   renderPng: (target, withData) => ipcRenderer.invoke('renderPng', target, !!withData),
+  renderBatch: (ids) => ipcRenderer.invoke('renderBatch', ids),
   about: () => ipcRenderer.send('about'),
   capture: (opts) => ipcRenderer.invoke('capture', opts),
   pdf: () => ipcRenderer.invoke('pdf'),

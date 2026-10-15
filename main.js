@@ -154,6 +154,15 @@ ipcMain.handle('confirm', async (_e, msg) => {
 const OFFICE_PS = String.raw`
 $ErrorActionPreference = 'Stop'
 function GetApp($n) { try { [Runtime.InteropServices.Marshal]::GetActiveObject($n) } catch { $null } }
+$pkgA = '<?xml version="1.0" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage"><pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part><pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"><pkg:xmlData><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body><w:p>'
+$pkgB = '</w:p></w:body></w:document></pkg:xmlData></pkg:part></pkg:package>'
+# MathML -> OMML bằng bộ chuyển của chính Word (nạp một lần)
+function MmlToOmml($a, $mml) {
+  if (-not $global:TvsXsl) { $global:TvsXsl = New-Object System.Xml.Xsl.XslCompiledTransform; $global:TvsXsl.Load((Join-Path $a.Path 'MML2OMML.XSL')) }
+  $sw = New-Object IO.StringWriter; $st = New-Object Xml.XmlWriterSettings; $st.OmitXmlDeclaration = $true; $st.ConformanceLevel = 'Fragment'
+  $xw = [Xml.XmlWriter]::Create($sw, $st); $global:TvsXsl.Transform([Xml.XmlReader]::Create((New-Object IO.StringReader $mml)), $xw); $xw.Flush()
+  $sw.ToString()
+}
 try {
   $act = $env:TVS_ACT; $appn = $env:TVS_APP; $png = $env:TVS_PNG; $alt = $env:TVS_ALT
   if ($act -eq 'scan') {
@@ -215,9 +224,6 @@ try {
     $a = GetApp 'Word.Application'
     if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
     $doc = $a.ActiveDocument; $op = $env:TVS_OP; $n = 0; $xsl = $null
-    if ($op -eq 'tv2eq') { $xsl = New-Object System.Xml.Xsl.XslCompiledTransform; $xsl.Load((Join-Path $a.Path 'MML2OMML.XSL')) }
-    $pkgA = '<?xml version="1.0" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage"><pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part><pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"><pkg:xmlData><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body><w:p>'
-    $pkgB = '</w:p></w:body></w:document></pkg:xmlData></pkg:part></pkg:package>'
     $ur = $null; try { $ur = $a.UndoRecord; $ur.StartCustomRecord('ToanViet') } catch {}
     $a.ScreenUpdating = $false
     # tắt "cắt dán thông minh" trong lúc thay thế để Word không tự xoá dấu cách cạnh công thức
@@ -240,10 +246,9 @@ try {
             $doc.OMaths.Item($i).Range.Delete() | Out-Null; $n++
           } elseif ($op -eq 'tv2eq') {
             $mml = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($f[1]))
-            $sw = New-Object IO.StringWriter; $st = New-Object Xml.XmlWriterSettings; $st.OmitXmlDeclaration = $true; $st.ConformanceLevel = 'Fragment'
-            $xw = [Xml.XmlWriter]::Create($sw, $st); $xsl.Transform([Xml.XmlReader]::Create((New-Object IO.StringReader $mml)), $xw); $xw.Flush()
+            $om = MmlToOmml $a $mml
             $s = $doc.InlineShapes.Item($i); $r = $s.Range; $s.Delete(); $r.Font.Position = 0
-            $r.InsertXML($pkgA + $sw.ToString() + $pkgB); $n++
+            $r.InsertXML($pkgA + $om + $pkgB); $n++
           } elseif ($op -eq 'tex2tv') {
             # $f: đầu | ảnh | rộng | cao | hạ dòng | dữ liệu | cuối  (thay đoạn mã LaTeX bằng công thức ToanViet)
             $r = $doc.Range($i, [int]$f[6]); $r.Delete() | Out-Null
@@ -261,8 +266,31 @@ try {
       }
     } finally { $a.ScreenUpdating = $true; try { $a.Options.SmartCutPaste = $scp } catch {}; try { if ($ur) { $ur.EndCustomRecord() } } catch {} }
     "OK:$n"
-  } elseif ($act -eq 'insert') {
-    $w = [double]$env:TVS_W; $h = [double]$env:TVS_H
+  } elseif ($act -eq 'inserteq') {
+    # chèn công thức dạng Equation gốc của Word (OMML) tại con trỏ, hoặc thay cho công thức đang sửa
+    $a = GetApp 'Word.Application'
+    if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
+    $om = MmlToOmml $a ([IO.File]::ReadAllText($env:TVS_JOB, [Text.Encoding]::UTF8))
+    $sel = $a.Selection; $rep = 0; $r = $null
+    try {
+      if ($env:TVS_SRC -eq 'omath' -and $sel.OMaths.Count -ge 1) { $r = $sel.OMaths.Item(1).Range; $rep = 1 }
+      elseif ($sel.InlineShapes.Count -ge 1) {
+        $s = $sel.InlineShapes.Item(1); $pg = ''; try { $pg = "$($s.OLEFormat.ProgID)" } catch {}
+        if ($env:TVS_SRC -eq 'ole' -or "$($s.AlternativeText)".StartsWith('TVS1:') -or $pg -like 'Equation*') { $r = $s.Range; $s.Delete(); $r.Font.Position = 0; $rep = 1 }
+      }
+    } catch {}
+    if (-not $r) { $r = $sel.Range }
+    $doc = $a.ActiveDocument; $fs = 0; try { $fs = [double]$r.Font.Size } catch {}; if (-not ($fs -gt 0)) { try { $fs = [double]$sel.Font.Size } catch {} }
+    $s0 = $r.Start; $len0 = $doc.Content.End
+    $r.InsertXML($pkgA + $om + $pkgB)
+    # công thức vừa chèn nằm từ s0 đến s0 + (độ dài tăng thêm): cho cùng cỡ chữ với dòng, rồi đưa con trỏ ra sau nó
+    $e0 = $s0 + ($doc.Content.End - $len0); $nr = $doc.Range($s0, $e0)
+    try { if ($fs -gt 0) { $nr.Font.Size = $fs } } catch {}
+    # đưa con trỏ ra khỏi vùng công thức (giống cách chèn ảnh sau công thức Equation): đến cuối vùng rồi sang phải một lần
+    try { if ($nr.OMaths.Count -ge 1) { $z = $nr.OMaths.Item($nr.OMaths.Count).Range; $z.Collapse(0); $z.Select(); [void]$a.Selection.MoveRight(1, 1) } else { $doc.Range($e0, $e0).Select() }; $a.Selection.Font.Position = 0 } catch {}
+    try { $a.Activate() } catch {}
+    "OK:$rep"
+  } elseif ($act -eq 'insert') {    $w = [double]$env:TVS_W; $h = [double]$env:TVS_H
     if ($appn -eq 'word') {
       $a = GetApp 'Word.Application'
       if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
@@ -373,6 +401,25 @@ function runOffice(env) {
   });
 }
 app.on('will-quit', () => { try { if (psProc) psProc.kill(); } catch (e) { /* đã thoát */ } });
+// chụp nhiều công thức một lượt khi chuyển đổi hàng loạt: đo tất cả trong một lần rồi chụp liên tiếp
+ipcMain.handle('renderBatch', async (e, ids) => {
+  const scale = 4, wc = e.sender, dbg = wc.debugger;
+  capture.keep = true;
+  if (!dbg.isAttached()) { dbg.attach('1.3'); await dbg.sendCommand('Emulation.setDeviceMetricsOverride', { width: 1900, height: 2600, deviceScaleFactor: 1, mobile: false }); }
+  const rects = await wc.executeJavaScript(`window.__prepBatch(${JSON.stringify(ids)})`);
+  const out = [];
+  try {
+    for (const rect of rects) {
+      if (!rect) { out.push(null); continue; }
+      const res = await dbg.sendCommand('Page.captureScreenshot', { format: 'png', clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, scale } });
+      const buf = Buffer.from(res.data, 'base64'), size = nativeImage.createFromBuffer(buf).getSize();
+      const file = path.join(app.getPath('temp'), 'toanviet-' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.png');
+      fs.writeFileSync(file, buf);
+      out.push({ file, w: size.width * 0.75 / scale, h: size.height * 0.75 / scale, depthPt: rect.depthPt || 0 });
+    }
+  } finally { try { await wc.executeJavaScript('window.__endCapture()'); } catch (err) { /* bỏ qua */ } }
+  return out;
+});
 // dựng ảnh PNG của một đối tượng ra tệp tạm (dùng khi chuyển đổi hàng loạt)
 ipcMain.handle('renderPng', async (e, target, withData) => {
   const scale = 4;
@@ -420,9 +467,19 @@ ipcMain.handle('office', async (e, opts) => {
     if (m) return { ok: true, from: m[1], data: m[2] };
     return { ok: false, error: out === 'ERR:NOSEL' ? 'Hãy chọn (nhấp vào) một hình ToanViet trong Word hoặc PowerPoint trước' : 'Lỗi: ' + out.slice(4) };
   }
+  if (opts.action === 'inserteq') {
+    const hideNow = !!office && !!opts.quick && win && !shotArg;
+    if (hideNow) win.hide();
+    const mf = path.join(app.getPath('temp'), 'toanviet-eq-' + Date.now() + '.xml');
+    fs.writeFileSync(mf, opts.mathml, 'utf8');
+    const out = await runOffice({ TVS_ACT: 'inserteq', TVS_JOB: mf, TVS_SRC: /^(ole|omath)$/.test(opts.source || '') ? opts.source : '' });
+    fs.unlink(mf, () => {});
+    if (out.startsWith('OK')) return { ok: true, replaced: out === 'OK:1' };
+    if (hideNow) { win.show(); win.focus(); }
+    return { ok: false, error: out === 'ERR:NOAPP' ? noApp : 'Lỗi Word: ' + out.slice(4) };
+  }
   const scale = 4;
-  const buf = await capture(e.sender, opts.target, scale);
-  const size = nativeImage.createFromBuffer(buf).getSize();
+  const buf = await capture(e.sender, opts.target, scale);  const size = nativeImage.createFromBuffer(buf).getSize();
   const file = path.join(app.getPath('temp'), 'toanviet-' + Date.now() + '.png');
   fs.writeFileSync(file, buf);
   // kiểm thử: chỉ xuất ảnh và độ hạ dòng ra tệp, không đụng tới Word / PowerPoint

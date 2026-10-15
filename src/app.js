@@ -981,6 +981,10 @@
     zoomin: () => setZoom(S.zoom + 0.1), zoomout: () => setZoom(S.zoom - 0.1), zoom100: () => setZoom(1),
     demo: async () => { if (await confirmDiscard()) window.__demo(); },
   };
+  // Lựa chọn 'chèn dạng Equation của Word' (nhớ cho lần sau)
+  const eqMode = () => { try { return localStorage.getItem('tvs-insert-eq') === '1'; } catch (e) { return false; } };
+  // ToanViet -> MathML để Word đổi sang Equation (dấu đồng dạng đổi thành ký hiệu ∽ chuẩn)
+  const toMathML = (o) => '<math xmlns="http://www.w3.org/1998/Math/MathML">' + MathLive.convertLatexToMathMl(multiline(o.latex).replace(/\\dongdang(?![a-zA-Z])/g, '\\backsim ')) + '</math>';
   async function toOffice(app) {
     const o = cur();
     if (!o) return msg('Hãy chọn công thức hoặc hình cần chèn', true);
@@ -989,7 +993,11 @@
     msg('Đang chèn vào ' + name + '…');
     const bytes = new TextEncoder().encode(JSON.stringify(o, (k, v) => (k[0] === '_' || k === 'id' ? undefined : v)));
     let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); });
-    const r = await api.office({ action: 'insert', app, target: o.id, data: btoa(bin), source: (OFFICE && OFFICE.source) || '', quick: !!(OFFICE && OFFICE.quitAfter) });
+    // công thức vào Word dạng Equation gốc (nếu người dùng chọn)
+    const asEq = app === 'word' && o.type === 'formula' && eqMode();
+    const r = asEq
+      ? await api.office({ action: 'inserteq', app, mathml: toMathML(o), source: (OFFICE && OFFICE.source) || '', quick: !!(OFFICE && OFFICE.quitAfter) })
+      : await api.office({ action: 'insert', app, target: o.id, data: btoa(bin), source: (OFFICE && OFFICE.source) || '', quick: !!(OFFICE && OFFICE.quitAfter) });
     if (OFFICE) OFFICE.lastOk = r.ok;
     msg(r.ok ? 'Đã chèn vào ' + name + (r.replaced ? ' (thay cho hình đang chọn)' : ' tại vị trí con trỏ') : r.error, !r.ok);
   }
@@ -1052,6 +1060,12 @@
       const el = target === 'page' ? page : page.querySelector(`[data-id="${target}"]`);
       if (!el) return res(null);
       el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      res(measureCapture(el, target));
+    }, 40);
+  });
+  // vùng cần chụp của một đối tượng (công thức: cắt sát và tính độ hạ dòng để khớp đường chân chữ trong Word)
+  function measureCapture(el, target) {
+    {
       const r = el.getBoundingClientRect(), pad = target === 'page' ? 0 : 8;
       let padB = pad, depthPt = 0;
       const o = get(target);
@@ -1066,8 +1080,15 @@
         padB = depthPt / 0.75 - descent;
       }
       const padX = depthPt ? -2 : pad, padT = depthPt ? 1 : pad; // công thức chèn giữa dòng chữ: cắt sát để không hở xa chữ, không đẩy dòng
-      res({ x: Math.max(0, r.left - padX), y: Math.max(0, r.top - padT), width: r.width + 2 * padX, height: r.height + padT + padB, depthPt });
-    }, 40);
+      return { x: Math.max(0, r.left - padX), y: Math.max(0, r.top - padT), width: r.width + 2 * padX, height: r.height + padT + padB, depthPt };
+    }
+  }
+  // chụp nhiều công thức một lượt (chuyển đổi hàng loạt): đo tất cả rồi tiến trình chính chụp liên tiếp
+  window.__prepBatch = (ids) => new Promise((res) => {
+    savedZoom = S.zoom;
+    document.body.classList.add('capturing');
+    setZoom(1); stage.scrollTop = 0; stage.scrollLeft = 0;
+    setTimeout(() => res(ids.map((id) => { const el = page.querySelector(`[data-id="${id}"]`); return el ? measureCapture(el, id) : null; })), 40);
   });
   window.__endCapture = () => { document.body.classList.remove('capturing'); setZoom(savedZoom); };
 
@@ -1153,6 +1174,28 @@
     items.sort((a, b) => b.i - a.i);
     const jobs = [];
     let failed = 0, firstErr = '';
+    // dựng một đợt công thức xếp dọc trên trang rồi chụp liên tiếp (nhanh hơn nhiều so với từng cái một)
+    let batch = [];
+    const flush = async () => {
+      if (!batch.length) return;
+      S.objs = []; S.sel = null; page.innerHTML = '';
+      let y = 10;
+      const ready = [];
+      for (const b of batch) {
+        b.o.y = y; S.objs.push(b.o); const el = renderObj(b.o);
+        y += Math.ceil(el.offsetHeight) + 24;
+        ready.push(b);
+        if (y > 1900) { await shoot(ready.splice(0)); S.objs = []; page.innerHTML = ''; y = 10; }
+      }
+      await shoot(ready);
+      batch = [];
+    };
+    const shoot = async (list) => {
+      if (!list.length) return;
+      say('Đang dựng công thức ' + (jobs.length + 1) + '–' + (jobs.length + list.length) + ' / ' + items.length + '…');
+      const rs = await api.renderBatch(list.map((b) => b.o.id));
+      list.forEach((b, n) => { const r = rs[n]; if (!r) { failed++; return; } jobs.push({ i: b.it.i, end: b.it.end, png: r.file, w: r.w, h: r.h, pos: r.depthPt, alt: objToB64(b.o) }); });
+    };
     for (let k = 0; k < items.length; k++) {
       const it = items[k];
       say('Đang chuẩn bị công thức ' + (k + 1) + ' / ' + items.length + '…');
@@ -1163,20 +1206,20 @@
           const raw = b64ToBytes(it.data);
           const latex = OFFICE.op === 'mt2tv' ? MTEF.oleToLatex(raw) : OFFICE.op === 'eq2tv' ? OMML.toLatex(new TextDecoder().decode(raw)) : cleanLatex(new TextDecoder().decode(raw));
           if (!latex.trim()) throw new Error('rỗng');
-          const o = { id: 'c' + k, type: 'formula', x: 60, y: 50, latex, size: it.size >= 5 && it.size <= 200 ? toPx(it.size) : 16, color: '#000000' };
+          const o = { id: 'c' + k, type: 'formula', x: 30, y: 0, latex, size: it.size >= 5 && it.size <= 200 ? toPx(it.size) : 16, color: '#000000' };
           if (tex(texOf(o)).includes('ML__error')) throw new Error('mã LaTeX không hợp lệ');
-          S.objs = [o]; S.sel = null; renderAll();
-          const r = await api.renderPng(o.id);
-          jobs.push({ i: it.i, end: it.end, png: r.file, w: r.w, h: r.h, pos: r.depthPt, alt: objToB64(o) });
+          batch.push({ o, it });
+          if (batch.length >= 40) await flush();
         } else if (OFFICE.op === 'tv2eq') {
           const tx = multiline(it.obj.latex).replace(/\\dongdang(?![a-zA-Z])/g, '\\backsim ');
-          jobs.push({ i: it.i, mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML">' + MathLive.convertLatexToMathMl(tx) + '</math>' });
+          jobs.push({ i: it.i, mathml: toMathML({ latex: it.obj.latex }) }); void tx;
         } else {
           const r = await mathTypeXml(it.obj);
           jobs.push({ i: it.i, xml: r });
         }
       } catch (e) { failed++; if (!firstErr) firstErr = e.message; }
     }
+    await flush();
     if (!jobs.length) return finish('Không chuyển được công thức nào (' + failed + ' công thức gặp lỗi: ' + firstErr + '). Tài liệu không thay đổi.');
     say('Đang ghi ' + jobs.length + ' công thức vào Word…');
     const res = await api.office({ action: 'apply', app: 'word', op: OFFICE.op, jobs });
@@ -1209,6 +1252,7 @@
     $('#officetxt').textContent = 'Đang soạn cho ' + officeName() + ': Ctrl+Enter chèn và đóng · Esc đóng không chèn.';
     $('#officeins').textContent = 'Chèn vào ' + officeName() + ' và đóng';
     $('#officeins').onclick = officeInsertAndQuit;
+    if (OFFICE.app === 'word') { const cb = $('#fEq'); $('#fEqWrap').hidden = false; cb.checked = eqMode(); cb.onchange = () => { try { localStorage.setItem('tvs-insert-eq', cb.checked ? '1' : '0'); } catch (e) { /* bỏ qua */ } }; }
     $('#officecancel').onclick = () => api.quit();
     if (OFFICE.mode === 'edit') {
       const r = await api.office({ action: 'read', app: OFFICE.app });
