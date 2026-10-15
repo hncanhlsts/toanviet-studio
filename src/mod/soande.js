@@ -1,0 +1,169 @@
+// Soạn đề kiểm tra theo cấu trúc 2025, xuất sang Word — tách từ app.js; nhận các hàm, biến dùng chung qua đối số C.
+(function (root) {
+  'use strict';
+  root.TVM = root.TVM || {};
+  root.TVM.soande = function (C) {
+    const { $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb } = C;
+  // ---------- Soạn đề kiểm tra (cấu trúc 2025) và xuất sang Word ----------
+  const QKIND = { tn: 'Trắc nghiệm 4 phương án', ds: 'Đúng / Sai', tln: 'Trả lời ngắn', tl: 'Tự luận' };
+  const PARTS = [
+    ['tn', 'PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn.', 'Thí sinh trả lời từ câu 1 đến câu {n}. Mỗi câu hỏi thí sinh chỉ chọn một phương án.'],
+    ['ds', 'PHẦN II. Câu trắc nghiệm đúng sai.', 'Thí sinh trả lời từ câu 1 đến câu {n}. Trong mỗi ý a), b), c), d) ở mỗi câu, thí sinh chọn đúng hoặc sai.'],
+    ['tln', 'PHẦN III. Câu trắc nghiệm trả lời ngắn.', 'Thí sinh trả lời từ câu 1 đến câu {n}.'],
+    ['tl', 'PHẦN IV. Tự luận.', ''],
+  ];
+  const newQ = (kind) => ({ id: 'q' + Date.now().toString(36) + Math.floor(Math.random() * 1e5).toString(36), kind, stem: '', opts: ['', '', '', ''], ans: kind === 'tn' ? 'A' : kind === 'ds' ? 'SSSS' : '' });
+  const examDefault = () => ({
+    header: { so: 'SỞ GIÁO DỤC VÀ ĐÀO TẠO …', truong: 'TRƯỜNG THCS - THPT ĐINH THIỆN LÝ', ten: 'ĐỀ KIỂM TRA GIỮA HỌC KÌ I', namhoc: 'NĂM HỌC 2026 – 2027', mon: 'Môn: Toán – Lớp 10', tg: 'Thời gian làm bài: 90 phút, không kể thời gian phát đề', made: '101' },
+    qs: [],
+  });
+  // mẫu ví dụ: mỗi phần vài câu để xem cách trình bày
+  const examSample = () => {
+    const e = examDefault();
+    const q = (kind, stem, opts, ans) => Object.assign(newQ(kind), { stem, opts: opts || ['', '', '', ''], ans });
+    e.qs = [
+      q('tn', 'Cho tập hợp $A=\\{x\\in\\mathbb{R}\\mid -2<x\\le 3\\}$. Tập hợp $A$ được viết dưới dạng khoảng, đoạn là', ['$(-2;3)$', '$(-2;3]$', '$[-2;3)$', '$[-2;3]$'], 'B'),
+      q('tn', 'Phương trình $x^2-5x+6=0$ có tập nghiệm là', ['$\\{2;3\\}$', '$\\{-2;-3\\}$', '$\\{1;6\\}$', '$\\{-1;-6\\}$'], 'A'),
+      q('tn', 'Trong mặt phẳng toạ độ $Oxy$, cho $\\vec{u}=(3;-4)$. Độ dài của vectơ $\\vec{u}$ bằng', ['$5$', '$7$', '$25$', '$1$'], 'A'),
+      q('ds', 'Cho hàm số $y=x^2-4x+3$. Xét tính đúng sai của các khẳng định sau:', ['Đồ thị hàm số đi qua điểm $A(1;0)$.', 'Hàm số đồng biến trên khoảng $(-\\infty;2)$.', 'Giá trị nhỏ nhất của hàm số bằng $-1$.', 'Đồ thị hàm số nhận đường thẳng $x=2$ làm trục đối xứng.'], 'ĐSĐĐ'),
+      q('tln', 'Có bao nhiêu số nguyên $x$ thoả mãn bất phương trình $x^2-3x-10<0$?', null, '6'),
+      q('tln', 'Cho tam giác $ABC$ có $AB=5$, $AC=8$, $\\widehat{BAC}=60^{\\circ}$. Tính độ dài cạnh $BC$.', null, '7'),
+    ];
+    return e;
+  };
+  const examFrame = () => { const e = examDefault(); for (let i = 0; i < 12; i++) e.qs.push(newQ('tn')); for (let i = 0; i < 4; i++) e.qs.push(newQ('ds')); for (let i = 0; i < 6; i++) e.qs.push(newQ('tln')); return e; };
+  const plain = (t) => String(t || '').replace(/\$([^$]*)\$/g, (m, x) => x.replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}\\^_]/g, '')).trim();
+  // cách xếp 4 phương án: 4 trên một dòng, 2 trên một dòng, hoặc mỗi phương án một dòng
+  const optLayout = (opts) => { const L = Math.max(...opts.map((s) => plain(s).length)); return L <= 16 ? 4 : L <= 38 ? 2 : 1; };
+  function openExam() {
+    if (!api) return;
+    if (!S.exam) S.exam = examDefault();
+    const E = S.exam;
+    let curId = E.qs.length ? E.qs[0].id : null;
+    const d = modal('examdlg', 'Soạn đề kiểm tra');
+    d.classList.add('wide');
+    const body = d.querySelector('.tvbody');
+    const touch = () => { S.dirty = true; title(); };
+    const numberOf = (q) => E.qs.filter((x) => x.kind === q.kind).indexOf(q) + 1;
+    const draw = () => {
+      const q = E.qs.find((x) => x.id === curId);
+      const h = E.header;
+      const list = PARTS.map(([k, title]) => {
+        const qs = E.qs.filter((x) => x.kind === k);
+        return `<div class="exp"><div class="exph"><b>${esc(title.split('.')[0])}</b> · ${esc(QKIND[k])} (${qs.length})<button data-add="${k}" title="Thêm câu ${esc(QKIND[k])}">＋</button></div>
+          ${qs.map((x, i) => `<div class="exq${x.id === curId ? ' on' : ''}" data-q="${x.id}"><b>Câu ${i + 1}.</b> ${x.stem.trim() ? textHtml({ text: x.stem.slice(0, 160) }) : '<i>(chưa có nội dung)</i>'}${x.fig ? ' 🖼' : ''}</div>`).join('')}</div>`;
+      }).join('');
+      let ed = '<p class="tvhint">Chọn một câu ở bên trái, hoặc bấm ＋ để thêm câu.</p>';
+      if (q) {
+        const n = numberOf(q);
+        const opt = q.kind === 'tn' ? ['A', 'B', 'C', 'D'].map((L, i) => `<div class="exo"><label><input type="radio" name="exans" value="${L}" ${q.ans === L ? 'checked' : ''} title="Đáp án đúng"> ${L}.</label><input data-o="${i}" value="${esc(q.opts[i] || '')}" placeholder="Phương án ${L} (công thức đặt giữa $…$)"></div>`).join('')
+          : q.kind === 'ds' ? ['a', 'b', 'c', 'd'].map((L, i) => `<div class="exo"><span>${L})</span><input data-o="${i}" value="${esc(q.opts[i] || '')}" placeholder="Ý ${L})"><select data-ds="${i}"><option value="Đ" ${(q.ans || '')[i] === 'Đ' ? 'selected' : ''}>Đúng</option><option value="S" ${(q.ans || '')[i] !== 'Đ' ? 'selected' : ''}>Sai</option></select></div>`).join('')
+            : `<div class="exo"><span>${q.kind === 'tln' ? 'Đáp số' : 'Gợi ý chấm'}</span><input data-ansv value="${esc(q.ans || '')}" placeholder="${q.kind === 'tln' ? 'vd: 6 hoặc -2,5 (tối đa 4 kí tự)' : 'Đáp án, hướng dẫn chấm (không bắt buộc)'}"></div>`;
+        ed = `<div class="exrow"><b>${esc(QKIND[q.kind])} – Câu ${n}</b><span style="flex:1"></span>
+            <button data-mv="-1" title="Đưa lên">▲</button><button data-mv="1" title="Đưa xuống">▼</button><button data-del title="Xoá câu này">Xoá câu</button></div>
+          <label class="exl">Nội dung câu hỏi <button data-fx title="Chèn công thức tại con trỏ (Ctrl+M)">∑ Chèn công thức</button></label>
+          <textarea id="exstem" rows="4" placeholder="Gõ nội dung; công thức đặt giữa hai dấu $, vd: Giải phương trình $x^2-4=0$.">${esc(q.stem)}</textarea>
+          ${opt}
+          <div class="exrow"><span>Hình kèm theo:</span>${q.fig ? `<img src="${q.fig.thumb || ''}" class="exfig">` : '<span class="tvhint">(không có)</span>'}<button data-figsel title="Lấy công thức / hình đang chọn trên trang làm hình minh hoạ cho câu này">Lấy hình đang chọn trên trang</button>${q.fig ? '<button data-figdel>Bỏ hình</button>' : ''}</div>
+          <div class="exprev"><div class="tvhint">Xem trước</div><div id="exprev"></div></div>`;
+      }
+      body.innerHTML = `
+        <details class="exhead"><summary>Thông tin đầu đề (sở, trường, tên đề, môn, thời gian, mã đề)</summary>
+          <div class="exgrid">${[['so', 'Sở / Phòng'], ['truong', 'Trường'], ['ten', 'Tên đề'], ['namhoc', 'Năm học'], ['mon', 'Môn – lớp'], ['tg', 'Thời gian'], ['made', 'Mã đề']].map(([k, l]) => `<label>${l}<input data-h="${k}" value="${esc(h[k] || '')}"></label>`).join('')}</div>
+        </details>
+        <div class="exmain"><div class="exlist">${list}</div><div class="exed">${ed}</div></div>
+        <div class="tvrow tvfoot">
+          <button id="exsample" title="Thay đề hiện tại bằng một đề ví dụ có đủ ba phần">Đề ví dụ</button>
+          <button id="exframe" title="Tạo khung đề Toán theo cấu trúc 2025: 12 câu trắc nghiệm, 4 câu đúng sai, 6 câu trả lời ngắn">Khung đề 2025 (12 – 4 – 6)</button>
+          <span style="flex:1"></span>
+          <label class="chk" title="Thêm trang đáp án ở cuối tài liệu Word"><input type="checkbox" id="exkey" checked> Kèm đáp án</label>
+          <button id="exword" class="primary">Xuất sang Word…</button>
+        </div>`;
+      // sự kiện
+      body.querySelectorAll('[data-h]').forEach((i) => { i.oninput = () => { E.header[i.dataset.h] = i.value; touch(); }; });
+      body.querySelectorAll('[data-add]').forEach((b) => { b.onclick = () => { const nq = newQ(b.dataset.add); const last = E.qs.map((x) => x.kind).lastIndexOf(nq.kind); const at = last >= 0 ? last + 1 : E.qs.filter((x) => PARTS.findIndex((p) => p[0] === x.kind) < PARTS.findIndex((p) => p[0] === nq.kind)).length; E.qs.splice(at, 0, nq); curId = nq.id; touch(); draw(); const st = body.querySelector('#exstem'); if (st) st.focus(); }; });
+      body.querySelectorAll('[data-q]').forEach((r) => { r.onclick = () => { curId = r.dataset.q; draw(); }; });
+      body.querySelector('#exsample').onclick = async () => { if (E.qs.length && !(await api.confirm('Thay các câu hiện có bằng đề ví dụ?'))) return; S.exam = examSample(); d.close(); openExam(); touch(); };
+      body.querySelector('#exframe').onclick = async () => { if (E.qs.length && !(await api.confirm('Thay các câu hiện có bằng khung đề trống 12 – 4 – 6?'))) return; S.exam = examFrame(); S.exam.header = E.header; d.close(); openExam(); touch(); };
+      body.querySelector('#exword').onclick = () => exportExam(body.querySelector('#exkey').checked);
+      if (!q) return;
+      const prev = () => { const p = body.querySelector('#exprev'); const n = numberOf(q); let html = '<b>Câu ' + n + '.</b> ' + textHtml({ text: q.stem }); if (q.kind === 'tn') { const lay = optLayout(q.opts); html += '<div class="exopts c' + lay + '">' + q.opts.map((s, i) => '<span><b>' + 'ABCD'[i] + '.</b> ' + textHtml({ text: s }) + '</span>').join('') + '</div>'; } if (q.kind === 'ds') html += q.opts.map((s, i) => '<div>' + 'abcd'[i] + ') ' + textHtml({ text: s }) + '</div>').join(''); p.innerHTML = html; };
+      prev();
+      const st = body.querySelector('#exstem');
+      st.oninput = () => { q.stem = st.value; touch(); prev(); };
+      body.querySelectorAll('[data-o]').forEach((i) => { i.oninput = () => { q.opts[+i.dataset.o] = i.value; touch(); prev(); }; });
+      body.querySelectorAll('input[name=exans]').forEach((r) => { r.onchange = () => { q.ans = r.value; touch(); }; });
+      body.querySelectorAll('[data-ds]').forEach((s) => { s.onchange = () => { const a = (q.ans || 'SSSS').padEnd(4, 'S').split(''); a[+s.dataset.ds] = s.value; q.ans = a.join(''); touch(); }; });
+      const av = body.querySelector('[data-ansv]'); if (av) av.oninput = () => { q.ans = av.value; touch(); };
+      body.querySelector('[data-del]').onclick = async () => { if (!(await api.confirm('Xoá câu này?'))) return; const k = E.qs.indexOf(q); E.qs.splice(k, 1); const nx = E.qs[Math.min(k, E.qs.length - 1)]; curId = nx ? nx.id : null; touch(); draw(); };
+      body.querySelectorAll('[data-mv]').forEach((b) => { b.onclick = () => { const same = E.qs.filter((x) => x.kind === q.kind), k = same.indexOf(q), j = k + +b.dataset.mv; if (j < 0 || j >= same.length) return; const a1 = E.qs.indexOf(q), a2 = E.qs.indexOf(same[j]); [E.qs[a1], E.qs[a2]] = [E.qs[a2], E.qs[a1]]; touch(); draw(); }; });
+      // chèn công thức vào chỗ con trỏ của ô đang gõ (nội dung hoặc phương án)
+      let lastField = st;
+      body.querySelectorAll('#exstem, [data-o]').forEach((f) => f.addEventListener('focus', () => { lastField = f; }));
+      const insFx = () => { const f = lastField, s0 = f.selectionStart || f.value.length, s1 = f.selectionEnd || s0; openFx('', (v) => { if (!v) return; f.value = f.value.slice(0, s0) + '$' + v + '$' + f.value.slice(s1); f.dispatchEvent(new Event('input')); f.focus(); }); };
+      body.querySelector('[data-fx]').onclick = insFx;
+      body.querySelectorAll('#exstem, [data-o]').forEach((f) => f.addEventListener('keydown', (ev) => { if (ev.ctrlKey && ev.key.toLowerCase() === 'm') { ev.preventDefault(); lastField = f; insFx(); } }));
+      body.querySelector('[data-figsel]').onclick = async () => {
+        const ob = cur(); if (!ob) return api.info('Hãy chọn (nhấp vào) một hình hoặc công thức trên trang trước, rồi mở lại Soạn đề và bấm nút này.');
+        d.close(); let thumb = ''; try { thumb = await libThumb(many() ? { id: 'sel:' + S.multi.join(',') } : ob); } catch (e) { /* bỏ qua */ }
+        q.fig = { obj: many() ? groupData() : cleanObj(ob), thumb }; touch(); d.showModal(); draw();
+      };
+      const fd = body.querySelector('[data-figdel]'); if (fd) fd.onclick = () => { delete q.fig; touch(); draw(); };
+    };
+    draw();
+    d.showModal();
+  }
+  // các đoạn chữ / công thức của một nội dung có $…$
+  const segsOf = (t) => String(t || '').split('$').map((s, i) => (i % 2 ? { m: MmlFix.convert(s.replace(/\\dongdang(?![a-zA-Z])/g, '\\backsim ')) } : { t: s })).filter((x) => x.m || x.t);
+  async function exportExam(withKey) {
+    const E = S.exam, h = E.header, blocks = [], images = [];
+    const dlg = document.getElementById('examdlg'), wasOpen = dlg && dlg.open;
+    if (wasOpen) dlg.close(); // hộp thoại mở thì lớp nền tối sẽ lẫn vào ảnh hình minh hoạ
+    const P = (segs, o) => blocks.push(Object.assign({ segs }, o || {}));
+    const T = (t, o) => P([{ t, b: !!(o && o.bold) }], o);
+    T(h.so, { align: 'center' }); T(h.truong, { align: 'center', bold: true });
+    T(h.ten, { align: 'center', bold: true, before: 6 }); T(h.namhoc, { align: 'center', bold: true }); T(h.mon, { align: 'center', bold: true }); T(h.tg, { align: 'center', italic: true });
+    T('Họ và tên thí sinh: ……………………………………  Số báo danh: ……………  Mã đề: ' + (h.made || ''), { before: 6, after: 6 });
+    const msgEl = document.createElement('div');
+    // hình minh hoạ: dựng tạm lên trang để chụp, rồi bỏ ra (không đổi tài liệu)
+    const figPng = async (fig) => {
+      const objs = fig.obj.type === 'group' ? fig.obj.objs : [fig.obj];
+      const ids = objs.map((o0, k) => { const o = JSON.parse(JSON.stringify(o0)); o.id = 'xf' + k; if (fig.obj.type === 'group') { o.x += 40; o.y += 40; } else { o.x = 40; o.y = 40; } S.objs.push(o); renderObj(o).classList.add('figtmp'); return o.id; });
+      page.classList.add('figonly'); // ẩn các đối tượng khác trên trang khi chụp hình minh hoạ
+      try { return await api.renderPng(ids.length > 1 ? 'sel:' + ids.join(',') : ids[0], false, true); } finally { page.classList.remove('figonly'); S.objs = S.objs.filter((o) => !ids.includes(o.id)); ids.forEach((id) => { const el = elOf(id); if (el) el.remove(); }); }
+    };
+    for (const [k, title, guide] of PARTS) {
+      const qs = E.qs.filter((x) => x.kind === k);
+      if (!qs.length) continue;
+      P([{ t: title + ' ', b: true }, { t: guide.replace('{n}', qs.length) }], { before: 6 });
+      for (let i = 0; i < qs.length; i++) {
+        const q = qs[i];
+        P([{ t: 'Câu ' + (i + 1) + '. ', b: true }].concat(segsOf(q.stem)), { justify: true });
+        if (q.fig) { const r = await figPng(q.fig); const key = '[[HINH' + images.length + ']]'; images.push({ key, file: r.file, w: r.w, h: r.h }); P([{ t: key }], { align: 'center' }); }
+        if (k === 'tn') {
+          const lay = optLayout(q.opts), lab = (j) => [{ t: (j ? '\t' : '') + 'ABCD'[j] + '. ', b: true }].concat(segsOf(q.opts[j]));
+          if (lay === 4) P([0, 1, 2, 3].flatMap(lab), { tabs: [2409, 4819, 7228], indent: 283 });
+          else if (lay === 2) { P([0, 1].flatMap(lab), { tabs: [4819], indent: 283 }); P([2, 3].flatMap((j) => lab(j).map((s, n) => (n === 0 ? { t: (j === 3 ? '\t' : '') + 'ABCD'[j] + '. ', b: true } : s))), { tabs: [4819], indent: 283 }); }
+          else [0, 1, 2, 3].forEach((j) => P([{ t: 'ABCD'[j] + '. ', b: true }].concat(segsOf(q.opts[j])), { indent: 283 }));
+        }
+        if (k === 'ds') [0, 1, 2, 3].forEach((j) => P([{ t: 'abcd'[j] + ') ' }].concat(segsOf(q.opts[j])), { indent: 283 }));
+      }
+    }
+    T('––––––––– HẾT –––––––––', { align: 'center', bold: true, before: 6 });
+    if (withKey) {
+      T('ĐÁP ÁN – ' + (h.ten || '') + ' – Mã đề ' + (h.made || ''), { align: 'center', bold: true, pageBreak: true });
+      const tn = E.qs.filter((x) => x.kind === 'tn'), ds = E.qs.filter((x) => x.kind === 'ds'), tln = E.qs.filter((x) => x.kind === 'tln'), tl = E.qs.filter((x) => x.kind === 'tl');
+      if (tn.length) { T('Phần I. Mỗi câu trả lời đúng thí sinh được 0,25 điểm.', { bold: true, before: 6 }); for (let i = 0; i < tn.length; i += 6) T(tn.slice(i, i + 6).map((q, j) => 'Câu ' + (i + j + 1) + ': ' + q.ans).join('\t'), { tabs: [1606, 3212, 4819, 6425, 8031] }); }
+      if (ds.length) { T('Phần II. Điểm tối đa của 01 câu hỏi là 1 điểm.', { bold: true, before: 6 }); ds.forEach((q, i) => T('Câu ' + (i + 1) + ':\t' + ['a', 'b', 'c', 'd'].map((L, j) => L + ') ' + ((q.ans || '')[j] === 'Đ' ? 'Đúng' : 'Sai')).join('\t'), { tabs: [1134, 3118, 5102, 7086] })); }
+      if (tln.length) { T('Phần III. Mỗi câu trả lời đúng thí sinh được 0,5 điểm.', { bold: true, before: 6 }); for (let i = 0; i < tln.length; i += 6) T(tln.slice(i, i + 6).map((q, j) => 'Câu ' + (i + j + 1) + ': ' + (q.ans || '…')).join('\t'), { tabs: [1606, 3212, 4819, 6425, 8031] }); }
+      if (tl.length) { T('Phần IV. Tự luận.', { bold: true, before: 6 }); tl.forEach((q, i) => P([{ t: 'Câu ' + (i + 1) + '. ', b: true }].concat(segsOf(q.ans || '…')))); }
+    }
+    msg('Đang tạo tài liệu Word…');
+    const r = await api.office({ action: 'buildexam', job: { blocks, images } });
+    void msgEl;
+    if (r.ok) msg('Đã tạo đề trong Word (' + r.count + ' đoạn). Lưu tài liệu Word bằng Ctrl+S.'); else { msg(r.error, true); api.info(r.error); }
+    if (wasOpen) dlg.showModal();
+  }
+    return { openExam };
+  };
+})(window);
