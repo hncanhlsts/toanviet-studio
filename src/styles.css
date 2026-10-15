@@ -209,3 +209,13 @@ body.capturing .pth { display: none !important; }
 .tvempty { color: #6b7785; grid-column: 1 / -1; text-align: center; padding: 24px; }
 .tvfoot { border-top: 1px solid #e3e8ef; padding-top: 10px; margin: 0; }
 .tvhint { color: #6b7785; font-size: 12px; }
+
+/* chọn nhiều, khung chọn, đường dóng */
+.obj.msel { outline: 1.5px dashed #1f5fbf; outline-offset: 2px; }
+.obj.msel .handle, .obj.msel .pth { display: none !important; }
+.rband { position: absolute; border: 1px dashed #1f5fbf; background: rgba(31,95,191,.08); pointer-events: none; z-index: 5; }
+.guide { position: absolute; pointer-events: none; z-index: 6; background: #e8423f; }
+.guide.gv { top: 0; bottom: 0; width: 1px; }
+.guide.gh { left: 0; right: 0; height: 1px; }
+body.capturing .guide, body.capturing .rband { display: none !important; }
+body.capturing .obj.msel { outline: none !important; }
