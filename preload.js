@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld('api', {
   copyText: (t) => ipcRenderer.invoke('copyText', t),
   confirm: (msg) => ipcRenderer.invoke('confirm', msg),
   setTitle: (t) => ipcRenderer.send('title', t),
+  setDirty: (v) => ipcRenderer.send('dirty', !!v),
+  draft: (o) => ipcRenderer.invoke('draft', o),
   onOpenFile: (cb) => ipcRenderer.on('openfile', (_e, r) => cb(r)),
   office: (opts) => ipcRenderer.invoke('office', opts),
   onMenu: (cb) => ipcRenderer.on('menu', (_e, cmd) => cb(cmd)),

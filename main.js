@@ -18,6 +18,7 @@ function createWindow() {
     webPreferences: { additionalArguments: office ? ['--tvs-office=' + office.app, '--tvs-mode=' + office.mode, '--tvs-size=' + (parseFloat(argVal('--size')) || 0), '--tvs-op=' + office.op] : [], preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, spellcheck: false },
   });
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
+  guardClose(win);
   // mở từ Word/PowerPoint: đưa cửa sổ lên trước để gõ được ngay
   if (office) startBridge(); // khởi động sẵn để lần chèn đầu tiên không phải chờ
   if (office) win.webContents.once('did-finish-load', () => { win.show(); win.focus(); app.focus({ steal: true }); win.webContents.focus(); });
@@ -69,17 +70,20 @@ function createWindow() {
     win.webContents.once('did-finish-load', async () => {
       try {
         await new Promise((r) => setTimeout(r, 1500));
-        if (!office) await win.webContents.executeJavaScript('window.__demo()');
+        if (!office && !process.env.TVS_NO_DEMO) await win.webContents.executeJavaScript('window.__demo()');
         await new Promise((r) => setTimeout(r, 800));
         const buf = await capture(win.webContents, 'page', 1.5);
         fs.writeFileSync(shotArg.slice(7), buf);
         const ev = process.argv.find((a) => a.startsWith('--eval='));
         if (ev) { await win.webContents.executeJavaScript(ev.slice(7)); await new Promise((r) => setTimeout(r, 1200)); }
+        // kiểm thử hộp thoại khi đóng: đóng cửa sổ giống như bấm nút ✕
+        if (process.env.TVS_AUTO_CLOSE) { win.close(); await new Promise((r) => setTimeout(r, 2500)); if (win.isDestroyed()) return; console.log('WINDOW-STILL-OPEN'); }
         fs.writeFileSync(shotArg.slice(7).replace(/\.png$/, '.pdf'), await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, margins: { marginType: 'none' } }));
         if (process.env.TVS_SHOT_PAGE) fs.writeFileSync(shotArg.slice(7).replace(/\.png$/, '-after.png'), await capture(win.webContents, 'page', 1.5));
         const ui = await win.webContents.capturePage();
         fs.writeFileSync(shotArg.slice(7).replace(/\.png$/, '-ui.png'), ui.toPNG());
       } catch (e) { console.log('SHOT ERROR', e); }
+      allowClose = true; // chế độ chụp / kiểm thử: luôn thoát được
       app.quit();
     });
   }
@@ -144,7 +148,11 @@ ipcMain.handle('save', async (_e, { data, file }) => {
     if (r.canceled) return null;
     file = r.filePath;
   }
-  fs.writeFileSync(file, data, 'utf8');
+  // giữ bản trước của tệp thành .bak, phòng khi lưu nhầm
+  try { if (fs.existsSync(file)) fs.copyFileSync(file, file + '.bak'); } catch (err) { /* bỏ qua */ }
+  const tmp = file + '.tmp';
+  fs.writeFileSync(tmp, data, 'utf8');
+  fs.renameSync(tmp, file);
   return file;
 });
 ipcMain.handle('open', async () => {
@@ -540,7 +548,30 @@ ipcMain.handle('office', async (e, opts) => {
   if (hideNow) { win.show(); win.focus(); }
   return { ok: false, error: out === 'ERR:NOAPP' ? 'Chưa mở tài liệu ' + name + ' nào. Hãy mở ' + name + ' và đặt con trỏ vào chỗ cần chèn.' : 'Lỗi ' + name + ': ' + out.slice(4) };
 });
-ipcMain.on('quit', () => app.quit());
+// ---------- Đóng khi chưa lưu, tự lưu bản nháp ----------
+let docDirty = false, allowClose = false;
+const draftFile = () => path.join(app.getPath('userData'), 'ban-nhap.json');
+ipcMain.on('dirty', (_e, v) => { docDirty = !!v; });
+ipcMain.on('quit', () => { allowClose = true; app.quit(); });
+// lưu bản nháp (data = null: xoá bản nháp). Không ghi khi đang chạy kiểm thử / chụp ảnh hay mở từ Word.
+ipcMain.handle('draft', (_e, o) => {
+  if ((shotArg && !process.env.TVS_DRAFT_TEST) || office) return null;
+  if (o.action === 'write') { fs.mkdirSync(path.dirname(draftFile()), { recursive: true }); const tmp = draftFile() + '.tmp'; fs.writeFileSync(tmp, JSON.stringify({ time: Date.now(), file: o.file || null, data: o.data }), 'utf8'); fs.renameSync(tmp, draftFile()); return true; }
+  if (o.action === 'clear') { try { fs.unlinkSync(draftFile()); } catch (err) { /* không có bản nháp */ } return true; }
+  if (o.action === 'read') { try { return JSON.parse(fs.readFileSync(draftFile(), 'utf8')); } catch (err) { return null; } }
+  return null;
+});
+// hộp thoại khi đóng cửa sổ mà tài liệu chưa lưu
+function guardClose(w) {
+  w.on('close', (e) => {
+    const auto = process.env.TVS_AUTO_CLOSE; // kiểm thử: save | discard | cancel
+    if (allowClose || !docDirty || office || (!auto && (shotArg || process.env.TVS_AUTO))) return;
+    e.preventDefault();
+    const r = auto ? ['save', 'discard', 'cancel'].indexOf(auto) : dialog.showMessageBoxSync(w, { type: 'warning', title: 'ToanViet Studio', message: 'Tài liệu chưa được lưu.', detail: 'Lưu các thay đổi trước khi thoát?', buttons: ['Lưu', 'Không lưu', 'Huỷ'], defaultId: 0, cancelId: 2, noLink: true });
+    if (r === 0) w.webContents.send('menu', 'save-quit');
+    if (r === 1) { try { fs.unlinkSync(draftFile()); } catch (err) { /* không có bản nháp */ } allowClose = true; w.close(); }
+  });
+}
 ipcMain.handle('info', async (_e, msg) => {
   if (process.env.TVS_AUTO) { fs.appendFileSync(process.env.TVS_AUTO, 'INFO: ' + String(msg).replace(/\n+/g, ' / ') + '\n'); return true; } await dialog.showMessageBox(win, { type: 'info', buttons: ['Đóng'], message: String(msg) }); return true; });
 ipcMain.on('title', (_e, t) => { if (win) win.setTitle(t); });

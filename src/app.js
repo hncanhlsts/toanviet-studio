@@ -90,6 +90,7 @@
   function title() {
     const name = S.file ? S.file.replace(/^.*[\\/]/, '') : 'Chưa đặt tên';
     if (api) api.setTitle((S.dirty ? '● ' : '') + name + ' — ToanViet Studio');
+    if (api && api.setDirty) api.setDirty(S.dirty && S.objs.length > 0);
   }
   function loadDoc(objs, file) {
     S.objs = objs || [];
@@ -1081,19 +1082,21 @@
       try { const f = await api.capture({ target: S.sel || 'page', mode: 'file', name: S.sel ? 'hinh' : 'trang' }); if (f) msg('Đã xuất ' + f); } catch (e) { msg('Lỗi xuất ảnh: ' + e.message, true); }
     },
     pdf: async () => { if (!api) return; const z = S.zoom; setZoom(1); try { const f = await api.pdf(); if (f) msg('Đã xuất ' + f); } catch (e) { msg('Lỗi xuất PDF: ' + e.message, true); } setZoom(z); },
-    new: async () => { if (await confirmDiscard()) loadDoc([], null); },
+    new: async () => { if (await confirmDiscard()) { loadDoc([], null); if (api && api.draft) api.draft({ action: 'clear' }); } },
     open: async () => {
       if (!api || !(await confirmDiscard())) return;
       const r = await api.open();
       if (!r) return;
-      try { const d = JSON.parse(r.data); loadDoc(Array.isArray(d) ? d : d.objects, r.file); msg('Đã mở ' + r.file); } catch (e) { msg('Tệp không hợp lệ', true); }
+      try { const d = JSON.parse(r.data); loadDoc(Array.isArray(d) ? d : d.objects, r.file); msg('Đã mở ' + r.file); if (api.draft) api.draft({ action: 'clear' }); } catch (e) { msg('Tệp không hợp lệ', true); }
     },
     save: async (as) => {
       if (!api) return;
       const data = JSON.stringify({ app: 'ToanVietStudio', version: 1, objects: JSON.parse(serialize()) }, null, 1);
       const f = await api.save(data, as === true ? null : S.file);
-      if (f) { S.file = f; S.dirty = false; title(); msg('Đã lưu ' + f); }
+      if (f) { S.file = f; S.dirty = false; title(); msg('Đã lưu ' + f); if (api.draft) api.draft({ action: 'clear' }); }
+      return !!f;
     },
+    'save-quit': async () => { if (await CMD.save()) api.quit(); },
     saveas: () => CMD.save(true),
     toword: () => toOffice('word'),
     toppt: () => toOffice('ppt'),
@@ -1267,6 +1270,33 @@
   };
 
   loadDoc([], null);
+
+  // ---------- Tự lưu bản nháp và khôi phục ----------
+  let draftSig = '';
+  const saveDraft = () => {
+    if (!api || !api.draft || !S.dirty || !S.objs.length) return;
+    const data = serialize();
+    if (data === draftSig) return;
+    draftSig = data;
+    api.draft({ action: 'write', data, file: S.file });
+  };
+  setInterval(saveDraft, 60000);
+  window.addEventListener('blur', saveDraft); // chuyển sang cửa sổ khác: lưu ngay bản nháp
+  window.__saveDraftNow = saveDraft;
+  (async () => {
+    if (!api || !api.draft || (api.officeMode && api.officeMode.app)) return;
+    const d = await api.draft({ action: 'read' });
+    if (!d || !d.data) return;
+    let objs; try { objs = JSON.parse(d.data); } catch (e) { return; }
+    if (!Array.isArray(objs) || !objs.length) return;
+    const when = new Date(d.time).toLocaleString('vi-VN');
+    const ok = await api.confirm('Lần trước ToanViet Studio đã đóng khi tài liệu chưa được lưu' + (d.file ? ' (' + d.file.replace(/^.*[\\/]/, '') + ')' : '') + '.\n\nBản nháp tự lưu lúc ' + when + ' có ' + objs.length + ' đối tượng.\n\nKhôi phục bản nháp này?');
+    if (ok) {
+      loadDoc(objs, d.file || null);
+      S.dirty = true; title();
+      msg('Đã khôi phục bản nháp lúc ' + when + '. Nhớ bấm Lưu (Ctrl+S).');
+    } else api.draft({ action: 'clear' });
+  })();
 
   // ---------- Chế độ add-in: mở từ nút ToanViet trong Word / PowerPoint, chèn xong tự đóng ----------
   const OFFICE = api && api.officeMode ? { app: api.officeMode.app, mode: api.officeMode.mode, sizePt: api.officeMode.sizePt, op: api.officeMode.op, auto: false, lastOk: false, source: '' } : null;
