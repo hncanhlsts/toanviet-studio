@@ -91,3 +91,34 @@ thu('mọi mẫu dạng bài vẽ không lỗi và giữ đúng ảnh chuẩn', 
   }
   bang(bad, []);
 });
+
+nhom('Hình minh hoạ tiểu học (minhhoa.js)');
+thu('chia viết đầy đủ như sách: không có dấu trừ, trừ khi bật tuỳ chọn', () => {
+  const dem = (o) => (TieuHoc.renderDatTinh(Object.assign({ expr: '648 : 3', size: 24 }, o)).svg.match(/<path d="M[^"]*H[^"]*" stroke/g) || []).length;
+  bang(dem({}), 0, 'mặc định');
+  dung(dem({ dautru: true }) >= 3, 'bật dấu trừ');
+});
+thu('đề bài kiểu sách: số trong hình tròn, chữ "Số" trong ô vàng', () => {
+  const h = TieuHoc.renderBaiTap({ kind: 'otrong', de: 'Bài 2. Số?', text: '5 + [] = 7' }).html;
+  dung(/th-num">2</.test(h) && /th-tag">Số</.test(h), h.slice(0, 200));
+  dung(/<b>Bài 2\.<\/b>/.test(TieuHoc.renderBaiTap({ kind: 'otrong', de: 'Bài 2. Số?', text: '', kieude: 'thuong' }).html), 'kiểu thường');
+});
+thu('kiểm đếm ô vuông: 8 = một ô vuông đủ 5 nét và 3 nét', () => {
+  const r = MinhHoa.render({ ve: 'kiemdem', dulieu: 'Cam | 8', kieu: 'vuong' }, 400, 80);
+  bang((r.svg.match(/<line/g) || []).length - 2, 8); // trừ 2 đường kẻ dọc của bảng
+});
+thu('biểu đồ quạt báo khi tổng chưa đủ 100%', () => {
+  const r = MinhHoa.render({ ve: 'bdquat', dulieu: 'A | 40\nB | 30' }, 300, 240);
+  dung(r.errors.length === 1 && /70/.test(r.errors[0]), r.errors.join());
+});
+thu('mọi mẫu hình minh hoạ vẽ không lỗi và giữ đúng ảnh chuẩn', () => {
+  const bad = [];
+  for (const k in MinhHoa.KINDS) {
+    const o = Object.assign({ id: 't', kind: k }, MinhHoa.KINDS[k][1]);
+    if (o.ve === 'lich') o.nam = 2026;
+    const r = MinhHoa.render(o, o.w, o.h);
+    if (r.errors.length) bad.push(k + ': ' + r.errors[0]);
+    try { anh('minhhoa/' + k, r); } catch (e) { bad.push(k + ': ' + e.message); }
+  }
+  bang(bad, []);
+});

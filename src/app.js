@@ -154,6 +154,7 @@
         else if (o.type === 'numline') res = NumLine.render(o, o.w, o.h);
         else if (o.type === 'venn') res = NumLine.renderVenn(o, o.w, o.h);
         else if (o.type === 'dattinh') { res = TieuHoc.renderDatTinh(o); o.w = res.w; o.h = res.h; }
+        else if (o.type === 'minhhoa') res = MinhHoa.render(o, o.w, o.h);
         else res = { svg: shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
@@ -206,6 +207,7 @@
       case 'venn': return Object.assign({ kind, color: '#111111' }, JSON.parse(JSON.stringify(NumLine.VKINDS[kind][1])));
       case 'dattinh': return Object.assign({ kind, expr: '356 + 278', size: 26, an: 'none', nan: 3, seed: 1, dapan: false, nho: false, kieuchia: 'day', thapphan: 0, color: '#111111', acolor: '#d62728', w: 100, h: 100 }, TieuHoc.DT_KINDS[kind][1]);
       case 'baitap': return Object.assign({ kind, de: '', text: '', size: 20, cols: 1, dapan: false, seed: 1, head: false, headcol: false, nrow: 4, color: '#111111', acolor: '#d62728', w: 640 }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[kind][1])));
+      case 'minhhoa': return Object.assign({ kind, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[kind][1])));
       case 'shape': return { kind, w: kind === 'line' || kind === 'arrow' ? 160 : 140, h: kind === 'line' || kind === 'arrow' ? 60 : 100, color: '#111111', sw: 1.5, dash: false, nofill: true, fill: '#aed6f1', flip: false };
     }
   }
@@ -872,7 +874,9 @@
       if (/:|÷/.test(o.expr)) {
         add(field('kieuchia', 'Cách viết phép chia', 'sel', { day: 'Đầy đủ: ghi tích và dấu trừ ở từng bước (lớp 3)', gon: 'Viết gọn: chỉ ghi số dư (lớp 4, 5)' }));
         add(field('thapphan', 'Chia tiếp đến số chữ số ở phần thập phân của thương (0 = dừng, ghi số dư)', 'num', 1));
+        if (o.kieuchia !== 'gon') add(field('dautru', 'Ghi dấu trừ ở mỗi bước (sách Kết nối tri thức không ghi)', 'chk'));
       }
+      add(field('phong', 'Phông chữ số', 'sel', { sgk: 'Như sách giáo khoa (không chân)', times: 'Times New Roman' }));
       h4('Dùng làm bài tập');
       add(field('an', 'Phần cho học sinh làm', 'sel', { none: 'Hiện đầy đủ (bài mẫu)', kq: 'Để trống kết quả (học sinh tự tính)', otrong: 'Ô trống ở từng chữ số của kết quả', ngaunhien: 'Điền chữ số còn thiếu (giấu ngẫu nhiên)' }));
       if (o.an === 'ngaunhien') row(field('nan', 'Số chữ số giấu', 'num', 1), field('seed', 'Số xáo (đổi để giấu chỗ khác)', 'num', 1));
@@ -903,7 +907,21 @@
       if (o.kind === 'noi') add(field('seed', 'Số xáo', 'num', 1));
       if (o.kind === 'bang') row(field('head', 'Hàng đầu đậm', 'chk'), field('headcol', 'Cột đầu đậm', 'chk'));
       if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('dapan', 'Hiện đáp án (màu đỏ) — bản cho giáo viên', 'chk'));
+      if (/otrong|maytinh/.test(o.kind)) add(field('dauhoi', 'Ghi dấu ? trong ô trống (như sách)', 'chk'));
+      if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('kieude', 'Cách ghi đề bài', 'sel', { sgk: 'Như sách: số bài trong hình tròn, "Số" trong ô vàng', thuong: 'Chữ "Bài 1." in đậm' }));
+      add(field('phong', 'Phông chữ', 'sel', { sgk: 'Như sách giáo khoa (không chân)', times: 'Times New Roman' }));
       row(field('size', 'Cỡ chữ', 'num', 1), field('color', 'Màu chữ', 'color'), field('acolor', 'Màu đáp án', 'color'));
+    } else if (o.type === 'minhhoa') {
+      const kinds = { __on: (k) => { Object.keys(o).forEach((key) => { if (!/^(id|type|x|y|grp)$/.test(key)) delete o[key]; }); Object.assign(o, { kind: k, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[k][1]))); } };
+      for (const k in MinhHoa.KINDS) kinds[k] = MinhHoa.KINDS[k][0];
+      add(field('kind', 'Mẫu (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
+      (MinhHoa.FIELDS[o.ve] || []).forEach((f) => {
+        const el = add(field(f[0], f[1], f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: 4 } : f[3]));
+        if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
+      });
+      if (MinhHoa.HELP[o.ve]) help(MinhHoa.HELP[o.ve]);
+      add(field('color', 'Màu chữ, màu nét', 'color'));
+      help('Kéo ô vuông ở góc để đổi kích thước. Hình được vẽ lại bằng nét, in rõ ở mọi cỡ.');
     } else if (o.type === 'shape') {
       row(field('color', 'Màu nét', 'color'), field('sw', 'Độ dày', 'num', 0.5));
       add(field('dash', 'Nét đứt', 'chk'));
@@ -981,6 +999,7 @@
     'ins-venn': () => { insert('venn', 'phantu'); commit(); },
     'ins-dattinh': () => { insert('dattinh', $('#dtKind').value); commit(); },
     'ins-baitap': () => { insert('baitap', $('#btKind').value); commit(); },
+    'ins-minhhoa': () => { const v = $('#mhKind').value; if (v === 'tiaso') insert('numline', 'tiaso'); else insert('minhhoa', v); commit(); },
     'ins-phieu': () => phieuMau(),
     tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
     'ins-line': () => { insert('shape', 'line'); commit(); },
@@ -1132,6 +1151,8 @@
   const dk = $('#dtKind'), bk = $('#btKind');
   for (const k in TieuHoc.DT_KINDS) { const op = document.createElement('option'); op.value = k; op.textContent = TieuHoc.DT_KINDS[k][0]; dk.appendChild(op); }
   for (const k in TieuHoc.BT_KINDS) { const op = document.createElement('option'); op.value = k; op.textContent = TieuHoc.BT_KINDS[k][0]; bk.appendChild(op); }
+  const mk = $('#mhKind');
+  MinhHoa.GROUPS.forEach((g, gi) => { const og = document.createElement('optgroup'); og.label = g[0]; if (gi === 0) { const op = document.createElement('option'); op.value = 'tiaso'; op.textContent = 'Tia số (lớp 1 – 5)'; og.appendChild(op); } for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } mk.appendChild(og); });
   const yk = $('#symKind');
   SGK.GROUPS.forEach((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } yk.appendChild(og); });
   const pk = $('#planeKind');

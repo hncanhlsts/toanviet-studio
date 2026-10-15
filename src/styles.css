@@ -272,7 +272,8 @@ body.tieuhoc .th-hide { display: none !important; }
 #modeBadge { margin-left: auto; margin-right: 10px; border: 1px solid #b8c4d6; background: #fff; color: #1f3f7a; border-radius: 10px; padding: 0 9px; font-size: 11px; line-height: 17px; cursor: pointer; }
 body.tieuhoc #modeBadge { background: #fff4d6; border-color: #e0b84c; color: #7a5200; }
 .obj.baitap { line-height: 1.5; }
-.th-wrap { font-family: "Times New Roman", Times, serif; }
+.th-wrap { font-family: Arial, Helvetica, sans-serif; }
+.th-wrap.times { font-family: "Times New Roman", Times, serif; }
 .th-de { margin-bottom: .35em; }
 .th-grid { display: grid; column-gap: 1.2em; row-gap: .45em; }
 .th-it { white-space: nowrap; overflow: visible; }
@@ -306,3 +307,9 @@ body.tieuhoc #modeBadge { background: #fff4d6; border-color: #e0b84c; color: #7a
 .th-hs { margin-top: .3em; }
 .th-hs .th-dots { min-width: 9em; }
 .th-oly { display: block; }
+/* kiểu sách Kết nối tri thức: số thứ tự bài trong hình tròn tím, nhãn "Số" trong ô vàng, ô trống có dấu ? */
+.th-de.sgk { display: flex; align-items: center; gap: .35em; }
+.th-num { display: inline-flex; align-items: center; justify-content: center; width: 1.3em; height: 1.3em; border-radius: 50%; background: #7a5fc0; color: #fff; font-weight: 700; font-size: .9em; flex: none; }
+.th-tag { display: inline-block; background: #fbd97a; border-radius: .3em; padding: 0 .3em; line-height: 1.35; }
+.th-box.th-hoi, .th-mbox.th-hoi { border-color: #e0a93b; color: #555; }
+.th-mbox.th-first { border-radius: 50%; background: #fbd97a; border-color: #e0a93b; min-width: 1.9em; height: 1.9em; line-height: 1.85em; padding: 0; }

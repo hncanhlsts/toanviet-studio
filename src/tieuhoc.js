@@ -31,7 +31,7 @@
     let s = (Math.round(v * 1e6) / 1e6).toString();
     if (/e/.test(s)) s = v.toFixed(6);
     let [i, f] = s.split('.');
-    if (i.length >= 5) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    if (i.length >= 4) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     return (neg ? '-' : '') + i + (f ? ',' + f : '');
   }
 
@@ -170,7 +170,8 @@
       const ps = st.p.toString(), cs = st.cur.toString();
       if (full && !(i === 0 && st.p === 0n)) {
         for (let j = 0; j < ps.length; j++) items.push({ L: st.pos - (ps.length - 1 - j), r, t: ps[j], k: 'm' });
-        signs.push({ L: st.pos - Math.max(ps.length, cs.length), r: r - 0.5, t: '−' });
+        // sách Kết nối tri thức không ghi dấu trừ ở mỗi bước, chỉ kẻ vạch dưới tích
+        if (o.dautru) signs.push({ L: st.pos - Math.max(ps.length, cs.length), r: r - 0.5, t: '−' });
         lines.push({ r: r, L0: st.pos - Math.max(ps.length, cs.length) + 1, L1: st.pos + 1 });
         r++;
       }
@@ -225,7 +226,9 @@
     const boxes = mode === 'otrong' || mode === 'ngaunhien';
     // trong chế độ "giấu kết quả": bỏ cả các hàng trung gian của phép chia (học sinh tự làm)
     const blankRows = mode === 'kq' && L.div;
-    const font = `font-family="Times New Roman, serif" font-size="${size}"`;
+    // phông như sách (chữ số không chân) hoặc Times New Roman
+    const FAM = o.phong === 'times' ? 'Times New Roman, serif' : 'Arial, Helvetica, sans-serif';
+    const font = `font-family="${FAM}" font-size="${size}"`;
     const T = (x, y, t, c, extra) => `<text x="${r1(x)}" y="${r1(y)}" text-anchor="middle" fill="${c}" ${font}${extra || ''}>${escH(t)}</text>`;
     const SG = (x, yb, t) => {
       const y = yb - size * 0.32, a = size * 0.22, st = `stroke="${col}" stroke-width="${r1(Math.max(1, size * 0.055))}" stroke-linecap="round"`;
@@ -237,7 +240,7 @@
     const box = (x, y) => `<rect x="${r1(x - cw * 0.46)}" y="${r1(y - size * 0.82)}" width="${r1(cw * 0.92)}" height="${r1(size * 1.02)}" fill="#fff" stroke="${col}" stroke-width="1"/>`;
     const drawDigit = (it, i, x) => {
       const y = base(it.r);
-      if (it.k === 'n') { if (o.nho) svg.push(`<text x="${r1(x + (it.dx || 0.3) * cw)}" y="${r1(base(0) + it.r * rh + size * 0.1)}" text-anchor="middle" fill="${red}" font-family="Times New Roman, serif" font-size="${r1(size * 0.5)}">${escH(it.t)}</text>`); return; }
+      if (it.k === 'n') { if (o.nho) svg.push(`<text x="${r1(x + (it.dx || 0.3) * cw)}" y="${r1(base(0) + it.r * rh + size * 0.1)}" text-anchor="middle" fill="${red}" font-family="${FAM}" font-size="${r1(size * 0.5)}">${escH(it.t)}</text>`); return; }
       if (it.comma) { svg.push(T(x, y, ',', hid.has(i) && !o.dapan ? 'transparent' : col)); return; }
       if (hid.has(i)) {
         if (boxes) svg.push(box(x, y));
@@ -315,7 +318,7 @@
         let t = s.slice(i + 1, j).trim();
         if (t === '' && ctx && ctx.auto !== undefined && ctx.auto !== null) t = ctx.auto;
         const wd = Math.max(String(t).length, 2);
-        out += `<span class="th-box" style="min-width:${(wd * 0.62 + 0.5).toFixed(2)}em">${ans(t)}</span>`;
+        out += `<span class="th-box${o.dauhoi ? ' th-hoi' : ''}" style="min-width:${(wd * 0.62 + 0.5).toFixed(2)}em">${ans(t) || (o.dauhoi ? '?' : '')}</span>`;
         i = j + 1; continue;
       }
       if (c === '{') {
@@ -425,8 +428,8 @@
             if (m) {
               const t = m[1].trim() !== '' ? m[1].trim() : (isFinite(v) ? fmtNum(v) : '');
               if (m[1].trim() !== '') v = evalExpr(m[1]);
-              html += `<span class="th-mbox">${o.dapan && t ? `<span class="th-ans" style="color:${red}">${escH(t)}</span>` : '&nbsp;'}</span>`;
-            } else { v = evalExpr(p); html +=`<span class="th-mbox">${inline(p, o)}</span>`; }
+              html += `<span class="th-mbox${o.dauhoi ? ' th-hoi' : ''}">${o.dapan && t ? `<span class="th-ans" style="color:${red}">${escH(t)}</span>` : o.dauhoi ? '?' : '&nbsp;'}</span>`;
+            } else { v = evalExpr(p); html += `<span class="th-mbox${k === 0 ? ' th-first' : ''}">${inline(p, o)}</span>`; }
             if (k === 0 && !isFinite(v)) errors.push('Dòng ' + (li + 1) + ': số đầu tiên chưa đúng');
           }
         });
@@ -457,8 +460,17 @@
       body = `<svg class="th-oly" overflow="visible" viewBox="0 0 ${W * q} ${n * q}" style="width:${W * q}em;height:${n * q}em">${g}${txt}</svg>`;
     }
     const de = String(o.de || '').trim();
-    const head = de ? `<div class="th-de">${inline(de, o).replace(/^(Bài\s*\d+\s*[.:]?|Câu\s*\d+\s*[.:]?)/, '<b>$1</b>')}</div>` : '';
-    return { html: `<div class="th-wrap" style="font-size:${+o.size || 20}px;color:${o.color || '#111'}">${head}${body}</div>`, errors };
+    // đề bài: kiểu sách (số thứ tự trong hình tròn tím; "Số", "Đ, S", ">, <, =" trong ô vàng) hoặc kiểu thường (chữ "Bài 1." đậm)
+    let head = '';
+    if (de) {
+      const m = de.match(/^(?:(?:Bài|Câu)\s*)?(\d+)\s*[.:)]?\s*(.*)$/);
+      if (m && o.kieude !== 'thuong') {
+        const tag = m[2].match(/^(Số|Đ,\s*S|>\s*,\s*<\s*,\s*=)\s*\?\s*(.*)$/);
+        const rest = tag ? '<span class="th-tag">' + escH(tag[1]) + '</span> ?' + (tag[2] ? ' ' + inline(tag[2], o) : '') : inline(m[2], o);
+        head = `<div class="th-de sgk"><span class="th-num">${m[1]}</span><span>${rest}</span></div>`;
+      } else head = `<div class="th-de">${inline(de, o).replace(/^(Bài\s*\d+\s*[.:]?|Câu\s*\d+\s*[.:]?)/, '<b>$1</b>')}</div>`;
+    }
+    return { html: `<div class="th-wrap${o.phong === 'times' ? ' times' : ''}" style="font-size:${+o.size || 20}px;color:${o.color || '#111'}">${head}${body}</div>`, errors };
   }
 
   // ---------- Mẫu ----------
