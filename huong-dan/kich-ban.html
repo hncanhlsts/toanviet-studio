@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hướng dẫn lập kịch bản vẽ hình</title>
+<style>
+  @page { size: A4; margin: 17mm 16mm 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.8pt/1.5 "Segoe UI", Tahoma, sans-serif; color: #1c2430; margin: 0; }
+  h1 { font-size: 26pt; color: #1f5fbf; margin: 0 0 4pt; }
+  h2 { font-size: 16pt; color: #1f5fbf; border-bottom: 2px solid #1f5fbf; padding-bottom: 3pt; margin: 0 0 8pt; page-break-before: always; }
+  h3 { font-size: 12.3pt; color: #14407f; margin: 12pt 0 4pt; page-break-after: avoid; }
+  p { margin: 4pt 0; }
+  ul, ol { margin: 4pt 0 6pt; padding-left: 18pt; }
+  li { margin: 2pt 0; }
+  code { font: 9.8pt Consolas, monospace; background: #eef2f6; padding: 0 3px; border-radius: 3px; }
+  pre { font: 9.6pt/1.45 Consolas, monospace; background: #f3f6fa; border: 1px solid #dde3ea; border-radius: 4px; padding: 6pt 9pt; margin: 0; white-space: pre-wrap; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 8pt; font-size: 9.6pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #c9d1db; padding: 3pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #e8eff9; }
+  img { max-width: 100%; border: 1px solid #dde3ea; border-radius: 4px; display: block; }
+  .ex { display: grid; grid-template-columns: 1.05fr 1fr; gap: 10pt; align-items: start; margin: 6pt 0 10pt; page-break-inside: avoid; }
+  .ex .cap { font-size: 9.3pt; color: #4a5868; text-align: center; margin-top: 3pt; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  .cover .sub { font-size: 14pt; color: #33445a; margin-bottom: 20pt; }
+  .cover .who { font-size: 12pt; line-height: 1.7; margin-top: 30pt; }
+  .note { background: #fff4e5; border-left: 4px solid #e67e22; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .tip { background: #eaf3ff; border-left: 4px solid #1f5fbf; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .try { background: #eef8ee; border-left: 4px solid #2e8b57; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .bad { background: #fdecea; border-left: 4px solid #c0392b; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .toc { columns: 2; column-gap: 24pt; } .toc li { margin: 3pt 0; break-inside: avoid; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>ToanViet Studio</h1>
+  <div class="sub">Hướng dẫn lập kịch bản vẽ hình<br>Hình phẳng · Hình không gian · Vectơ · Hệ trục toạ độ</div>
+  <p>Cách viết kịch bản để dựng hình đúng theo quan hệ toán học,<br>điều khiển hình bằng thông số và tự kiểm tra hình bằng số đo thật.</p>
+  <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
+  <p style="color:#6b7785;margin-top:18pt">Dùng cho ToanViet Studio 2.0.8 trở lên · Trong phần mềm: <b>Trợ giúp ▸ Hướng dẫn lập kịch bản vẽ hình</b> (Shift+F1)</p>
+</div>
+
+<h2>Mục lục</h2>
+<ol class="toc">
+  <li>Kịch bản là gì</li>
+  <li>Ví dụ đầu tiên</li>
+  <li>Dựng điểm theo quan hệ hình học</li>
+  <li>Quy ước thứ tự điểm: đỉnh viết trước hay ở giữa</li>
+  <li>Thông số và số đo thật</li>
+  <li>Phân tích một lỗi thường gặp: phân giác trong hình bình hành</li>
+  <li>Các lệnh vẽ và ký hiệu</li>
+  <li>Đường tròn, phép biến hình, vectơ và hệ trục</li>
+  <li>Kịch bản hình không gian</li>
+  <li>Hệ trục toạ độ Oxyz</li>
+  <li>Quy trình 5 bước và bảng lỗi thường gặp</li>
+  <li>Tra cứu nhanh</li>
+</ol>
+
+<h2>1. Kịch bản là gì</h2>
+<p>Hình phẳng và hình không gian trong ToanViet không vẽ bằng chuột. Bạn viết một <b>kịch bản</b>: mỗi dòng nói một điều, phần mềm đọc từ trên xuống và dựng hình. Nhờ vậy:</p>
+<ul>
+  <li>Hình luôn <b>đúng quan hệ</b>: trung điểm thật sự là trung điểm, đường cao thật sự vuông góc.</li>
+  <li>Đổi một số (độ dài, góc) thì <b>cả hình tự dựng lại</b> và các số đo ghi trên hình đổi theo.</li>
+  <li>Kịch bản lưu cùng hình: nhấp đúp hoặc chọn hình là thấy lại kịch bản để sửa.</li>
+</ul>
+<p>Kịch bản nằm ở khung <b>Thuộc tính</b> bên phải khi chọn một hình phẳng (danh sách <b>Hình phẳng</b>) hoặc hình không gian tự dựng (nhóm lớp 11, lớp 12 trong danh sách <b>Hình không gian</b>). Cách nhanh nhất để bắt đầu là chọn một <b>hình mẫu</b> gần giống rồi sửa kịch bản của nó.</p>
+<div class="tip"><b>Không muốn gõ?</b> Chọn hình, kéo các chấm đặc để di chuyển điểm, nhấp các chấm để chọn điểm rồi bấm nút ở mục <b>Dựng nhanh</b> (trung điểm, hạ vuông góc, phân giác góc, giao điểm…). Phần mềm tự viết kịch bản; tài liệu này giúp bạn hiểu và sửa những gì đã được viết.</div>
+<h3>Ba loại dòng</h3>
+<table>
+  <tr><th style="width:22%">Loại dòng</th><th style="width:38%">Ví dụ</th><th>Ý nghĩa</th></tr>
+  <tr><td>Thông số</td><td><code>a = 6   # Cạnh BC</code></td><td>Tên viết thường. Tạo một ô số trong mục <b>Thông số</b>; chữ sau <code>#</code> là tên của ô.</td></tr>
+  <tr><td>Điểm</td><td><code>A = (1, 4)</code><br><code>M = trungdiem(B, C)</code></td><td>Tên viết hoa (A, B, A', A1, A_1). Cho toạ độ hoặc dựng từ điểm đã có.</td></tr>
+  <tr><td>Lệnh vẽ, ký hiệu</td><td><code>dagiac ABC</code><br><code>vuong AHC</code></td><td>Một từ khoá rồi các tên điểm.</td></tr>
+</table>
+<ul>
+  <li>Mọi chữ sau dấu <code>#</code> là chú thích, phần mềm bỏ qua.</li>
+  <li>Một điểm phải được tạo <b>trước</b> dòng dùng đến nó.</li>
+  <li>Hình phẳng dùng toạ độ <code>(x, y)</code>: x sang phải, y lên trên. Phần mềm tự co giãn cho vừa khung, nên đơn vị chỉ cần đúng tỉ lệ.</li>
+  <li>Dòng nào sai sẽ được báo bằng chữ đỏ ở cuối khung Thuộc tính, kèm lý do; các dòng khác vẫn vẽ bình thường.</li>
+</ul>
+
+<h2>2. Ví dụ đầu tiên</h2>
+<div class="ex">
+  <div><pre>A = (1, 4)
+B = (0, 0)
+C = (5, 0)
+dagiac ABC</pre>
+  <p style="margin-top:6pt">Ba dòng đầu tạo ba điểm bằng toạ độ. Dòng cuối nối thành tam giác (nối A–B, B–C, C–A). Tên điểm được đặt tự động vào chỗ trống quanh điểm.</p>
+  <div class="try"><b>Thử ngay.</b> Trong danh sách <b>Hình phẳng</b>, chọn mẫu bất kỳ, bấm <b>Chèn</b>, xoá hết kịch bản và gõ 4 dòng trên. Đổi <code>C = (5, 0)</code> thành <code>C = (7, 0)</code> và xem hình đổi.</div></div>
+  <div><img src="img/vd-diem.png"><div class="cap">Ví dụ 1</div></div>
+</div>
+
+<h2>3. Dựng điểm theo quan hệ hình học</h2>
+<p>Thay vì tự tính toạ độ, hãy để phần mềm dựng điểm từ các điểm đã có. Như vậy khi đổi hình, quan hệ vẫn được giữ.</p>
+<div class="ex">
+  <div><pre>A = (2.2, 4.4)
+B = (0, 0)
+C = (7.5, 0)
+dagiac ABC
+H = chan(A, B, C)        # chân đường cao từ A
+M = trungdiem(B, C)
+D = phangiac(A, B, C)    # chân phân giác góc A
+doan AH AM AD
+vuong AHC
+bang BM MC = 1
+goc BAD DAC</pre></div>
+  <div><img src="img/vd-dung.png"><div class="cap">Ví dụ 2: đường cao, trung tuyến, phân giác</div></div>
+</div>
+<h3>Các phép dựng điểm trong hình phẳng</h3>
+<table>
+  <tr><th style="width:34%">Viết</th><th>Kết quả</th></tr>
+  <tr><td><code>trungdiem(A, B)</code></td><td>Trung điểm AB</td></tr>
+  <tr><td><code>chia(A, B, k)</code></td><td>Điểm M trên AB với AM = k·AB (k = 1/3, 0.5, 2, −1…)</td></tr>
+  <tr><td><code>chan(M, A, B)</code></td><td>Chân đường vuông góc kẻ từ M xuống đường thẳng AB</td></tr>
+  <tr><td><code>phangiac(A, B, C)</code></td><td>Chân đường phân giác của góc A trong tam giác ABC (nằm trên BC). <b>Đỉnh A viết trước.</b></td></tr>
+  <tr><td><code>phangiacgoc(X, A, Y)</code></td><td>Một điểm trên tia phân giác của góc XAY. <b>Đỉnh A ở giữa</b>, giống lệnh <code>goc</code>.</td></tr>
+  <tr><td><code>phangiacgoc(X, A, Y, P, Q)</code></td><td>Giao điểm của tia phân giác góc XAY với đường thẳng PQ</td></tr>
+  <tr><td><code>trongtam(A, B, C)</code> · <code>tructam</code> · <code>tamnoi</code> · <code>tamngoai</code></td><td>Trọng tâm, trực tâm, tâm đường tròn nội tiếp, ngoại tiếp tam giác ABC</td></tr>
+  <tr><td><code>giao(A, B, C, D)</code></td><td>Giao điểm của hai đường thẳng AB và CD</td></tr>
+  <tr><td><code>tinhtien(M, A, B)</code></td><td>Ảnh của M qua phép tịnh tiến theo vectơ AB</td></tr>
+  <tr><td><code>hbh(A, B, C)</code></td><td>Điểm D để ABCD là hình bình hành (D = A + C − B)</td></tr>
+  <tr><td><code>doixung(M, O)</code> · <code>doixungtruc(M, A, B)</code></td><td>Đối xứng của M qua điểm O · qua đường thẳng AB</td></tr>
+  <tr><td><code>quay(M, O, 60)</code></td><td>Ảnh của M qua phép quay tâm O góc 60° (ngược chiều kim đồng hồ)</td></tr>
+  <tr><td><code>tron(O, r, 45)</code> hoặc <code>tron(O, A, 45)</code></td><td>Điểm trên đường tròn tâm O bán kính r (hoặc OA), ở góc 45° so với chiều dương trục x</td></tr>
+  <tr><td><code>dinh(B, C, c, b)</code></td><td>Đỉnh A của tam giác biết AB = c, AC = b (A ở bên trái hướng B → C)</td></tr>
+  <tr><td><code>tiepdiem(M, O, r, 1)</code></td><td>Tiếp điểm của tiếp tuyến kẻ từ M tới đường tròn (O; r); số cuối 1 hoặc 2 chọn một trong hai tiếp điểm</td></tr>
+</table>
+<p>Tham số có thể là biểu thức: <code>quay(A, O, so_do/2)</code>, <code>(a/2, h)</code>, <code>(2*cos(pi/3), 1)</code>.</p>
+
+<h2>4. Quy ước thứ tự điểm: đỉnh viết trước hay ở giữa</h2>
+<p>Đây là chỗ người mới dễ nhầm nhất. Có <b>hai kiểu</b> viết góc:</p>
+<table>
+  <tr><th style="width:30%">Kiểu</th><th style="width:34%">Lệnh</th><th>Ví dụ đọc</th></tr>
+  <tr><td><b>Đỉnh ở giữa</b> (như cách viết góc trong SGK)</td><td><code>goc BAC</code>, <code>vuong AHC</code>, <code>phangiacgoc(X, A, Y …)</code></td><td><code>goc BAC</code> là góc BAC, đỉnh A. <code>vuong AHC</code>: góc vuông tại H.</td></tr>
+  <tr><td><b>Đỉnh viết trước</b> (như "từ A kẻ…")</td><td><code>phangiac(A, B, C)</code>, <code>chan(M, A, B)</code>, <code>tiepdiem(M, …)</code></td><td><code>phangiac(A, B, C)</code>: phân giác <b>từ đỉnh A</b> của tam giác ABC. <code>chan(M, A, B)</code>: <b>từ M</b> hạ vuông góc xuống AB.</td></tr>
+</table>
+<div class="note"><b>Mẹo nhớ</b>: lệnh có chữ <b>goc</b> trong tên (<code>goc</code>, <code>phangiacgoc</code>) và <code>vuong</code> dùng <b>đỉnh ở giữa</b>. Các phép dựng "từ một điểm kẻ đến…" ghi điểm xuất phát <b>trước</b>.</div>
+<div class="tip"><b>Luôn tự kiểm tra</b>: viết <code>goc XAM MAY = ?</code>. Phần mềm ghi số đo thật của hai góc. Nếu hai số bằng nhau thì AM đúng là phân giác góc XAY. Xem xong có thể xoá dòng kiểm tra.</div>
+
+<h2>5. Thông số và số đo thật</h2>
+<div class="ex">
+  <div><pre>a = 6        # Cạnh BC
+goc_b = 55   # Góc B (độ)
+c = 4        # Cạnh AB
+B = (0, 0)
+C = (a, 0)
+A = tron(B, c, goc_b)
+dagiac ABC
+goc CBA = ?
+ghi AB = ? cm
+ghi BC = ? cm</pre>
+  <ul>
+    <li>Ba dòng đầu thành ba ô <b>Cạnh BC</b>, <b>Góc B</b>, <b>Cạnh AB</b> trong mục <b>Thông số</b>. Đổi số ở ô, hình dựng lại ngay.</li>
+    <li><code>A = tron(B, c, goc_b)</code>: A cách B một đoạn c, theo hướng tạo góc goc_b với BC, nên góc B đúng bằng thông số.</li>
+    <li>Dấu <code>?</code> nghĩa là "ghi số đo thật": góc B luôn hiện đúng số độ, AB và BC luôn hiện đúng độ dài.</li>
+  </ul></div>
+  <div><img src="img/vd-thongso.png"><div class="cap">Ví dụ 3: hình điều khiển bằng thông số</div></div>
+</div>
+<div class="note"><b>Không gõ tay số đo</b> kiểu <code>goc CBA = 60^{\circ}</code> nếu hình chưa thật sự có góc 60°. Số ghi trên hình sẽ mâu thuẫn với hình vẽ. Hãy đặt thông số rồi dùng <code>= ?</code>.</div>
+
+<h2>6. Phân tích một lỗi thường gặp: phân giác trong hình bình hành</h2>
+<p><b>Đề bài</b>: Cho hình bình hành ABCD. Phân giác góc A cắt DC tại M, phân giác góc C cắt AB tại N. Một người dùng viết kịch bản dưới đây và thấy hình "không đúng":</p>
+<div class="two">
+  <div><div class="bad"><b>Cách viết chưa đúng</b></div><pre>a = 5.6
+b = 3.4
+goc = 65
+D = (0, 0)
+C = (a, 0)
+A = tron(D, b, goc)
+B = hbh(A, D, C)
+dagiac ABCD
+M = phangiac(B, D, C)
+N = phangiac(D, A, B)
+doan AM NC
+goc DAM MAB = ?    # dòng kiểm tra</pre>
+  <img src="img/vd-sai.png" style="margin-top:6pt"><div class="cap">Hai góc DAM và MAB không bằng nhau: AM không phải phân giác</div></div>
+  <div><div class="try"><b>Cách viết đúng</b></div><pre>a = 5.6
+b = 3.4
+goc = 65
+D = (0, 0)
+C = (a, 0)
+A = tron(D, b, goc)
+B = hbh(A, D, C)
+dagiac ABCD
+M = phangiacgoc(D, A, B, D, C)
+N = phangiacgoc(B, C, D, A, B)
+doan AM CN
+goc DAM MAB = ?
+goc BCN NCD = ?</pre>
+  <img src="img/vd-dung-hbh.png" style="margin-top:6pt"><div class="cap">Các cặp góc bằng nhau: AM, CN đúng là phân giác</div></div>
+</div>
+<h3>Vì sao cách đầu chưa đúng?</h3>
+<ol>
+  <li><code>phangiac(B, D, C)</code> dùng kiểu <b>đỉnh viết trước</b>: nó là chân phân giác <b>của góc B</b> trong tam giác BDC. Vì vậy M là điểm mà <b>BM</b> là phân giác góc B, không liên quan tới góc A. Nối AM nên AM không phải phân giác (kiểm tra: 63,43° ≠ 51,57°).</li>
+  <li>Tương tự <code>phangiac(D, A, B)</code> cho phân giác góc D, nên NC không phải phân giác góc C. Đây là lý do người dùng thấy hình "giống phân giác góc B và D".</li>
+  <li><code>phangiac</code> chỉ dùng cho <b>tam giác</b> (chân phân giác nằm trên cạnh đối diện). Trong hình bình hành, phân giác góc A cắt <b>DC</b>, không phải cạnh đối diện của một tam giác chứa góc A. Nên cần lệnh <code>phangiacgoc(D, A, B, D, C)</code>: "phân giác góc DAB, cắt đường thẳng DC".</li>
+</ol>
+<div class="tip"><b>Bài học chung</b>: (1) đọc đúng quy ước thứ tự điểm của lệnh (mục 4); (2) với mỗi quan hệ quan trọng, thêm một dòng kiểm tra bằng <code>= ?</code>; (3) hình bình hành, hình thang… nên dựng bằng <code>hbh</code>, <code>tinhtien</code> để luôn đúng tính chất khi đổi thông số.</div>
+<p>Kịch bản đúng ở trên có sẵn thành hình mẫu <b>Hình bình hành và các đường phân giác</b> trong nhóm Tứ giác của danh sách Hình phẳng.</p>
+
+<h2>7. Các lệnh vẽ và ký hiệu</h2>
+<table>
+  <tr><th style="width:36%">Lệnh</th><th>Vẽ gì</th></tr>
+  <tr><td><code>doan AB CD</code></td><td>Các đoạn thẳng AB, CD (viết <code>doan ABC</code> là AB và BC)</td></tr>
+  <tr><td><code>dagiac ABCD</code></td><td>Đa giác khép kín</td></tr>
+  <tr><td><code>netdut AH</code></td><td>Đoạn nét đứt</td></tr>
+  <tr><td><code>duongthang AB</code> · <code>tia OA</code></td><td>Đường thẳng (kéo dài hai phía) · tia gốc O</td></tr>
+  <tr><td><code>vecto AB</code></td><td>Vectơ có mũi tên</td></tr>
+  <tr><td><code>duongtron O A</code> · <code>duongtron O 2.5</code></td><td>Đường tròn tâm O qua A · bán kính 2,5</td></tr>
+  <tr><td><code>ngoaitiep ABC</code> · <code>noitiep ABC</code></td><td>Đường tròn ngoại tiếp · nội tiếp tam giác</td></tr>
+  <tr><td><code>cung O A B</code> · <code>quat O A B</code></td><td>Cung tròn tâm O từ A đến B (ngược chiều kim đồng hồ) · hình quạt</td></tr>
+  <tr><td><code>to ABC</code></td><td>Tô nền đa giác (thêm màu, vd <code>to ABC xanh</code>)</td></tr>
+  <tr><td><code>goc BAC</code> · <code>goc BAC = 60^{\circ}</code> · <code>goc BAC = ?</code></td><td>Ký hiệu góc (đỉnh ở giữa); ghi chữ hoặc số đo thật; thêm <code>x2</code> ở cuối để vẽ hai cung</td></tr>
+  <tr><td><code>vuong AHC</code></td><td>Ký hiệu góc vuông tại H</td></tr>
+  <tr><td><code>bang AB AC = 1</code></td><td>Gạch đánh dấu đoạn bằng nhau (1, 2, 3 gạch)</td></tr>
+  <tr><td><code>ssong AB CD</code></td><td>Dấu mũi tên song song</td></tr>
+  <tr><td><code>ghi AB = 5\,cm</code> · <code>ghi AB = ? cm</code></td><td>Ghi độ dài bên cạnh đoạn</td></tr>
+  <tr><td><code>diem M N</code></td><td>Chấm tròn tại điểm</td></tr>
+  <tr><td><code>an P Q</code></td><td>Ẩn tên điểm (điểm phụ dùng để dựng)</td></tr>
+  <tr><td><code>nhan A1 = A'</code> · <code>nhan D = x</code></td><td>Đổi tên hiển thị (vd đặt tên tia Ox)</td></tr>
+</table>
+<p><b>Màu và tên đường</b> (dùng cho doan, netdut, duongthang, tia, vecto): thêm màu ở cuối dòng: <code>do</code>, <code>xanh</code>, <code>xanhla</code>, <code>den</code>, <code>xam</code>, <code>cam</code>, <code>tim</code> hoặc mã <code>#e8423f</code>; thêm tên sau dấu <code>=</code>: <code>vecto AB = \vec{a} xanh</code>.</p>
+
+<h2>8. Đường tròn, phép biến hình, vectơ và hệ trục</h2>
+<div class="ex">
+  <div><pre>r = 2.5      # Bán kính
+O = (0, 0)
+E = (r, 0)
+M = (6, 0)
+A = tiepdiem(M, O, r, 1)
+B = tiepdiem(M, O, r, 2)
+duongtron O E
+doan MA MB OA OB OM
+vuong OAM
+vuong OBM
+an E
+diem O</pre><p style="margin-top:6pt">Điểm phụ E chỉ để có bán kính cho <code>duongtron O E</code>, nên được ẩn tên bằng <code>an E</code>.</p></div>
+  <div><img src="img/vd-tron.png"><div class="cap">Ví dụ 4: hai tiếp tuyến kẻ từ M</div></div>
+</div>
+<div class="ex">
+  <div><pre>O = (0, 0)
+A = (3, 0.4)
+B = (4.2, 2)
+C = (2, 2.4)
+A1 = quay(A, O, 90)
+B1 = quay(B, O, 90)
+C1 = quay(C, O, 90)
+dagiac ABC
+doan A1B1 B1C1 C1A1 do
+netdut OA OA1
+goc AOA1 = ?
+nhan A1 = A'
+nhan B1 = B'
+nhan C1 = C'
+diem O</pre></div>
+  <div><img src="img/vd-bienhinh.png"><div class="cap">Ví dụ 5: phép quay tâm O góc 90°</div></div>
+</div>
+<div class="ex">
+  <div><pre>truc -1 5 -1 4 luoi
+O = (0, 0)
+A = (1, 1)
+B = (4, 3)
+vecto AB = \overrightarrow{AB} xanh
+vecto OA = \vec{a} do
+an O</pre><p style="margin-top:6pt"><code>truc xmin xmax ymin ymax luoi</code> vẽ hệ trục Oxy có vạch chia, số và lưới. Toạ độ điểm trong kịch bản chính là toạ độ trên hệ trục.</p></div>
+  <div><img src="img/vd-vecto.png"><div class="cap">Ví dụ 6: vectơ trong mặt phẳng toạ độ</div></div>
+</div>
+
+<h2>9. Kịch bản hình không gian</h2>
+<p>Hình không gian tự dựng (các mẫu lớp 11, lớp 12 trong danh sách <b>Hình không gian</b>) dùng cùng cách viết, thêm toạ độ thứ ba: <code>(x, y, z)</code> với x sang phải, y ra phía sau, z hướng lên.</p>
+<div class="ex">
+  <div><pre>a = 4   # Cạnh đáy
+h = 4   # SA
+A = (0, 0, 0)
+B = (a, 0, 0)
+D = (0, a, 0)
+C = (a, a, 0)
+S = (0, 0, h)
+doan AB BC SA SB SC
+netdut AD DC SD
+vuong SAB
+vuong SAD</pre>
+  <p style="margin-top:6pt">Hình chóp, hình hộp: <b>bạn tự khai báo cạnh khuất</b> bằng <code>netdut</code>. Cạnh khuất là các cạnh đi ra từ đỉnh nằm phía sau, phía dưới (ở đây là D).</p></div>
+  <div><img src="img/vd-chop.png"><div class="cap">Ví dụ 7: hình chóp S.ABCD có SA ⊥ đáy</div></div>
+</div>
+<div class="ex">
+  <div><pre>O = (0, 0, 0)
+mp P ngang O 8 5
+A = (-0.8, 0.4, 2.6)
+B = (0.9, -0.3, -1.6)
+M = giao(A, B, P)
+duongthang AB = d do
+diem M
+an O A B</pre>
+  <p style="margin-top:6pt">Với <b>mặt phẳng</b>, phần đường thẳng, cạnh bị mặt phẳng che sẽ <b>tự vẽ nét đứt</b>, bạn không cần khai báo.</p></div>
+  <div><img src="img/vd-mp.png"><div class="cap">Ví dụ 8: đường thẳng d cắt mặt phẳng (P) tại M</div></div>
+</div>
+<h3>Khối đa diện và khối tròn xoay</h3>
+<table>
+  <tr><th style="width:38%">Viết</th><th>Ý nghĩa</th></tr>
+  <tr><td><code>chop S ABCD</code></td><td>Hình chóp; các cạnh khuất <b>tự đứt nét</b> theo các mặt của khối (không cần khai báo netdut)</td></tr>
+  <tr><td><code>langtru ABCD A1B1C1D1</code></td><td>Lăng trụ, hình hộp, lập phương, chóp cụt</td></tr>
+  <tr><td><code>tudien ABCD</code> · <code>khoi ABC, ABD, ACD, BCD</code></td><td>Tứ diện · khối cho bằng danh sách mặt</td></tr>
+  <tr><td><code>tru O O1 r</code> · <code>non O S r</code> · <code>noncut O O1 r1 r2</code> · <code>cau O r</code></td><td>Khối tròn xoay (nên chọn Cách chiếu "Xoay tự do", Xoay ngang 0)</td></tr>
+  <tr><td><code>tron(O, r, goc)</code></td><td>Điểm trên đường tròn nằm ngang tâm O</td></tr>
+</table>
+<div class="tip">Sau khi khai báo khối, mọi đoạn vẽ thêm (<code>doan AC SO</code>) cũng tự đứt nét ở phần nằm sau các mặt của khối. Ví dụ 7 ở trên có thể viết gọn: <code>chop S ABCD</code> thay cho ba dòng doan / netdut.</div>
+<p>Khung Thuộc tính còn có mục <b>Toạ độ các điểm</b> (điểm cho bằng số) và <b>Tên hiển thị của điểm</b> (đổi tên, ẩn tên) để chỉnh hình mà không cần sửa chữ trong kịch bản.</p><h3>Mặt phẳng và phép dựng trong không gian</h3>
+<table>
+  <tr><th style="width:38%">Viết</th><th>Ý nghĩa</th></tr>
+  <tr><td><code>mp P ngang O 8 5</code></td><td>Mặt phẳng nằm ngang, tâm O, rộng 8, sâu 5</td></tr>
+  <tr><td><code>mp Q dung O 6 4 30</code></td><td>Mặt phẳng thẳng đứng, quay 30° quanh trục đứng</td></tr>
+  <tr><td><code>mp Q nghieng O 6 4 50</code></td><td>Mặt phẳng nghiêng 50° so với mặt nằm ngang</td></tr>
+  <tr><td><code>mp R: A B C D</code></td><td>Mặt phẳng là đa giác qua các điểm đã có</td></tr>
+  <tr><td><code>... lien</code> · <code>nhanmp P 2</code></td><td>Cạnh luôn nét liền · đặt tên mặt phẳng ở góc thứ 2 (0 = ẩn); tên <code>alpha</code> hiện thành α</td></tr>
+  <tr><td><code>chanmp(M, P)</code></td><td>Hình chiếu vuông góc của M lên (P)</td></tr>
+  <tr><td><code>vuonggoc(H, P, 3)</code></td><td>Điểm trên đường vuông góc với (P) tại H, cách H một đoạn 3 (số âm: phía dưới)</td></tr>
+  <tr><td><code>giao(A, B, P)</code> · <code>giao(A, B, C, D)</code></td><td>Giao của AB với (P) · giao của hai đường thẳng cắt nhau</td></tr>
+  <tr><td><code>chieu(M, P, A, B)</code></td><td>Hình chiếu song song của M lên (P) theo phương AB</td></tr>
+  <tr><td><code>trenmp(P, 0.3, 0.6)</code></td><td>Điểm nằm trên mặt phẳng P (toạ độ tương đối theo hai cạnh)</td></tr>
+  <tr><td><code>trungdiem</code>, <code>chia</code>, <code>trongtam</code>, <code>tinhtien</code>, <code>hbh</code>, <code>chan</code>, <code>doixung</code>, <code>doixungmp</code>, <code>phangiacgoc</code></td><td>Như trong hình phẳng</td></tr>
+  <tr><td><code>vitri A tren</code></td><td>Đặt tên điểm ở phía chỉ định: tren, duoi, trai, phai, trentrai, trenphai, duoitrai, duoiphai</td></tr>
+</table>
+<p>Khung Thuộc tính có mục <b>Góc nhìn</b>: <i>chiếu xiên như SGK</i> (đổi góc xiên, tỉ số rút gọn) hoặc <i>xoay tự do</i>.</p>
+
+<h2>10. Hệ trục toạ độ Oxyz</h2>
+<div class="ex">
+  <div><pre>oxyz
+truc 4 4.5 4
+O = (0, 0, 0)
+M = (2, 3, 2.5)
+toado M
+vecto OM = \vec{u} do</pre>
+  <ul>
+    <li>Dòng <code>oxyz</code> (đặt ở đầu) cho phép nhập toạ độ đúng như SGK 12: Ox hướng về phía người nhìn, Oy sang phải, Oz lên trên.</li>
+    <li><code>truc 4 4.5 4</code>: vẽ ba trục với độ dài 4; 4,5; 4.</li>
+    <li><code>toado M</code>: vẽ hình chiếu M' của M xuống mặt (Oxy), các đường gióng nét đứt và ghi các toạ độ lên trục.</li>
+    <li>Gắn hệ trục vào hình hộp, hình chóp: đặt đỉnh góc vuông tại O, các cạnh theo các trục (xem mẫu trong nhóm lớp 12).</li>
+  </ul></div>
+  <div><img src="img/vd-oxyz.png"><div class="cap">Ví dụ 9: toạ độ của điểm và vectơ</div></div>
+</div>
+
+<h2>11. Quy trình 5 bước và bảng lỗi thường gặp</h2>
+<ol>
+  <li><b>Chọn hình mẫu gần nhất</b> trong danh sách rồi bấm Chèn (đỡ phải gõ từ đầu).</li>
+  <li><b>Đặt thông số</b> cho các đại lượng đề bài cho (cạnh, góc, bán kính…).</li>
+  <li><b>Dựng điểm theo quan hệ</b> (trung điểm, chân đường vuông góc, giao điểm…) thay vì tự tính toạ độ.</li>
+  <li><b>Vẽ và ghi ký hiệu</b>: doan, dagiac, vuong, bang, goc…</li>
+  <li><b>Kiểm tra bằng số đo thật</b> (<code>goc … = ?</code>, <code>ghi … = ?</code>), đổi thử thông số để chắc hình vẫn đúng, rồi xoá dòng kiểm tra nếu không cần.</li>
+</ol>
+<table>
+  <tr><th style="width:36%">Thông báo / hiện tượng</th><th>Nguyên nhân và cách sửa</th></tr>
+  <tr><td>chưa có điểm X</td><td>Dùng X trước khi tạo, hoặc gõ sai tên (A1 khác A'). Đưa dòng tạo X lên trước.</td></tr>
+  <tr><td>không có phép dựng "…"</td><td>Sai tên phép dựng; xem bảng mục 3 và mục 9. Viết thường, không dấu.</td></tr>
+  <tr><td>toạ độ cần hai số / ba số</td><td>Hình phẳng dùng (x, y), hình không gian dùng (x, y, z). Số thập phân dùng dấu chấm: 2.5.</td></tr>
+  <tr><td>hai đường thẳng song song</td><td><code>giao</code> của hai đường song song; kiểm tra lại các điểm.</td></tr>
+  <tr><td>ba điểm thẳng hàng · không dựng được tam giác</td><td>Thông số không tạo được hình (vd ba cạnh vi phạm bất đẳng thức tam giác). Đổi thông số.</td></tr>
+  <tr><td>Hình vẽ ra nhưng "sai quan hệ"</td><td>Thường do nhầm thứ tự điểm (mục 4). Thêm dòng <code>goc … = ?</code> để kiểm tra.</td></tr>
+  <tr><td>Tên điểm đè lên nét</td><td>Kéo hình to hơn; đổi vị trí điểm; ở hình không gian dùng <code>vitri A tren</code>; ẩn tên điểm phụ bằng <code>an</code>.</td></tr>
+  <tr><td>Số đo trên hình không khớp</td><td>Đừng gõ tay số đo; dùng thông số + <code>= ?</code> (mục 5).</td></tr>
+</table>
+
+<h2>12. Tra cứu nhanh</h2>
+<div class="two">
+<div>
+<h3>Hình phẳng</h3>
+<pre># thông số
+ten = 5   # Chú thích
+# điểm
+A = (x, y)
+trungdiem(A, B)    chia(A, B, k)
+chan(M, A, B)      phangiac(A, B, C)
+phangiacgoc(X, A, Y[, P, Q])
+trongtam  tructam  tamnoi  tamngoai
+giao(A, B, C, D)   tinhtien(M, A, B)
+hbh(A, B, C)       doixung(M, O)
+doixungtruc(M, A, B)
+quay(M, O, goc)    tron(O, r, goc)
+dinh(B, C, c, b)   tiepdiem(M, O, r, 1)
+# vẽ
+doan  dagiac  netdut  duongthang  tia
+vecto  duongtron  ngoaitiep  noitiep
+cung  quat  to  truc
+# ký hiệu
+goc  vuong  bang  ssong  ghi
+diem  an  nhan
+# màu: do xanh xanhla den xam cam tim</pre>
+</div>
+<div>
+<h3>Hình không gian</h3>
+<pre>A = (x, y, z)
+oxyz              # toạ độ kiểu SGK 12
+truc 4 4 4        toado M
+mp P ngang O 8 5
+mp Q dung O 6 4 30
+mp Q nghieng O 6 4 50
+mp R: A B C D     nhanmp P 2
+chanmp(M, P)      vuonggoc(H, P, h)
+giao(A, B, P)     giao(A, B, C, D)
+chieu(M, P, A, B) trenmp(P, u, v)
+doixungmp(M, P)
+doan  netdut  netlien  duongthang
+tia  vecto  dagiac  to
+goc  vuong  bang  ghi  diem  an
+nhan  vitri A tren
+duongthang AB = d do keo 0.3</pre>
+<h3>Trục số, biểu đồ Ven</h3>
+<pre>x > 4      -2 < x <= 3
+x < -1 hoặc x >= 2
+[1; +oo)   (-oo; 3/4]
+E = [1; +oo)   E ∩ F   A \ B
+A = 7/4    N = -sqrt(2)   4,1(6)
+Ven: A: 1; 3   AB: 4   ngoài: 9
+tô:  A ∩ B   (A ∪ B) ∩ C   E \ A</pre>
+</div>
+</div>
+
+</body>
+</html>

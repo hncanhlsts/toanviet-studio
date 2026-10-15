@@ -1,0 +1,489 @@
+  // Hình mẫu theo chương trình GDPT 2018 (nhóm -> tên -> kịch bản).
+  // Dòng "ten = số  # chú thích" là THÔNG SỐ: đổi số thì hình đổi theo. Nhãn "?" là số đo thật của hình.
+  const S = (t) => String.raw(t).trim();
+  const TRI = S`
+a = 6      # Cạnh BC
+b = 5.2    # Cạnh CA
+c = 4.4    # Cạnh AB
+B = (0, 0)
+C = (a, 0)
+A = dinh(B, C, c, b)`;
+  const KINDS = [
+    ['Điểm, đoạn thẳng, góc (lớp 6 – 7)', {
+      doan: ['Đoạn thẳng và trung điểm', S`
+d = 6   # Độ dài đoạn AB
+A = (0, 0)
+B = (d, 0)
+M = trungdiem(A, B)
+doan AB
+diem A B M
+bang AM MB
+ghi AB = ? cm`],
+      goc: ['Góc xOy', S`
+so_do = 60   # Số đo góc xOy (độ)
+O = (0, 0)
+A = (5, 0)
+B = quay(A, O, so_do)
+tia OA OB
+nhan A = x
+nhan B = y
+goc AOB = ?`],
+      phangiac: ['Tia phân giác của một góc', S`
+so_do = 70   # Số đo góc xOy (độ)
+O = (0, 0)
+A = (5, 0)
+B = quay(A, O, so_do)
+D = quay(A, O, so_do/2)
+tia OA OB OD
+nhan A = x
+nhan B = y
+nhan D = z
+goc AOD = ?
+goc DOB = ?`],
+      kebu: ['Hai góc kề bù', S`
+so_do = 60   # Số đo góc xOz (độ)
+O = (0, 0)
+A = (4.5, 0)
+B = (-4.5, 0)
+C = tron(O, 4, so_do)
+doan AB
+tia OC
+nhan A = x
+nhan B = y
+nhan C = z
+goc AOC = ?
+goc COB = ?
+diem O`],
+      doidinh: ['Hai góc đối đỉnh', S`
+so_do = 50   # Số đo góc xOy (độ)
+O = (0, 0)
+A = (4.5, 0)
+B = (-4.5, 0)
+C = tron(O, 4.5, so_do)
+D = doixung(C, O)
+doan AB CD
+nhan A = x
+nhan B = x'
+nhan C = y
+nhan D = y'
+goc AOC = ?
+goc BOD = ?`],
+      songsong: ['Hai đường thẳng song song và cát tuyến', S`
+goc_cat = 60   # Góc giữa cát tuyến và đường thẳng a (độ)
+kc = 3         # Khoảng cách giữa a và b
+P = (0, kc)
+Q = (8, kc)
+R = (0, 0)
+S = (8, 0)
+A = (4.8, kc)
+T = tron(A, 1, goc_cat + 180)
+B = giao(A, T, R, S)
+doan PQ RS
+duongthang AB
+nhan P = a
+nhan R = b
+an Q S T
+ssong PQ RS
+goc PAB = ?
+goc ABS = ?
+diem A B`],
+      trungtruc: ['Đường trung trực của đoạn thẳng', S`
+d = 6   # Độ dài đoạn AB
+A = (0, 0)
+B = (d, 0)
+M = trungdiem(A, B)
+D = (d/2, 3.2)
+E = (d/2, -2)
+doan AB
+duongthang ED
+an E
+nhan D = d
+vuong DMB
+bang AM MB
+diem A B M`],
+    }],
+    ['Tam giác (lớp 6 – 8)', {
+      tamgiac: ['Tam giác ABC (ba cạnh)', TRI + S`
+
+dagiac ABC
+ghi BC = ?
+ghi CA = ?
+ghi AB = ?`],
+      tamgiacgoc: ['Tam giác ABC (một cạnh, hai góc)', S`
+a = 6        # Cạnh BC
+goc_b = 55   # Góc B (độ)
+goc_c = 45   # Góc C (độ)
+B = (0, 0)
+C = (a, 0)
+X = quay(C, B, goc_b)
+Y = quay(B, C, -goc_c)
+A = giao(B, X, C, Y)
+an X Y
+dagiac ABC
+goc CBA = ?
+goc ACB = ?
+goc BAC = ?`],
+      can: ['Tam giác cân', S`
+day = 5     # Cạnh đáy BC
+ben = 5.5   # Cạnh bên AB = AC
+B = (0, 0)
+C = (day, 0)
+A = dinh(B, C, ben, ben)
+dagiac ABC
+bang AB AC = 1
+goc CBA = ?
+goc ACB = ?`],
+      deu: ['Tam giác đều', S`
+canh = 5   # Độ dài cạnh
+B = (0, 0)
+C = (canh, 0)
+A = quay(C, B, 60)
+dagiac ABC
+bang AB BC CA = 1
+goc BAC = ?`],
+      vuong: ['Tam giác vuông', S`
+ab = 3.6   # Cạnh góc vuông AB
+ac = 5.4   # Cạnh góc vuông AC
+A = (0, 0)
+B = (0, ab)
+C = (ac, 0)
+dagiac ABC
+vuong BAC
+ghi AB = ?
+ghi AC = ?
+ghi BC = ?`],
+      vuongcan: ['Tam giác vuông cân', S`
+canh = 4   # Cạnh góc vuông
+A = (0, 0)
+B = (0, canh)
+C = (canh, 0)
+dagiac ABC
+vuong BAC
+bang AB AC = 1`],
+      trungtuyen: ['Ba đường trung tuyến, trọng tâm', TRI + S`
+
+M = trungdiem(B, C)
+N = trungdiem(C, A)
+P = trungdiem(A, B)
+G = trongtam(A, B, C)
+dagiac ABC
+doan AM BN CP
+bang BM MC = 1
+bang CN NA = 2
+bang AP PB = 3
+diem G`],
+      duongcao: ['Ba đường cao, trực tâm', TRI + S`
+
+D = chan(A, B, C)
+E = chan(B, C, A)
+F = chan(C, A, B)
+H = tructam(A, B, C)
+dagiac ABC
+doan AD BE CF
+vuong ADC
+vuong BEC
+vuong CFB
+diem H`],
+      noitiep: ['Ba đường phân giác, đường tròn nội tiếp', TRI + S`
+
+I = tamnoi(A, B, C)
+D = phangiac(A, B, C)
+E = phangiac(B, C, A)
+F = phangiac(C, A, B)
+dagiac ABC
+doan AD BE CF
+noitiep ABC
+diem I`],
+      ngoaitiep: ['Ba đường trung trực, đường tròn ngoại tiếp', TRI + S`
+
+O = tamngoai(A, B, C)
+M = trungdiem(B, C)
+N = trungdiem(C, A)
+P = trungdiem(A, B)
+dagiac ABC
+ngoaitiep ABC
+netdut OM ON OP
+vuong OMC
+vuong ONA
+vuong OPB
+diem O`],
+      bangnhau: ['Hai tam giác bằng nhau', S`
+a = 4.4   # Cạnh BC
+b = 4.6   # Cạnh CA
+c = 3.7   # Cạnh AB
+B = (0, 0)
+C = (a, 0)
+A = dinh(B, C, c, b)
+B' = (a + 2.8, 0)
+C' = (2*a + 2.8, 0)
+A' = dinh(B', C', c, b)
+dagiac ABC
+dagiac A'B'C'
+bang AB A'B' = 1
+bang AC A'C' = 2
+bang BC B'C' = 3`],
+      dongdang: ['Hai tam giác đồng dạng', S`
+a = 5.6   # Cạnh BC
+b = 5.7   # Cạnh CA
+c = 4.6   # Cạnh AB
+k = 0.6   # Tỉ số đồng dạng A'B'/AB
+B = (0, 0)
+C = (a, 0)
+A = dinh(B, C, c, b)
+B' = (a + 2.4, 0)
+C' = (a + 2.4 + k*a, 0)
+A' = dinh(B', C', k*c, k*b)
+dagiac ABC
+dagiac A'B'C'
+goc CBA
+goc C'B'A'
+goc ACB x2
+goc A'C'B' x2`],
+      thales: ['Định lí Thalès (MN // BC)', TRI + S`
+
+k = 0.55   # Tỉ số AM/AB
+M = chia(A, B, k)
+N = chia(A, C, k)
+dagiac ABC
+doan MN
+ssong MN BC`],
+      trungbinh: ['Đường trung bình của tam giác', TRI + S`
+
+M = trungdiem(A, B)
+N = trungdiem(A, C)
+dagiac ABC
+doan MN
+bang AM MB = 1
+bang AN NC = 2
+ghi MN = ?
+ghi BC = ?`],
+      tcphangiac: ['Tính chất đường phân giác', TRI + S`
+
+D = phangiac(A, B, C)
+dagiac ABC
+doan AD
+goc BAD = ?
+goc DAC = ?`],
+      luonggiac: ['Tam giác vuông và tỉ số lượng giác', S`
+alpha = 31    # Góc nhọn C (độ)
+huyen = 6.5   # Cạnh huyền BC
+A = (0, 0)
+B = (0, huyen*sin(alpha*pi/180))
+C = (huyen*cos(alpha*pi/180), 0)
+dagiac ABC
+vuong BAC
+goc ACB = \alpha
+ghi AB = \text{cạnh đối}
+ghi AC = \text{cạnh kề}
+ghi BC = \text{cạnh huyền}`],
+    }],
+    ['Tứ giác, đa giác (lớp 6, 8)', {
+      hinhthang: ['Hình thang', S`
+day_lon = 6.5   # Đáy lớn DC
+day_nho = 3.2   # Đáy nhỏ AB
+cao = 3         # Chiều cao
+lech = 1.4      # Độ lệch của A so với D
+D = (0, 0)
+C = (day_lon, 0)
+A = (lech, cao)
+B = (lech + day_nho, cao)
+dagiac ABCD
+ssong AB DC`],
+      thangcan: ['Hình thang cân', S`
+day_lon = 6.5   # Đáy lớn DC
+day_nho = 3.5   # Đáy nhỏ AB
+cao = 3         # Chiều cao
+D = (0, 0)
+C = (day_lon, 0)
+A = ((day_lon - day_nho)/2, cao)
+B = ((day_lon + day_nho)/2, cao)
+dagiac ABCD
+ssong AB DC
+bang AD BC = 1
+goc ADC = ?
+goc DCB = ?`],
+      binhhanh: ['Hình bình hành', S`
+a = 5       # Cạnh DC
+b = 3.4     # Cạnh AD
+goc = 65    # Góc D (độ)
+D = (0, 0)
+C = (a, 0)
+A = tron(D, b, goc)
+B = hbh(A, D, C)
+O = giao(A, C, B, D)
+dagiac ABCD
+doan AC BD
+bang OA OC = 1
+bang OB OD = 2`],
+      chunhat: ['Hình chữ nhật', S`
+dai = 5.6    # Chiều dài
+rong = 3.2   # Chiều rộng
+D = (0, 0)
+C = (dai, 0)
+B = (dai, rong)
+A = (0, rong)
+O = giao(A, C, B, D)
+dagiac ABCD
+doan AC BD
+vuong ADC`],
+      thoi: ['Hình thoi', S`
+canh = 3.8   # Độ dài cạnh
+goc = 64     # Góc A (độ)
+A = (0, 0)
+B = tron(A, canh, goc/2)
+D = tron(A, canh, -goc/2)
+C = hbh(B, A, D)
+O = giao(A, C, B, D)
+dagiac ABCD
+doan AC BD
+vuong BOC
+bang AB BC CD DA = 1`],
+      vuongh: ['Hình vuông', S`
+canh = 4   # Độ dài cạnh
+D = (0, 0)
+C = (canh, 0)
+B = (canh, canh)
+A = (0, canh)
+dagiac ABCD
+vuong ADC
+bang AB BC CD DA = 1`],
+      lucgiac: ['Lục giác đều', S`
+r = 3   # Bán kính đường tròn ngoại tiếp (bằng cạnh)
+O = (0, 0)
+A = tron(O, r, 120)
+B = tron(O, r, 60)
+C = tron(O, r, 0)
+D = tron(O, r, -60)
+E = tron(O, r, -120)
+F = tron(O, r, 180)
+dagiac ABCDEF
+netdut AD BE CF
+diem O`],
+    }],
+    ['Đường tròn (lớp 6, 9)', {
+      duongtron: ['Đường tròn: bán kính, đường kính, dây', S`
+r = 3   # Bán kính
+O = (0, 0)
+A = tron(O, r, 180)
+B = tron(O, r, 0)
+C = tron(O, r, 70)
+D = tron(O, r, 215)
+E = tron(O, r, 325)
+duongtron O A
+doan AB OC DE
+diem O`],
+      tieptuyen: ['Tiếp tuyến tại một điểm', S`
+r = 2.6     # Bán kính
+vi_tri = 40 # Vị trí tiếp điểm A trên đường tròn (độ)
+O = (0, 0)
+A = tron(O, r, vi_tri)
+B = quay(O, A, 90)
+C = quay(O, A, -90)
+duongtron O A
+doan OA
+duongthang BC
+an B
+nhan C = d
+vuong OAB
+diem O A`],
+      haitieptuyen: ['Hai tiếp tuyến cắt nhau', S`
+r = 2.4   # Bán kính
+d = 6     # Khoảng cách OM
+O = (0, 0)
+R = (r, 0)
+M = (d, 0)
+A = tiepdiem(M, O, R, 1)
+B = tiepdiem(M, O, R, 2)
+an R
+duongtron O R
+doan MA MB OA OB OM
+vuong OAM
+vuong OBM
+diem O`],
+      goctam: ['Góc ở tâm và góc nội tiếp', S`
+r = 3        # Bán kính
+cung = 110   # Số đo cung AB (độ)
+vi_tri = 100 # Vị trí điểm C trên đường tròn (độ)
+O = (0, 0)
+A = tron(O, r, 270 - cung/2)
+B = tron(O, r, 270 + cung/2)
+C = tron(O, r, vi_tri)
+duongtron O A
+doan OA OB CA CB
+goc AOB = ?
+goc ACB = ?
+diem O`],
+      tgnoitiep: ['Tứ giác nội tiếp', S`
+r = 3   # Bán kính
+O = (0, 0)
+A = tron(O, r, 120)
+B = tron(O, r, 30)
+C = tron(O, r, -50)
+D = tron(O, r, 205)
+duongtron O A
+dagiac ABCD
+goc DAB = ?
+goc BCD = ?
+diem O`],
+      quat: ['Hình quạt tròn', S`
+r = 3        # Bán kính
+so_do = 90   # Số đo cung (độ)
+O = (0, 0)
+A = tron(O, r, 20)
+B = tron(O, r, 20 + so_do)
+quat O A B
+duongtron O A
+doan OA OB
+goc AOB = ?
+diem O`],
+      haiduongtron: ['Hai đường tròn cắt nhau', S`
+r1 = 3     # Bán kính đường tròn (O)
+r2 = 2.2   # Bán kính đường tròn (O')
+d = 4      # Khoảng cách OO'
+O = (0, 0)
+O' = (d, 0)
+A = dinh(O, O', r1, r2)
+B = doixungtruc(A, O, O')
+duongtron O A
+duongtron O' A
+doan OO' AB OA O'A
+diem O O'`],
+    }],
+    ['Vectơ, lượng giác (lớp 10 – 11)', {
+      vecto: ['Tổng hai vectơ (quy tắc hình bình hành)', S`
+A = (0, 0)
+B = (4.6, 0.6)
+D = (1.5, 3)
+C = hbh(D, A, B)
+vecto AB AD AC
+netdut BC DC
+ghi AB = \vec{a}
+ghi AD = \vec{b}`],
+      bavecto: ['Quy tắc ba điểm', S`
+A = (0, 0)
+B = (3, 3.2)
+C = (6.5, 0.6)
+vecto AB BC AC`],
+      dtluonggiac: ['Đường tròn lượng giác', S`
+alpha = 50   # Góc lượng giác (độ)
+O = (0, 0)
+A = (1, 0)
+B = (0, 1)
+X = (1.45, 0)
+Y = (0, 1.45)
+P = (-1.45, 0)
+Q = (0, -1.45)
+M = tron(O, 1, alpha)
+H = chan(M, O, A)
+K = chan(M, O, B)
+duongtron O A
+vecto PX QY
+an P Q B
+nhan X = x
+nhan Y = y
+doan OM
+netdut MH MK
+goc AOM = \alpha
+diem M H K`],
+    }],
+  ];

@@ -1,0 +1,4 @@
+node_modules/
+cai-dat/
+*.blockmap
+build/*.png

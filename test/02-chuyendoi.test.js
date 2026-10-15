@@ -1,0 +1,25 @@
+// Chuyển đổi công thức: Equation (OMML) → LaTeX, LaTeX → MathType (MTEF) → LaTeX
+nhom('Equation của Word → LaTeX (omml.js)');
+const M = (inner) => '<m:oMath>' + inner + '</m:oMath>';
+const R = (t) => '<m:r><m:t>' + t + '</m:t></m:r>';
+const norm = (s) => String(s).replace(/\s+/g, '').replace(/\\left|\\right/g, '');
+thu('phân số', () => bang(norm(OMML.toLatex(M('<m:f><m:num>' + R('1') + '</m:num><m:den>' + R('2') + '</m:den></m:f>'))), '\\frac{1}{2}'));
+thu('căn và số mũ', () => {
+  const t = norm(OMML.toLatex(M('<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/><m:e>' + R('x') + '</m:e></m:rad>' + R('+') + '<m:sSup><m:e>' + R('y') + '</m:e><m:sup>' + R('2') + '</m:sup></m:sSup>')));
+  bang(t, '\\sqrt{x}+y^{2}');
+});
+thu('bỏ qua thẻ định dạng của Word (w:, w14:) — lỗi đã gặp ở bản 2.0.0', () => {
+  const xml = M('<m:r><w:rPr><w:rFonts w:ascii="Cambria Math"/><w14:ligatures w14:val="0"/></w:rPr><m:t>a</m:t></m:r>' + R('=') + R('b'));
+  bang(norm(OMML.toLatex(xml)), 'a=b');
+});
+
+nhom('LaTeX → MathType → LaTeX (mtefw.js, mtef.js)');
+const tron = (tex) => norm(MTEF.oleToLatex(MTEFW.buildOle(MTEFW.latexToMtef(tex))));
+const CASES = ['x^2+1', '\\frac{a}{b}', '\\sqrt{x+1}', 'a_{n}', '\\alpha+\\beta', 'x\\le y'];
+CASES.forEach((tex) => thu('khứ hồi ' + tex, () => {
+  const back = tron(tex);
+  dung(back.length > 0, 'rỗng');
+  // so sánh bỏ ngoặc nhọn thừa
+  const k = (s) => s.replace(/[{}]/g, '').replace(/\\leq?/g, '\\le');
+  bang(k(back), k(norm(tex)));
+}));

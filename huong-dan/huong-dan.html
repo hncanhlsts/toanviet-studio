@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Hướng dẫn sử dụng ToanViet Studio</title>
+<style>
+  @page { size: A4; margin: 17mm 16mm 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.8pt/1.5 "Segoe UI", Tahoma, sans-serif; color: #1c2430; margin: 0; }
+  h1 { font-size: 28pt; color: #1f5fbf; margin: 0 0 4pt; }
+  h2 { font-size: 16pt; color: #1f5fbf; border-bottom: 2px solid #1f5fbf; padding-bottom: 3pt; margin: 0 0 8pt; page-break-before: always; }
+  h3 { font-size: 12.3pt; color: #14407f; margin: 12pt 0 4pt; page-break-after: avoid; }
+  p { margin: 4pt 0; }
+  ul, ol { margin: 4pt 0 6pt; padding-left: 18pt; }
+  li { margin: 2pt 0; }
+  kbd { font: 9.3pt Consolas, monospace; background: #eef2f6; border: 1px solid #c9d1db; border-radius: 3px; padding: 0 4px; white-space: nowrap; }
+  code { font: 9.8pt Consolas, monospace; background: #eef2f6; padding: 0 3px; border-radius: 3px; }
+  pre { font: 9.5pt/1.45 Consolas, monospace; background: #f3f6fa; border: 1px solid #dde3ea; border-radius: 4px; padding: 6pt 9pt; margin: 5pt 0; white-space: pre-wrap; page-break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 8pt; font-size: 9.8pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #c9d1db; padding: 3pt 6pt; text-align: left; vertical-align: top; }
+  th { background: #e8eff9; }
+  img { max-width: 100%; border: 1px solid #c9d1db; border-radius: 4px; display: block; margin: 6pt auto; }
+  figure { margin: 6pt 0 10pt; page-break-inside: avoid; }
+  figcaption { text-align: center; font-size: 9.3pt; color: #4a5868; }
+  .cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+  .cover .sub { font-size: 15pt; color: #33445a; margin-bottom: 22pt; }
+  .cover .who { font-size: 12pt; line-height: 1.7; margin-top: 30pt; }
+  .cover .ver { color: #6b7785; margin-top: 18pt; }
+  .note { background: #fff4e5; border-left: 4px solid #e67e22; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .tip { background: #eaf3ff; border-left: 4px solid #1f5fbf; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .try { background: #eef8ee; border-left: 4px solid #2e8b57; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
+  .try b:first-child { color: #1e6b41; }
+  .level { display: inline-block; font-size: 8.5pt; font-weight: 700; color: #fff; border-radius: 9px; padding: 0 8px; vertical-align: middle; margin-left: 6px; }
+  .l1 { background: #2e8b57; } .l2 { background: #1f5fbf; } .l3 { background: #8e44ad; }
+  .ribbon { display: flex; gap: 12pt; border: 1px solid #c9d1db; border-radius: 4px; padding: 8pt; background: #f7f9fb; font-size: 9.3pt; page-break-inside: avoid; }
+  .ribbon .grp { text-align: center; border-right: 1px solid #dde3ea; padding-right: 12pt; }
+  .ribbon .grp:last-child { border: 0; }
+  .ribbon .btns { display: flex; gap: 8pt; align-items: flex-start; }
+  .ribbon .big { width: 60pt; } .ribbon .big b { display: block; font-size: 20pt; color: #1f5fbf; font-weight: 400; }
+  .ribbon .col { text-align: left; line-height: 1.75; white-space: nowrap; }
+  .ribbon .cap { color: #6b7785; margin-top: 4pt; }
+  .toc { columns: 2; column-gap: 24pt; } .toc li { margin: 3pt 0; break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>ToanViet Studio</h1>
+  <div class="sub">Hướng dẫn sử dụng — từ làm quen đến thành thạo</div>
+  <p>Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí – Hoá học – Sinh học<br>cho chương trình phổ thông Việt Nam, dùng độc lập hoặc ngay trong Word và PowerPoint.</p>
+  <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
+  <div class="ver">Phiên bản 2.0.8 · © 2026 Hoàng Ngọc Cảnh</div>
+</div>
+
+<h2>Mục lục</h2>
+<ol class="toc">
+  <li>Cài đặt và mở phần mềm</li>
+  <li>Mười phút đầu tiên</li>
+  <li>Giao diện và thao tác chung</li>
+  <li>Soạn công thức: từ cơ bản đến nhanh</li>
+  <li>Môn Toán</li>
+  <li>Môn Vật lí</li>
+  <li>Môn Hoá học</li>
+  <li>Môn Sinh học</li>
+  <li>Dùng trong Word và PowerPoint</li>
+  <li>Thống nhất định dạng công thức, dán bài từ trợ lí AI</li>
+  <li>Lưu, xuất và in</li>
+  <li>Để dùng thành thạo</li>
+  <li>Giới hạn hiện tại và xử lý sự cố</li>
+</ol>
+<p style="margin-top:14pt">Mức độ của từng phần được đánh dấu: <span class="level l1">Làm quen</span> <span class="level l2">Thường dùng</span> <span class="level l3">Nâng cao</span>. Các khung màu xanh lá "Thử ngay" là bài tập ngắn nên làm theo khi đọc.</p>
+
+<h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
+<ol>
+  <li>Đóng hết Word và PowerPoint.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.0.8.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
+  <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
+</ol>
+<p>Sau khi cài, bạn có hai cách dùng:</p>
+<ul>
+  <li><b>Mở phần mềm</b> từ lối tắt <b>ToanViet Studio</b> trên Desktop hoặc Start Menu để soạn cả trang tài liệu.</li>
+  <li><b>Dùng ngay trong Word hoặc PowerPoint</b> qua thẻ <b>ToanViet</b> trên thanh công cụ (chương 9).</li>
+</ul>
+<div class="tip">Tài liệu này có sẵn trong phần mềm: bấm <kbd>F1</kbd> hoặc vào <b>Trợ giúp ▸ Hướng dẫn sử dụng (PDF)</b>.</div>
+<div class="note">Cài bản mới thì chạy bộ cài mới đè lên bản cũ. Luôn đóng Word và PowerPoint trước khi cài, nếu không thẻ ToanViet vẫn là bản cũ. Gỡ cài đặt: Settings ▸ Apps ▸ ToanViet Studio ▸ Uninstall.</div>
+
+<h2>2. Mười phút đầu tiên <span class="level l1">Làm quen</span></h2>
+<p>Làm lần lượt năm việc dưới đây là bạn đã biết cách dùng phần mềm.</p>
+<div class="try"><b>Thử ngay 1 — xem tài liệu mẫu.</b> Mở phần mềm, vào <b>Tệp ▸ Tài liệu mẫu</b>. Nhấp vào đồ thị, rồi nhìn khung <b>Thuộc tính</b> bên phải: sửa <code>x^3 - 3x</code> thành <code>x^2 - 2</code> và xem đồ thị đổi ngay.</div>
+<div class="try"><b>Thử ngay 2 — công thức đầu tiên.</b> Bấm <b>Mới</b>, rồi bấm <b>Công thức</b> (hoặc <kbd>Ctrl</kbd>+<kbd>M</kbd>). Gõ <code>x=</code>, bấm <kbd>Ctrl</kbd>+<kbd>F</kbd> để có phân số, gõ <code>-b</code>, bấm <kbd>Tab</kbd>, gõ <code>2a</code>. Bấm <kbd>Ctrl</kbd>+<kbd>Enter</kbd> để chèn vào trang.</div>
+<div class="try"><b>Thử ngay 3 — sửa lại.</b> Nhấp đúp vào công thức vừa chèn, thêm vài ký tự, bấm <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</div>
+<div class="try"><b>Thử ngay 4 — gõ chữ.</b> Nhấp đúp vào một chỗ trống trên trang và gõ một câu tiếng Việt. Khi đang gõ, bấm <kbd>Ctrl</kbd>+<kbd>M</kbd> để chèn một công thức ngay tại con trỏ.</div>
+<div class="try"><b>Thử ngay 5 — một hình có thông số.</b> Trong danh sách <b>Hình phẳng</b> chọn <b>Góc xOy</b>, bấm <b>Chèn</b>. Ở khung Thuộc tính, đổi <b>Số đo góc xOy</b> từ 60 thành 120: góc mở ra và số đo ghi trên hình đổi theo.</div>
+
+<h2>3. Giao diện và thao tác chung <span class="level l1">Làm quen</span></h2>
+<figure><img src="img/giao-dien.png"><figcaption>Cửa sổ ToanViet Studio: thanh công cụ, trang giấy A4, khung Thuộc tính</figcaption></figure>
+<table>
+  <tr><th style="width:30%">Vùng</th><th>Dùng để</th></tr>
+  <tr><td>Thanh công cụ phía trên</td><td>Chèn công thức, văn bản, đồ thị, bảng, hình; sắp xếp; xuất; chèn sang Word/PowerPoint</td></tr>
+  <tr><td>Ba danh sách ở giữa thanh công cụ</td><td><b>Hình không gian</b>, <b>Hình phẳng</b>, <b>Ký hiệu SGK</b>: chọn một mục rồi bấm <b>Chèn</b> bên cạnh</td></tr>
+  <tr><td>Trang giấy A4</td><td>Nơi đặt các đối tượng; kéo để di chuyển</td></tr>
+  <tr><td>Khung Thuộc tính (bên phải)</td><td>Sửa nội dung và thông số của đối tượng đang chọn; hình cập nhật ngay khi gõ</td></tr>
+  <tr><td>Thanh trạng thái (dưới cùng)</td><td>Thông báo, bản quyền, mức phóng to</td></tr>
+</table>
+<h3>Thao tác với đối tượng</h3>
+<table>
+  <tr><th style="width:30%">Muốn</th><th>Làm</th></tr>
+  <tr><td>Chọn</td><td>Nhấp vào đối tượng</td></tr>
+  <tr><td>Di chuyển</td><td>Kéo; hoặc phím mũi tên (1 px), <kbd>Shift</kbd>+mũi tên (10 px)</td></tr>
+  <tr><td>Đổi kích thước</td><td>Kéo ô vuông nhỏ ở góc dưới phải (với công thức là đổi cỡ chữ)</td></tr>
+  <tr><td>Sửa nội dung</td><td>Nhấp đúp, hoặc chọn rồi <kbd>Enter</kbd> / <kbd>F2</kbd></td></tr>
+  <tr><td>Xoá / nhân bản</td><td><kbd>Delete</kbd> / <kbd>Ctrl</kbd>+<kbd>D</kbd></td></tr>
+  <tr><td>Hoàn tác / làm lại</td><td><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></td></tr>
+  <tr><td>Đưa lên trên / xuống dưới</td><td>Nút <b>Lên trên</b>, <b>Xuống dưới</b></td></tr>
+  <tr><td>Phóng to, thu nhỏ trang</td><td><kbd>Ctrl</kbd>+lăn chuột, hoặc <kbd>Ctrl</kbd>+<kbd>=</kbd>, <kbd>Ctrl</kbd>+<kbd>-</kbd>, <kbd>Ctrl</kbd>+<kbd>0</kbd></td></tr>
+</table>
+
+<h2>4. Soạn công thức: từ cơ bản đến nhanh</h2>
+<p>Bấm nút <b>Công thức</b> hoặc <kbd>Ctrl</kbd>+<kbd>M</kbd> để mở hộp soạn. Hộp này dùng chung cho mọi môn.</p>
+<figure><img src="img/hop-soan.png"><figcaption>Hộp soạn công thức: các nhóm ký hiệu, ô soạn trực quan, ô gõ chữ, ô xem trước</figcaption></figure>
+<h3>4.1. Ba cách đưa ký hiệu vào <span class="level l1">Làm quen</span></h3>
+<ul>
+  <li><b>Bấm nút</b> trong các nhóm ký hiệu. Ô vuông trống là chỗ cần điền; <kbd>Tab</kbd> hoặc phím mũi tên để sang ô kế tiếp.</li>
+  <li><b>Gõ thẳng</b>: <kbd>/</kbd> ra phân số, <kbd>^</kbd> ra mũ, <kbd>_</kbd> ra chỉ số dưới. Ví dụ gõ <code>x^2</code> rồi <kbd>→</kbd> để ra khỏi mũ.</li>
+  <li><b>Gõ tên LaTeX rồi <kbd>Tab</kbd></b>, ví dụ <code>\omega</code>, <code>\sqrt</code>.</li>
+</ul>
+<p>Bôi chọn một phần đã gõ rồi bấm một mẫu (mũ góc, cung, gạch trên, phân số, căn…) thì mẫu bọc đúng phần đó. Đây là cách sửa nhanh nhất khi quên đặt dấu.</p>
+<h3>4.2. Chữ tiếng Việt, nhiều dòng, định dạng <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li><b>Gõ chữ</b>: bấm <b>Abc Chữ</b> (hoặc <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>) để gõ chữ có dấu ngay tại con trỏ, bấm <b>∑ Toán</b> để quay lại. Cách khác: gõ vào ô chữ bên dưới rồi <kbd>Enter</kbd>, chữ vào đúng chỗ con trỏ đang đứng.</li>
+  <li><b>Xuống dòng</b>: <kbd>Enter</kbd> thêm dòng mới ở cuối, các dòng căn trái. <kbd>Shift</kbd>+<kbd>Enter</kbd> thêm hàng cho hệ phương trình hoặc ma trận đang đứng. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Backspace</kbd> xoá dòng đang đứng.</li>
+  <li><b>Định dạng</b>: ô <b>Cỡ</b> tính theo pt như Word (mặc định 12), nút <b>B</b> là chữ đậm, sáu ô tròn là màu.</li>
+  <li><b>LaTeX</b>: nút <b>LaTeX</b> ở trên cùng cho gõ hoặc dán mã LaTeX; nút <b>Trực quan</b> quay lại.</li>
+  <li><b>Kết thúc</b>: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> để chèn, <kbd>Esc</kbd> để huỷ.</li>
+</ul>
+<div class="try"><b>Thử ngay — lời giải nhiều dòng.</b> Gõ <code>x^2-4=0</code>, <kbd>Enter</kbd>, bấm <kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>L</kbd> (ra ⇔), gõ <code>x=</code>, bấm <kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>+</kbd> (ra ±), gõ <code>2</code>, <kbd>Enter</kbd>, bấm <b>Abc Chữ</b>, gõ "Vậy phương trình có hai nghiệm.", <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</div>
+
+<h3>4.3. Phím tắt kiểu MathType <span class="level l3">Nâng cao</span></h3>
+<p><kbd>Ctrl</kbd>+<kbd>G</kbd>, <kbd>Ctrl</kbd>+<kbd>T</kbd>, <kbd>Ctrl</kbd>+<kbd>K</kbd> là phím mở đầu: bấm xong thả ra rồi gõ tiếp một phím. Rê chuột lên một nút ký hiệu sẽ thấy phím tắt của nó; nút <b>Phím tắt</b> hiện cả bảng.</p>
+<table>
+  <tr><th style="width:36%">Phím</th><th>Kết quả</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>F</kbd> / <kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>Phân số / căn bậc hai</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>H</kbd> / <kbd>Ctrl</kbd>+<kbd>L</kbd> / <kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>Số mũ / chỉ số dưới / cả trên và dưới</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></td><td>Tích phân có cận / không cận</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>9</kbd> / <kbd>Ctrl</kbd>+<kbd>[</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>{</kbd></td><td>Ngoặc tròn / vuông / nhọn</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>N</kbd> / <kbd>S</kbd> / <kbd>P</kbd> / <kbd>L</kbd></td><td>Căn bậc n / tổng ∑ / tích ∏ / giới hạn</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>A</kbd> / <kbd>C</kbd> / <kbd>V</kbd> / <kbd>O</kbd> / <kbd>|</kbd></td><td>Góc (mũ rộng) / cung / vectơ / gạch trên / giá trị tuyệt đối</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>H</kbd> / <kbd>M</kbd> / <kbd>U</kbd></td><td>Hệ phương trình / ma trận 2×2 / ngoặc ôm bên dưới</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd> rồi chữ cái</td><td>Chữ Hy Lạp: a→α, b→β, d→δ, D→Δ, p→π, q→θ, w→ω, f→φ, l→λ…</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>I</kbd> / <kbd>A</kbd> / <kbd>E</kbd> / <kbd>T</kbd> / <kbd>.</kbd></td><td>∞ / → / ∈ / × / dấu nhân chấm</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>&lt;</kbd> / <kbd>&gt;</kbd> / <kbd>=</kbd> / <kbd>+</kbd></td><td>≤ / ≥ / ≠ / ±</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>P</kbd> / <kbd>/</kbd> / <kbd>R</kbd> / <kbd>L</kbd> / <kbd>O</kbd> / <kbd>S</kbd></td><td>⊥ / ∥ / ⇒ / ⇔ / độ ° / đồng dạng ∽</td></tr>
+</table>
+<figure><img src="img/phim-tat.png"><figcaption>Bấm nút Phím tắt để xem bảng phím ngay trong hộp soạn</figcaption></figure>
+
+<h3>4.4. Ký hiệu và công thức theo môn, theo lớp <span class="level l2">Thường dùng</span></h3>
+<p>Bốn nhóm cuối trong hộp soạn là <b>Toán theo lớp</b>, <b>Vật lí</b>, <b>Hoá học</b>, <b>Sinh học</b>. Mỗi nhóm có hàng nút chọn lớp; phần mềm nhớ lớp bạn dùng lần cuối cho từng môn. Bấm một công thức mẫu để chèn rồi sửa số, sửa chữ cho hợp bài của mình. Các chương 5 – 8 giới thiệu từng môn.</p>
+
+<h2>5. Môn Toán</h2>
+<h3>5.1. Ký hiệu theo lớp 6 – 12 <span class="level l2">Thường dùng</span></h3>
+<figure><img src="img/tab-toan.png"><figcaption>Nhóm Toán theo lớp, đang mở Lớp 9</figcaption></figure>
+<table>
+  <tr><th style="width:10%">Lớp</th><th>Nội dung chính</th></tr>
+  <tr><td>6</td><td>Tập hợp, chia hết, ƯCLN/BCNN, luỹ thừa, phân số và hỗn số, số nguyên, điểm – đường thẳng – góc</td></tr>
+  <tr><td>7</td><td>Số hữu tỉ, số thực, căn, giá trị tuyệt đối, tỉ lệ thức, tam giác bằng nhau</td></tr>
+  <tr><td>8</td><td>Hằng đẳng thức, phân thức, hàm số bậc nhất, Pythagore, Thalès, tam giác đồng dạng</td></tr>
+  <tr><td>9</td><td>Hệ phương trình, căn thức, phương trình bậc hai, tỉ số lượng giác, đường tròn, cung, trụ – nón – cầu</td></tr>
+  <tr><td>10</td><td>Mệnh đề, tập hợp, hệ thức lượng, vectơ, toạ độ, ba đường conic, tổ hợp, thống kê</td></tr>
+  <tr><td>11</td><td>Lượng giác, dãy số, giới hạn, mũ và logarit, đạo hàm, quan hệ song song và vuông góc</td></tr>
+  <tr><td>12</td><td>Cực trị, tiệm cận, nguyên hàm và tích phân, toạ độ Oxyz, xác suất có điều kiện</td></tr>
+</table>
+<div class="tip">Dấu đồng dạng kiểu sách giáo khoa Việt Nam, mũ góc và dấu cung nằm trong nhóm <b>Hình học &amp; Vectơ</b>. Phím tắt: <kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>S</kbd> (đồng dạng), <kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>A</kbd> (góc), <kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>C</kbd> (cung).</div>
+
+<h3>5.2. Đồ thị, bảng biến thiên, bảng xét dấu, miền nghiệm <span class="level l2">Thường dùng</span></h3>
+<p>Cú pháp biểu thức dùng chung: <code>x^3-3x+1</code> · <code>(2x+1)/(x-1)</code> · <code>sqrt(x)</code> · <code>|x|</code> · <code>sin x</code> · <code>ln(x)</code> · <code>log(x)</code> · <code>e^x</code> · <code>2^x</code> · <code>pi</code></p>
+<table>
+  <tr><th style="width:24%">Công cụ</th><th>Cách dùng</th></tr>
+  <tr><td><b>Đồ thị</b></td><td>Mỗi dòng một hàm. Đặt khoảng x, y và bước chia ở mục Hệ trục; có lựa chọn chia trục x theo π/2. Điểm đánh dấu <code>A(1; -2)</code> kèm đường gióng. Đường nét đứt <code>x = 1, y = 2</code> cho tiệm cận. Tô hình phẳng giữa hai hàm (hoặc với trục Ox) từ x = a đến x = b.</td></tr>
+  <tr><td><b>Biến thiên</b></td><td>Nhập hàm số, bấm <b>Lập bảng biến thiên tự động</b>. Có thể giới hạn khoảng khảo sát. Sửa tay từng hàng bằng LaTeX, các ô ngăn cách bằng <code>|</code>, kể cả giá trị chứa tham số như <code>\frac{m}{2}</code>.</td></tr>
+  <tr><td><b>Xét dấu</b></td><td>Nhập biểu thức, bấm <b>Lập bảng xét dấu tự động</b>.</td></tr>
+  <tr><td><b>Miền nghiệm</b></td><td>Mỗi dòng một bất phương trình, dùng <code>&lt;=</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&gt;</code>. Chọn kiểu gạch bỏ phần không là nghiệm (như sách giáo khoa) hoặc tô màu miền nghiệm; có thể ghi toạ độ các đỉnh.</td></tr>
+</table>
+<p>Trong bảng biến thiên: <code>+</code>, <code>-</code> là dấu; <code>x</code> là khoảng không xác định; <code>||</code> là không xác định tại điểm; ở hàng y viết <code>-\infty || +\infty</code> cho giới hạn trái || phải.</p>
+
+<h3>5.3. Trục số và biểu đồ Ven <span class="level l2">Thường dùng</span></h3>
+<p>Hai nút <b>Trục số</b> và <b>Biểu đồ Ven</b> trong nhóm Đại số &amp; Giải tích. Bạn chỉ nhập thông tin; vị trí điểm, ngoặc, phần gạch bỏ và kết quả phép toán do phần mềm tự tính. Ô <b>Mẫu</b> ở đầu khung Thuộc tính có sẵn các dạng của SGK lớp 6, 7, 8, 10.</p>
+<figure><img src="img/truc-so-ui.png"><figcaption>Trục số mẫu "Giao của hai tập hợp": gõ tập hợp ở khung bên phải, hình và kết quả E ∩ F tự cập nhật</figcaption></figure>
+<table>
+  <tr><th style="width:32%">Muốn vẽ</th><th>Gõ vào khung Thuộc tính</th></tr>
+  <tr><td>Điểm trên trục số (lớp 6, 7)</td><td>Ô <b>Điểm</b>, mỗi dòng một điểm: <code>A = 7/4</code> · <code>N = -sqrt(2)</code> · <code>-2 1/3</code> (hỗn số) · <code>0,3</code> · <code>4,1(6)</code> (số thập phân vô hạn tuần hoàn). Chọn <b>Nhãn điểm</b>: tên ở trên, hoặc giá trị ở trên và tên ở dưới.</td></tr>
+  <tr><td>Chia đơn vị thành nhiều phần (số hữu tỉ)</td><td>Bật <b>Vạch chia đơn vị</b>, đặt <b>Chia mỗi đơn vị thành</b> = 4 (hoặc 3, 5, 10…).</td></tr>
+  <tr><td>Tập nghiệm bất phương trình (lớp 8, 10)</td><td>Ô <b>Tập hợp, bất phương trình</b>: <code>x &gt; 4</code> · <code>x &lt;= 3/4</code> · <code>-2 &lt; x &lt;= 3</code> · <code>x &lt; -1 hoặc x &gt;= 2</code> · <code>x != 2</code></td></tr>
+  <tr><td>Khoảng, đoạn, nửa khoảng (lớp 10)</td><td><code>(-2; 3)</code> · <code>[-2; 3]</code> · <code>[1; +oo)</code> · <code>(-oo; sqrt(2)]</code> · <code>{1; 2; 5}</code> · <code>R</code>. Viết <code>oo</code> cho ∞.</td></tr>
+  <tr><td>Giao, hợp, hiệu, phần bù</td><td>Mỗi dòng một trục; đặt tên rồi dùng ở dòng sau: <code>E = [1; +oo)</code>, <code>F = (-oo; 3]</code>, <code>E ∩ F</code>. Cũng gõ được <code>A ∪ B</code>, <code>A \ B</code>, <code>R \ A</code>, <code>\cap</code>, <code>\cup</code>. Bật <b>Ghi tập hợp ở đầu mỗi trục</b> để có thêm kết quả, ví dụ "E ∩ F = [1; 3]".</td></tr>
+</table>
+<p><b>Cách thể hiện</b>: <i>Gạch bỏ phần không thuộc tập, dùng ngoặc</i> theo kiểu SGK, hoặc <i>Tô đậm phần thuộc tập, chấm tròn đặc / rỗng</i>. <b>Mỗi tập một màu</b> cho hình giao – hợp giống SGK lớp 10. Mỗi dòng thêm vào ô tập hợp là thêm một trục số; chiều cao hình tự tăng theo.</p>
+<figure><img src="img/trang-truc-so.png" style="width:74%"><figcaption>Các dạng trục số làm bằng ToanViet</figcaption></figure>
+<p><b>Biểu đồ Ven</b>: chọn <b>Kiểu biểu đồ</b> (một tập, hai tập cắt nhau, rời nhau, B ⊂ A, ba tập), đặt <b>Tên các tập</b> (vd <code>C, D</code>), bật <b>tập bao</b> (khung chữ nhật U hoặc E) nếu cần.</p>
+<ul>
+  <li><b>Phần tử</b>, mỗi dòng một vùng: <code>C: 7</code> (chỉ thuộc C) · <code>CD: 4; 27</code> (thuộc cả C và D) · <code>ABC: 0</code> · <code>ngoài: 8; 9</code>. Các phần tử cách nhau bằng dấu <code>;</code>.</li>
+  <li><b>Tô vùng</b>: <code>A ∩ B</code> · <code>A ∪ B</code> · <code>A \ B</code> · <code>(A ∪ B) ∩ C</code> · <code>A'</code> · <code>E \ A</code> (phần bù). Kiểu tô: màu hoặc gạch chéo.</li>
+</ul>
+<figure><img src="img/trang-ven.png" style="width:70%"><figcaption>Biểu đồ Ven: phần tử, tập con, giao, hiệu, phần bù, ba tập hợp</figcaption></figure>
+
+<h3>5.4. Hình phẳng có thông số <span class="level l2">Thường dùng</span></h3>
+<p>Chọn một hình trong danh sách <b>Hình phẳng</b> rồi bấm <b>Chèn</b>. Có 40 mẫu, chia theo: điểm – đoạn thẳng – góc; tam giác; tứ giác và đa giác; đường tròn; vectơ và lượng giác.</p>
+<figure><img src="img/thong-so.png"><figcaption>Hình phẳng: mục Thông số ở đầu khung Thuộc tính; số đo trên hình là số đo thật</figcaption></figure>
+<ul>
+  <li>Mục <b>Thông số</b> ở đầu khung Thuộc tính có các ô số của hình: số đo góc, độ dài cạnh, bán kính, số đo cung, tỉ số… Đổi số thì hình vẽ lại đúng kích thước và số đo ghi trên hình đổi theo.</li>
+  <li>Ví dụ: <b>Góc ở tâm và góc nội tiếp</b> với cung 110° ghi góc ở tâm 110° và góc nội tiếp 55°; đổi cung thành 150° thì hai số thành 150° và 75°.</li>
+  <li>Tam giác có hai mẫu nhập liệu: theo <b>ba cạnh</b>, hoặc theo <b>một cạnh và hai góc</b>. Nếu ba cạnh không tạo được tam giác, phần mềm báo lỗi thay vì vẽ sai.</li>
+</ul>
+<h3>Kéo điểm bằng chuột và Dựng nhanh <span class="level l1">Làm quen</span></h3>
+<p>Không cần gõ kịch bản cho các thao tác thường gặp. Khi chọn một hình phẳng hoặc hình không gian tự dựng, mỗi điểm hiện một chấm tròn:</p>
+<ul>
+  <li><b>Chấm đặc</b> (điểm cho bằng toạ độ số): <b>kéo bằng chuột</b> để di chuyển; kịch bản tự cập nhật toạ độ. Giữ <b>Ctrl</b> để làm tròn số nguyên. Ở hình không gian, kéo thường thì điểm chạy trên mặt nằm ngang, giữ <b>Shift</b> để kéo lên xuống.</li>
+  <li><b>Chấm rỗng</b> (điểm dựng từ điểm khác như trung điểm, chân đường cao): không kéo được, vì nó luôn đi theo các điểm gốc.</li>
+  <li><b>Nhấp</b> vào các chấm để chọn điểm (số thứ tự hiện trên chấm), rồi bấm nút ở mục <b>Dựng nhanh</b>: Đoạn, Đường thẳng, Vectơ, Trung điểm, Đường tròn, Hạ vuông góc, Phân giác góc, Số đo góc, Góc vuông, Trọng tâm, Hình bình hành, Giao điểm, Đánh dấu bằng nhau, Đa giác, Độ dài. Mỗi nút tự viết dòng kịch bản tương ứng, đúng quy ước thứ tự điểm.</li>
+  <li><b>＋ Điểm mới</b> thêm một điểm tự do ở giữa hình để kéo đến chỗ cần.</li>
+</ul>
+<figure><img src="img/dung-nhanh.png"><figcaption>Chọn B, A, C trên hình (số 1, 2, 3) rồi bấm "Phân giác góc", "Hạ vuông góc"… ở mục Dựng nhanh</figcaption></figure>
+<div class="tip">Với các nút cần ba điểm có góc (Phân giác góc, Số đo góc, Góc vuông), hãy chọn theo thứ tự <b>điểm trên cạnh thứ nhất → đỉnh → điểm trên cạnh thứ hai</b>.</div><h3>5.5. Tự dựng hình bằng kịch bản <span class="level l3">Nâng cao</span></h3>
+<div class="tip">Có tài liệu riêng, chi tiết hơn: <b>Trợ giúp ▸ Hướng dẫn lập kịch bản vẽ hình</b> (Shift+F1), gồm quy ước thứ tự điểm, cách tự kiểm tra hình bằng số đo thật và bảng lỗi thường gặp.</div>
+<p>Mỗi hình phẳng là một <b>kịch bản</b>: mỗi dòng dựng một điểm hoặc vẽ một nét. Sửa kịch bản là hình cập nhật ngay. Ví dụ dựng tam giác có đường cao và trung tuyến:</p>
+<pre>a = 6        # Cạnh BC
+B = (0, 0)
+C = (a, 0)
+A = (1.8, 4)
+H = chan(A, B, C)        # chân đường cao từ A
+M = trungdiem(B, C)
+dagiac ABC
+doan AH AM
+vuong AHC
+bang BM MC
+goc BAC = ?
+ghi BC = ? cm</pre>
+<table>
+  <tr><th style="width:22%">Loại</th><th>Cách viết</th></tr>
+  <tr><td>Thông số</td><td><code>so_do = 60  # chú thích</code> — tên viết thường; dùng lại trong toạ độ và phép dựng</td></tr>
+  <tr><td>Điểm</td><td><code>A = (1, 2)</code> · <code>trungdiem(A, B)</code> · <code>chan(A, B, C)</code> · <code>phangiac(A, B, C)</code> · <code>trongtam</code> · <code>tructam</code> · <code>tamnoi</code> · <code>tamngoai</code> · <code>giao(A, B, C, D)</code> · <code>chia(A, B, 1/3)</code> · <code>doixung(A, O)</code> · <code>doixungtruc(A, B, C)</code> · <code>quay(A, O, 60)</code> · <code>tinhtien(A, B, C)</code> · <code>hbh(A, B, C)</code> · <code>tron(O, 3, 45)</code> · <code>tiepdiem(M, O, A, 1)</code> · <code>dinh(B, C, c, b)</code></td></tr>
+  <tr><td>Nét vẽ</td><td><code>doan AB CD</code> · <code>netdut AH</code> · <code>dagiac ABCD</code> · <code>duongthang AB</code> · <code>tia OA</code> · <code>vecto AB</code> · <code>duongtron O A</code> hoặc <code>duongtron O 2.5</code> · <code>ngoaitiep ABC</code> · <code>noitiep ABC</code> · <code>cung O A B</code> · <code>quat O A B</code> · <code>to ABC</code></td></tr>
+  <tr><td>Ký hiệu</td><td><code>goc BAC = 60^{\circ}</code> hoặc <code>goc BAC = ?</code> (số đo thật; thêm <code>x2</code> để vẽ hai cung) · <code>vuong BAC</code> · <code>bang AB AC = 1</code> · <code>ssong AB CD</code> · <code>ghi AB = ? cm</code> · <code>diem M N</code> · <code>an P Q</code> · <code>nhan A = x</code></td></tr>
+</table>
+<h3>5.6. Hình không gian: khối đa diện, khối tròn xoay <span class="level l2">Thường dùng</span></h3>
+<p>Nhóm đầu của danh sách <b>Hình không gian</b> gồm: chóp S.ABC có SA ⊥ đáy, chóp tam giác đều, chóp tứ giác đều, chóp S.ABCD có SA ⊥ đáy, tứ diện, hình hộp chữ nhật, lập phương, lăng trụ đứng, lăng trụ xiên, chóp cụt, hình trụ, hình nón, nón cụt, hình cầu. Mỗi khối là một kịch bản nên chỉnh được mọi thứ như hình phẳng:</p>
+<ul>
+  <li><b>Thông số</b>: cạnh đáy, chiều cao, góc… đổi số là khối dựng lại.</li>
+  <li><b>Toạ độ các điểm</b>: các điểm cho bằng số hiện thành ô x, y, z để chỉnh trực tiếp.</li>
+  <li><b>Tên hiển thị của điểm</b>: đổi tên (S → O, A1 → A'), để trống để ẩn tên.</li>
+  <li><b>Vẽ thêm</b> trong kịch bản: <code>M = trungdiem(S, C)</code>, <code>doan AC BD SO</code>, <code>vuong SAB</code>… <b>Cạnh và đường bị các mặt của khối che sẽ tự vẽ nét đứt</b>, kể cả đường chéo đáy, đường cao vẽ thêm.</li>
+</ul>
+<figure><img src="img/khoi-ui.png"><figcaption>Hình chóp S.ABCD: thông số, toạ độ điểm, tên điểm và kịch bản ở khung Thuộc tính</figcaption></figure>
+<table>
+  <tr><th style="width:36%">Lệnh dựng khối</th><th>Ý nghĩa</th></tr>
+  <tr><td><code>chop S ABCD</code></td><td>Hình chóp đỉnh S, đáy ABCD (đáy bao nhiêu đỉnh cũng được)</td></tr>
+  <tr><td><code>langtru ABC A1B1C1</code></td><td>Lăng trụ, hình hộp, chóp cụt: hai đáy có cùng số đỉnh</td></tr>
+  <tr><td><code>tudien ABCD</code> · <code>khoi ABC, ABD, …</code></td><td>Tứ diện · khối đa diện bất kỳ cho bằng danh sách các mặt</td></tr>
+  <tr><td><code>tru O O1 r</code> · <code>non O S r</code> · <code>noncut O O1 r1 r2</code> · <code>cau O r</code></td><td>Hình trụ, nón, nón cụt, cầu; đường đáy phía sau tự đứt nét</td></tr>
+  <tr><td><code>A = tron(O, r, -40)</code></td><td>Điểm trên đường tròn nằm ngang tâm O (đặt bán kính OA, đường sinh SA…)</td></tr>
+</table>
+<p>Các hình khối cũ (đã chèn ở bản trước) vẫn mở và sửa được như trước.</p>
+<h3>5.7. Quan hệ song song, quan hệ vuông góc (lớp 11) <span class="level l3">Nâng cao</span></h3>
+<p>Cuối danh sách <b>Hình không gian</b> có hai nhóm mẫu theo SGK Toán 11: <b>Quan hệ song song</b> (vị trí hai đường thẳng, đường thẳng cắt / song song với mặt phẳng, giao tuyến, hai mặt phẳng song song, định lí Thalès, phép chiếu song song) và <b>Quan hệ vuông góc</b> (góc giữa hai đường thẳng, đường thẳng vuông góc với mặt phẳng, mặt phẳng trung trực, định lí ba đường vuông góc, góc giữa đường thẳng và mặt phẳng, hai mặt phẳng vuông góc, góc nhị diện, khoảng cách).</p>
+<figure><img src="img/khong-gian-ui.png"><figcaption>Mẫu "Hình chiếu, góc giữa đường thẳng và mặt phẳng": sửa kịch bản bên phải, hình cập nhật ngay</figcaption></figure>
+<p>Mỗi hình là một kịch bản trong không gian (toạ độ x sang phải, y ra phía sau, z hướng lên). Điểm chính của công cụ: <b>phần đường thẳng, cạnh bị mặt phẳng che sẽ tự vẽ nét đứt</b>, như đường Δ xuyên qua (P) trong SGK. Ký hiệu góc vuông, cung góc được vẽ đúng trong không gian.</p>
+<pre>O = (0, 0, 0)
+mp P ngang O 8 5          # mặt phẳng nằm ngang, rộng 8, sâu 5
+A = (-2.4, -0.4, 0)
+B = (1.4, 0.8, 2.6)
+H = chanmp(B, P)           # hình chiếu vuông góc của B lên (P)
+duongthang AB = d do keo 0.15
+duongthang AH = d' xanh
+netdut BH
+vuong BHA
+goc HAB = ?                # ghi số đo góc thật</pre>
+<table>
+  <tr><th style="width:22%">Loại</th><th>Cách viết</th></tr>
+  <tr><td>Mặt phẳng</td><td><code>mp P ngang O 8 5</code> · <code>mp Q dung O 6 4 30</code> (thẳng đứng, quay 30°) · <code>mp Q nghieng O 6 4 50</code> · <code>mp R: A B C D</code> (qua các điểm) · thêm <code>lien</code> để cạnh luôn nét liền · <code>nhanmp P 2</code> đặt tên ở góc thứ 2 · tên <code>alpha</code> hiện thành α</td></tr>
+  <tr><td>Dựng điểm</td><td><code>chanmp(M, P)</code> · <code>vuonggoc(H, P, 3)</code> (điểm trên đường vuông góc với (P) tại H) · <code>giao(A, B, P)</code> (giao điểm của AB và (P)) · <code>giao(A, B, C, D)</code> · <code>chieu(M, P, A, B)</code> (chiếu song song theo phương AB) · <code>chan(M, A, B)</code> · <code>trungdiem</code> · <code>chia</code> · <code>tinhtien(M, A, B)</code> · <code>trenmp(P, 0.3, 0.6)</code> · <code>doixungmp(M, P)</code></td></tr>
+  <tr><td>Nét vẽ</td><td><code>doan AB</code> · <code>duongthang AB = a do keo 0.3</code> (tên a, màu đỏ, kéo dài) · <code>tia</code> · <code>vecto</code> · <code>netdut</code> / <code>netlien</code> (bắt buộc kiểu nét). Màu: <code>do</code>, <code>xanh</code>, <code>xanhla</code>, <code>den</code>, <code>xam</code>, <code>cam</code>, <code>tim</code></td></tr>
+  <tr><td>Ký hiệu</td><td><code>vuong SHA</code> · <code>goc HAB = \varphi</code> hoặc <code>= ?</code> · <code>bang AI IB = 1</code> · <code>ghi MH = ?</code> · <code>diem H</code> · <code>an X</code> · <code>nhan A1 = A'</code> · <code>vitri A tren</code></td></tr>
+</table>
+<p>Khung Thuộc tính có thêm <b>Cách chiếu</b>: chiếu xiên như SGK (mặt nằm ngang vẽ thành hình bình hành; chỉnh góc xiên và tỉ số rút gọn) hoặc xoay tự do. Những dòng <code>ten = số # chú thích</code> trong kịch bản hiện thành ô <b>Thông số</b> (ví dụ số đo góc nhị diện, khoảng cách MH).</p>
+<figure><img src="img/trang-khong-gian.png" style="width:74%"><figcaption>Một số hình mẫu lớp 11 dựng bằng ToanViet</figcaption></figure>
+<h3>5.8. Vectơ (lớp 10) và hệ trục toạ độ Oxyz (lớp 12) <span class="level l2">Thường dùng</span></h3>
+<p><b>Lớp 10</b>: cuối danh sách <b>Hình phẳng</b> có nhóm <b>Vectơ</b>: vectơ cùng phương, cùng hướng, bằng nhau; quy tắc ba điểm; quy tắc hình bình hành; hiệu hai vectơ; tích của vectơ với một số; trọng tâm tam giác; góc giữa hai vectơ; toạ độ vectơ trong mặt phẳng Oxy; hợp lực (dùng cho Vật lí).</p>
+<figure><img src="img/trang-vecto10.png" style="width:74%"><figcaption>Các mẫu vectơ lớp 10</figcaption></figure>
+<table>
+  <tr><th style="width:26%">Muốn</th><th>Viết trong kịch bản Hình phẳng</th></tr>
+  <tr><td>Vectơ có tên, có màu</td><td><code>vecto AB = \vec{a} xanh</code> · <code>vecto AC = \overrightarrow{AB}+\overrightarrow{AD} do</code>. Tên và màu dùng được cho cả <code>doan</code>, <code>duongthang</code>, <code>tia</code>.</td></tr>
+  <tr><td>Hệ trục Oxy</td><td><code>truc -1 5 -1 4 luoi</code>: trục x từ −1 đến 5, trục y từ −1 đến 4, có vạch chia, số và lưới ô vuông (bỏ chữ <code>luoi</code> nếu không cần lưới).</td></tr>
+  <tr><td>Đổi số liệu</td><td>Các dòng như <code>ux = 3  # Hoành độ của u</code> hiện thành ô Thông số; đổi số thì vectơ và đường gióng đổi theo.</td></tr>
+</table>
+<p><b>Lớp 12</b>: cuối danh sách <b>Hình không gian</b> có nhóm <b>Vectơ và hệ trục toạ độ trong không gian</b>: quy tắc hình hộp, vectơ trong tứ diện, góc giữa hai vectơ, hệ trục Oxyz với các vectơ đơn vị, toạ độ của điểm, toạ độ của vectơ, gắn hệ trục vào hình hộp chữ nhật và hình chóp.</p>
+<figure><img src="img/trang-oxyz.png" style="width:74%"><figcaption>Các mẫu vectơ và hệ trục Oxyz lớp 12</figcaption></figure>
+<pre>oxyz                 # toạ độ theo SGK 12: Ox về phía người nhìn, Oy sang phải, Oz lên trên
+xm = 2     # Hoành độ x
+ym = 3     # Tung độ y
+zm = 2.5   # Cao độ z
+truc 4 4.5 4         # vẽ ba trục Ox, Oy, Oz
+O = (0, 0, 0)
+M = (xm, ym, zm)
+toado M              # đường gióng nét đứt và các toạ độ trên trục
+vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74%"><figcaption>Một trang Toán: lời giải nhiều dòng, hình phẳng, đồ thị, bảng biến thiên, xét dấu, miền nghiệm, hình không gian</figcaption></figure>
+
+<h2>6. Môn Vật lí</h2>
+<h3>6.1. Công thức theo lớp <span class="level l2">Thường dùng</span></h3>
+<figure><img src="img/tab-ly.png"><figcaption>Nhóm Vật lí, đang mở Lớp 11</figcaption></figure>
+<table>
+  <tr><th style="width:16%">Mục</th><th>Có sẵn</th></tr>
+  <tr><td>KHTN 6 – 9</td><td>Tốc độ, khối lượng riêng, áp suất, lực đẩy Archimedes, công, công suất, nhiệt lượng, định luật Ohm, điện trở, đoạn mạch nối tiếp và song song, khúc xạ, thấu kính; các đơn vị đo</td></tr>
+  <tr><td>Lớp 10</td><td>Chuyển động thẳng biến đổi đều, rơi tự do, ném ngang, ba định luật Newton, ma sát, moment lực, công – năng lượng, động lượng, chuyển động tròn, lực đàn hồi, áp suất chất lỏng</td></tr>
+  <tr><td>Lớp 11</td><td>Dao động điều hoà, con lắc, sóng và giao thoa, sóng dừng, định luật Coulomb, điện trường, điện thế, tụ điện, dòng điện, nguồn điện</td></tr>
+  <tr><td>Lớp 12</td><td>Khí lí tưởng, nhiệt động lực học, từ trường, cảm ứng điện từ, dòng điện xoay chiều, hạt nhân, phóng xạ; ký hiệu hạt</td></tr>
+</table>
+<div class="tip">Vectơ lực, vận tốc: <kbd>Ctrl</kbd>+<kbd>T</kbd> rồi <kbd>V</kbd>. Đơn vị đo có sẵn ở nhóm <b>Đơn vị đo</b> và ở cuối mỗi lớp; chúng tự kèm khoảng cách nhỏ trước đơn vị.</div>
+<h3>6.2. Ký hiệu SGK cho Vật lí <span class="level l2">Thường dùng</span></h3>
+<p>Trong danh sách <b>Ký hiệu SGK</b>, ba nhóm đầu dành cho Vật lí:</p>
+<ul>
+  <li><b>Mạch điện</b>: điện trở, biến trở, nguồn điện, bộ nguồn, bóng đèn, công tắc mở và đóng, ampe kế, vôn kế, điện kế, tụ điện, cuộn cảm, điốt, chuông, động cơ.</li>
+  <li><b>Quang học</b>: thấu kính hội tụ và phân kì (có sẵn O, F, F′), gương phẳng, tia sáng, hình phản xạ, hình khúc xạ.</li>
+  <li><b>Cơ học</b>: lò xo, con lắc đơn, vật trên mặt phẳng nghiêng, vật và các lực, ròng rọc cố định.</li>
+</ul>
+<p>Ở khung Thuộc tính của ký hiệu: ô <b>Nhãn phía trên</b> nhận LaTeX (ví dụ <code>R_1</code>, <code>\mathcal{E},\ r</code>); có thể tắt chữ chú thích có sẵn trong hình; kéo góc để co giãn.</p>
+<h3>6.3. Vẽ một sơ đồ mạch điện <span class="level l3">Nâng cao</span></h3>
+<ol>
+  <li>Chèn lần lượt các ký hiệu (nguồn, công tắc, điện trở, bóng đèn, ampe kế) và kéo vào vị trí; các ký hiệu cùng hàng nên có cùng chiều cao để dây thẳng hàng.</li>
+  <li>Đặt nhãn cho từng ký hiệu ở ô <b>Nhãn phía trên</b>.</li>
+  <li>Bấm nút <b>Đoạn</b> để vẽ dây nối; kéo ô vuông ở góc để chỉnh độ dài. Dây ngang thì đặt <b>Cao</b> gần 0, dây dọc thì đặt <b>Rộng</b> gần 0 ở khung Thuộc tính.</li>
+  <li>Dùng <kbd>Ctrl</kbd>+<kbd>D</kbd> để nhân bản ký hiệu hoặc đoạn dây giống nhau.</li>
+</ol>
+<figure><img src="img/trang-ly.png" style="width:78%"><figcaption>Một trang Vật lí: sơ đồ mạch điện ghép từ ký hiệu, công thức, hình quang học và cơ học</figcaption></figure>
+
+<h2>7. Môn Hoá học</h2>
+<h3>7.1. Công thức và phương trình theo lớp <span class="level l2">Thường dùng</span></h3>
+<figure><img src="img/tab-hoa.png"><figcaption>Nhóm Hoá học, đang mở Lớp 10</figcaption></figure>
+<table>
+  <tr><th style="width:16%">Mục</th><th>Có sẵn</th></tr>
+  <tr><td>KHTN 6 – 9</td><td>Công thức các chất thường gặp, mũi tên phản ứng (có điều kiện nhiệt độ, xúc tác), ký hiệu ↑ ↓, số mol, nồng độ, độ tan, hiệu suất, một số phương trình mẫu</td></tr>
+  <tr><td>Lớp 10</td><td>Ký hiệu nguyên tử, cấu hình electron, ion, liên kết, số oxi hoá, biến thiên enthalpy, tốc độ phản ứng, nhóm halogen</td></tr>
+  <tr><td>Lớp 11</td><td>Cân bằng hoá học, hằng số K<sub>C</sub>, pH, nitơ và lưu huỳnh, công thức chung và công thức cấu tạo hữu cơ, phản ứng hữu cơ</td></tr>
+  <tr><td>Lớp 12</td><td>Ester, chất béo, carbohydrate, amine, amino acid, polymer, pin điện hoá, điện phân, kim loại, phức chất</td></tr>
+</table>
+<h3>7.2. Cách gõ công thức hoá học <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li><b>Chất và phương trình</b>: bấm một mẫu gần giống rồi sửa. Muốn tự gõ từ đầu, dùng mẫu <code>Abc</code> (chữ đứng) trong nhóm <b>Mũi tên &amp; Hoá học</b>, rồi gõ <code>H_2SO_4</code>; chỉ số dưới gõ bằng <kbd>_</kbd>.</li>
+  <li><b>Mũi tên có điều kiện</b>: mẫu mũi tên có ô phía trên (và phía dưới) trong nhóm <b>Mũi tên &amp; Hoá học</b>; gõ t°, xt, as vào ô.</li>
+  <li><b>Ion</b>: gõ <kbd>^</kbd> rồi điện tích, ví dụ <code>Fe^{3+}</code>, <code>SO_4^{2-}</code>.</li>
+  <li><b>Số oxi hoá</b>: mẫu có ô nhỏ phía trên ký hiệu nguyên tố trong Lớp 10.</li>
+  <li><b>Liên kết</b>: các mẫu H–Cl, O=C=O, N≡N và công thức cấu tạo thu gọn như CH<sub>2</sub>=CH<sub>2</sub>.</li>
+  <li><b>Nhiều phương trình</b>: <kbd>Enter</kbd> để xuống dòng, các dòng căn trái.</li>
+</ul>
+<h3>7.3. Ký hiệu SGK cho Hoá học <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li>Vòng benzen (hai kiểu), ống nghiệm, cốc thuỷ tinh, bình tam giác, bình cầu, phễu, đèn cồn.</li>
+  <li><b>Ô lượng tử</b>: ở khung Thuộc tính, ô <b>Các ô</b> nhận dãy ký hiệu cách nhau bằng dấu cách: <code>ud</code> là hai electron ghép đôi, <code>u</code> là một electron, <code>d</code> là một electron quay xuống, <code>-</code> là ô trống. Ví dụ phân lớp 2p<sup>4</sup>: <code>ud u u</code>. Đặt tên phân lớp ở ô <b>Nhãn phía trên</b>.</li>
+</ul>
+<figure><img src="img/trang-hoa.png" style="width:78%"><figcaption>Một trang Hoá học: phương trình phản ứng, số oxi hoá, ô lượng tử, dụng cụ, hợp chất hữu cơ</figcaption></figure>
+
+<h2>8. Môn Sinh học</h2>
+<h3>8.1. Công thức và ký hiệu theo lớp <span class="level l2">Thường dùng</span></h3>
+<figure><img src="img/tab-sinh.png"><figcaption>Nhóm Sinh học, đang mở Lớp 12</figcaption></figure>
+<table>
+  <tr><th style="width:16%">Mục</th><th>Có sẵn</th></tr>
+  <tr><td>KHTN 6 – 9</td><td>♂, ♀, P, G, F<sub>1</sub>, F<sub>2</sub>, kiểu gen, tỉ lệ 3:1, 1:2:1, 9:3:3:1, bộ NST, quang hợp, hô hấp, nguyên tắc bổ sung, chiều dài ADN</td></tr>
+  <tr><td>Lớp 10</td><td>Thành phần hoá học của tế bào, ATP, quang hợp, hô hấp, lên men, nguyên phân và giảm phân, sinh trưởng của vi sinh vật</td></tr>
+  <tr><td>Lớp 11</td><td>Trao đổi nitơ, quang hợp C<sub>3</sub>, C<sub>4</sub>, CAM, hô hấp, ion và điện thế nghỉ, huyết áp, hoocmôn thực vật</td></tr>
+  <tr><td>Lớp 12</td><td>Công thức ADN, mã di truyền, phép lai, liên kết gen và hoán vị gen, di truyền liên kết giới tính, đột biến số lượng NST, cân bằng Hardy – Weinberg, sinh thái</td></tr>
+</table>
+<h3>8.2. Viết sơ đồ lai <span class="level l2">Thường dùng</span></h3>
+<p>Sơ đồ lai là một công thức nhiều dòng. Trong hộp soạn, mở nhóm <b>Sinh học</b> rồi:</p>
+<ol>
+  <li>Bấm <code>P:</code>, bấm ♂, gõ <code>AA</code>, bấm ×, bấm ♀, gõ <code>aa</code>.</li>
+  <li><kbd>Enter</kbd>, bấm <code>G:</code>, gõ giao tử.</li>
+  <li><kbd>Enter</kbd>, bấm <code>F₁:</code>, gõ kết quả. Làm tiếp cho F<sub>2</sub>.</li>
+  <li>Muốn các cột thẳng nhau, chèn khoảng trắng bằng phím cách khi đang ở chế độ <b>Abc Chữ</b>.</li>
+</ol>
+<p>Kiểu gen liên kết viết bằng phân số (<kbd>Ctrl</kbd>+<kbd>F</kbd>): AB trên ab. Gen trên NST giới tính viết bằng số mũ: gõ <code>X^A</code>.</p>
+<h3>8.3. Ký hiệu SGK cho Sinh học <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li>Giới đực ♂, giới cái ♀ (dạng hình vẽ, co giãn được).</li>
+  <li><b>Phả hệ</b>: nam, nữ, nam bị bệnh, nữ bị bệnh, và mẫu cặp vợ chồng có hai con. Ghép các ô với nút <b>Đoạn</b> để vẽ phả hệ nhiều thế hệ; dùng <kbd>Ctrl</kbd>+<kbd>D</kbd> để nhân bản.</li>
+  <li>Nhiễm sắc thể kép, mạch kép ADN.</li>
+</ul>
+<figure><img src="img/trang-sinh.png" style="width:78%"><figcaption>Một trang Sinh học: sơ đồ lai, phả hệ, liên kết gen, di truyền quần thể, quang hợp</figcaption></figure>
+
+<h2>9. Dùng trong Word và PowerPoint <span class="level l2">Thường dùng</span></h2>
+<p>Sau khi cài, Word có thẻ <b>ToanViet</b> (hình dưới là hình vẽ lại):</p>
+<div class="ribbon">
+  <div class="grp"><div class="btns"><div class="big"><b>π</b>Công thức mới</div><div class="big"><b>▮</b>Đồ thị, bảng, hình</div></div><div class="cap">ToanViet Studio</div></div>
+  <div class="grp"><div class="btns"><div class="col">MathType → ToanViet<br>ToanViet → MathType<br>Equation → ToanViet</div><div class="col">ToanViet → Equation<br>LaTeX → ToanViet<br>ToanViet → LaTeX</div></div><div class="cap">Thống nhất định dạng công thức</div></div>
+</div>
+<p>PowerPoint có hai nút <b>Công thức mới</b> và <b>Đồ thị, bảng, hình</b>.</p>
+<h3>9.1. Chèn công thức mới</h3>
+<ol>
+  <li>Đặt con trỏ vào chỗ cần chèn, bấm <b>Công thức mới</b> hoặc <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Q</kbd>.</li>
+  <li>ToanViet mở thẳng hộp soạn; công thức lấy cỡ chữ tại con trỏ trong Word.</li>
+  <li>Soạn xong bấm <kbd>Ctrl</kbd>+<kbd>Enter</kbd>: công thức vào đúng chỗ con trỏ, nằm đúng dòng chữ, và ToanViet tự đóng. <kbd>Esc</kbd> để đóng mà không chèn.</li>
+</ol>
+<h3>9.2. Sửa công thức đã có</h3>
+<table>
+  <tr><th style="width:32%">Loại công thức</th><th>Cách mở lại</th></tr>
+  <tr><td>Công thức ToanViet</td><td>Nhấp đúp; hoặc chọn rồi <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>; hoặc chuột phải ▸ Sửa bằng ToanViet</td></tr>
+  <tr><td>Công thức MathType</td><td>Nhấp chọn rồi <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd> (nhấp đúp vẫn mở MathType như cũ)</td></tr>
+  <tr><td>Công thức Equation của Word</td><td>Đặt con trỏ vào trong công thức rồi <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd></td></tr>
+</table>
+<p>Sửa xong bấm chèn thì bản mới thay cho công thức cũ; bấm <kbd>Esc</kbd> thì tài liệu giữ nguyên. Công thức MathType hay Equation sau khi sửa bằng ToanViet trở thành công thức ToanViet.</p>
+<h3>9.3. Chèn đồ thị, bảng, hình, ký hiệu</h3>
+<p>Bấm <b>Đồ thị, bảng, hình</b> hoặc <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd>. ToanViet mở đầy đủ với thanh màu cam ở trên: dựng đối tượng, chọn nó rồi bấm <b>Chèn vào Word và đóng</b> (hoặc <kbd>Ctrl</kbd>+<kbd>Enter</kbd>). Hình đã chèn cũng nhấp đúp để sửa lại được.</p>
+<h3>9.4. Khi phần mềm đang mở sẵn</h3>
+<p>Chọn đối tượng rồi bấm <b>Vào Word</b> hoặc <b>Vào PPT</b>. Nút <b>Lấy về sửa</b> đưa hình ToanViet đang chọn trong Word/PowerPoint trở lại phần mềm.</p>
+<table>
+  <tr><th>Phím trong Word / PowerPoint</th><th>Tác dụng</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Q</kbd></td><td>Công thức mới</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd></td><td>Sửa đối tượng đang chọn</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>G</kbd></td><td>Mở đầy đủ ToanViet Studio</td></tr>
+</table>
+
+<h2>10. Thống nhất định dạng công thức, dán bài từ trợ lí AI <span class="level l3">Nâng cao</span></h2>
+<p>Sáu nút trong nhóm <b>Thống nhất định dạng công thức</b> của Word chuyển <b>toàn bộ</b> công thức một loại trong tài liệu đang mở sang loại khác:</p>
+<table>
+  <tr><th style="width:30%">Nút</th><th>Tác dụng</th></tr>
+  <tr><td>MathType → ToanViet</td><td>Thay mọi công thức MathType bằng công thức ToanViet</td></tr>
+  <tr><td>ToanViet → MathType</td><td>Thay mọi công thức ToanViet bằng đối tượng MathType (nhấp đúp sẽ mở MathType)</td></tr>
+  <tr><td>Equation → ToanViet</td><td>Thay mọi công thức Equation của Word bằng công thức ToanViet</td></tr>
+  <tr><td>ToanViet → Equation</td><td>Thay mọi công thức ToanViet bằng công thức Equation của Word</td></tr>
+  <tr><td>LaTeX → ToanViet</td><td>Thay mọi đoạn mã LaTeX viết giữa <code>$…$</code>, <code>$$…$$</code>, <code>\(…\)</code>, <code>\[…\]</code> bằng công thức ToanViet</td></tr>
+  <tr><td>ToanViet → LaTeX</td><td>Thay mọi công thức ToanViet bằng mã LaTeX đặt giữa hai dấu <code>$</code></td></tr>
+</table>
+<ol>
+  <li>Bấm nút. ToanViet đếm số công thức tìm được và hỏi lại trước khi làm.</li>
+  <li>Chọn <b>Đồng ý</b>. Phần mềm báo tiến độ (khoảng nửa giây mỗi công thức), rồi báo số công thức đã chuyển.</li>
+  <li>Muốn hoàn tác cả lượt chuyển, bấm <kbd>Ctrl</kbd>+<kbd>Z</kbd> trong Word.</li>
+</ol>
+<h3>Dán lời giải từ trợ lí AI vào Word</h3>
+<p>Các trợ lí AI thường xuất công thức ở dạng mã LaTeX, ví dụ <code>Nghiệm là $x=\frac{-b\pm\sqrt{\Delta}}{2a}$</code>. Cách xử lý:</p>
+<ol>
+  <li>Dán nội dung vào Word (dán dạng chữ thường để giữ nguyên các dấu <code>$</code>).</li>
+  <li>Bấm <b>LaTeX → ToanViet</b>. Mọi đoạn mã thành công thức, chữ và dấu cách xung quanh giữ nguyên.</li>
+  <li>Nếu bài dán vào đã là công thức Equation của Word, dùng <b>Equation → ToanViet</b>.</li>
+</ol>
+<p>Số tiền viết kiểu "$5 và $10" không bị nhận nhầm là công thức. Đoạn mã LaTeX nào không dựng được thì giữ nguyên dạng chữ.</p>
+<div class="note">
+  <b>Cần biết trước khi chuyển</b>
+  <ul>
+    <li>Nên thử lần đầu trên một bản sao của tài liệu.</li>
+    <li>Công thức nào chưa chuyển được thì được giữ nguyên; phần mềm báo số lượng.</li>
+    <li><b>ToanViet → MathType</b> hiện ghi được: chữ, số, phép toán, phân số, căn, mũ, chỉ số, ngoặc, dấu góc, chữ thường. Hệ phương trình, ma trận, tích phân, tổng, giới hạn, vectơ, gạch trên, cung và công thức nhiều dòng được giữ nguyên dạng ToanViet.</li>
+    <li>Chỉ công thức được chuyển; đồ thị, bảng, hình, ký hiệu SGK giữ nguyên.</li>
+    <li>Chuyển đổi hàng loạt chỉ có trong Word.</li>
+  </ul>
+</div>
+
+<h2>11. Lưu, xuất và in <span class="level l1">Làm quen</span></h2>
+<table>
+  <tr><th style="width:34%">Việc</th><th>Cách làm</th></tr>
+  <tr><td>Lưu / mở tài liệu ToanViet</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd> / <kbd>Ctrl</kbd>+<kbd>O</kbd> (tệp <code>.tvs</code>)</td></tr>
+  <tr><td>Chép một đối tượng thành ảnh</td><td>Chọn rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>, dán vào Word, PowerPoint hay phần mềm khác</td></tr>
+  <tr><td>Xuất ảnh PNG</td><td><kbd>Ctrl</kbd>+<kbd>E</kbd>: đối tượng đang chọn, hoặc cả trang nếu không chọn gì</td></tr>
+  <tr><td>Xuất PDF cả trang (A4)</td><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td></tr>
+  <tr><td>Chép mã LaTeX / MathML của công thức</td><td>Nút <b>LaTeX</b> / <b>MathML</b> trên thanh công cụ</td></tr>
+  <tr><td>Thoát</td><td><kbd>Ctrl</kbd>+<kbd>Q</kbd></td></tr>
+</table>
+<p>Khi chép LaTeX hoặc MathML sang phần mềm khác, dấu đồng dạng được đổi thành ký hiệu ∽ chuẩn của phần mềm đó.</p>
+
+<h2>12. Để dùng thành thạo <span class="level l3">Nâng cao</span></h2>
+<h3>Thói quen giúp gõ nhanh</h3>
+<ul>
+  <li>Trong Word, luôn mở bằng <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Q</kbd> và kết thúc bằng <kbd>Ctrl</kbd>+<kbd>Enter</kbd>; tay không phải rời bàn phím.</li>
+  <li>Học năm phím đầu tiên: <kbd>Ctrl</kbd>+<kbd>F</kbd> (phân số), <kbd>Ctrl</kbd>+<kbd>R</kbd> (căn), <kbd>Ctrl</kbd>+<kbd>H</kbd> (mũ), <kbd>Ctrl</kbd>+<kbd>L</kbd> (chỉ số), <kbd>Tab</kbd> (sang ô kế).</li>
+  <li>Sau đó học ba phím mở đầu: <kbd>Ctrl</kbd>+<kbd>G</kbd> cho chữ Hy Lạp, <kbd>Ctrl</kbd>+<kbd>K</kbd> cho ký hiệu, <kbd>Ctrl</kbd>+<kbd>T</kbd> cho mẫu.</li>
+  <li>Công thức dùng lại nhiều lần: chèn một lần, rồi trong Word sao chép và dán như một hình bình thường; bản sao vẫn nhấp đúp để sửa được.</li>
+  <li>Bài có nhiều công thức giống cấu trúc: nhấp đúp vào công thức cũ, sửa số, chèn; nhanh hơn gõ lại từ đầu.</li>
+</ul>
+<h3>Thói quen giúp hình đẹp</h3>
+<ul>
+  <li>Hình phẳng: đổi <b>Thông số</b> trước, chỉ sửa kịch bản khi cần thêm điểm hay nét.</li>
+  <li>Dùng <code>goc … = ?</code> và <code>ghi … = ?</code> thay cho gõ số đo bằng tay, để số luôn khớp với hình.</li>
+  <li>Hình nhỏ dễ bị tên điểm đè lên nét: kéo to hình trong ToanViet rồi thu nhỏ lại trong Word.</li>
+  <li>Sơ đồ mạch điện, phả hệ: dựng trên trang ToanViet, lưu tệp <code>.tvs</code> để lần sau mở ra sửa, rồi xuất PNG hoặc chép từng phần sang Word.</li>
+</ul>
+<h3>Bảng phím tắt ngoài hộp soạn</h3>
+<table>
+  <tr><th style="width:34%">Phím</th><th>Tác dụng</th></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>M</kbd></td><td>Công thức mới (khi đang gõ chữ: chèn công thức tại con trỏ)</td></tr>
+  <tr><td><kbd>Enter</kbd> / <kbd>F2</kbd></td><td>Sửa đối tượng đang chọn</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>C</kbd> / <kbd>Ctrl</kbd>+<kbd>X</kbd> / <kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Chép thành ảnh / cắt / dán đối tượng trong trang</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd> / <kbd>Delete</kbd></td><td>Nhân bản / xoá</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>N</kbd> / <kbd>Ctrl</kbd>+<kbd>O</kbd> / <kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Mới / mở / lưu</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd> / <kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>Xuất PNG / xuất PDF</td></tr>
+  <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd> / <kbd>Esc</kbd> (khi mở từ Word)</td><td>Chèn và đóng / đóng không chèn</td></tr>
+</table>
+
+<h2>13. Giới hạn hiện tại và xử lý sự cố</h2>
+<h3>Giới hạn hiện tại</h3>
+<ul>
+  <li>Công thức chèn vào Word và PowerPoint là ảnh nét cao kèm dữ liệu để ToanViet mở lại; Word không tự sửa được nội dung ảnh đó.</li>
+  <li>Trong PowerPoint chưa đọc được công thức MathType/Equation và chưa có chuyển đổi hàng loạt.</li>
+  <li>Bảng biến thiên tự động nhận tối đa 10 điểm đặc biệt; với hàm lượng giác hãy nhập khoảng khảo sát.</li>
+  <li>Điểm của hình phẳng chưa kéo được bằng chuột; đổi vị trí bằng thông số hoặc toạ độ trong kịch bản.</li>
+  <li>Sơ đồ mạch điện và phả hệ ghép tay từ ký hiệu và đoạn thẳng; chưa có nối dây tự động.</li>
+  <li>Danh mục công thức theo lớp do tác giả chọn theo chương trình 2018, có thể chưa trùng hết với từng bộ sách.</li>
+</ul>
+<h3>Xử lý sự cố</h3>
+<table>
+  <tr><th style="width:38%">Hiện tượng</th><th>Cách xử lý</th></tr>
+  <tr><td>Không thấy thẻ ToanViet trong Word</td><td>File ▸ Options ▸ Add-ins ▸ COM Add-ins ▸ Go, đánh dấu <b>ToanViet Studio</b>. Nếu không có trong danh sách, cài lại khi Word đang đóng.</td></tr>
+  <tr><td>Bấm chèn mà báo "Chưa mở tài liệu Word nào"</td><td>Mở Task Manager, tắt các tiến trình Microsoft Word chạy ẩn (hoặc khởi động lại máy) rồi mở lại Word.</td></tr>
+  <tr><td>Phím <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Q</kbd> không mở ToanViet</td><td>Có thể một add-in khác đang dùng phím này; dùng nút <b>Công thức mới</b> trên thẻ ToanViet.</td></tr>
+  <tr><td>Công thức lệch so với dòng chữ, hoặc vectơ thiếu mũi tên (công thức chèn bằng bản cũ)</td><td>Nhấp đúp vào công thức rồi bấm chèn lại.</td></tr>
+  <tr><td>Chuyển đổi báo "không chuyển được"</td><td>Thông báo có ghi lỗi của công thức đầu tiên; gửi tệp và nội dung thông báo cho tác giả.</td></tr>
+  <tr><td>Hình phẳng báo lỗi đỏ dưới khung Thuộc tính</td><td>Đọc dòng lỗi: nó chỉ ra dòng kịch bản sai (thiếu điểm, sai tên lệnh, ba cạnh không tạo được tam giác…).</td></tr>
+  <tr><td>Windows cảnh báo khi chạy bộ cài</td><td>Bộ cài chưa có chữ ký số: chọn More info ▸ Run anyway.</td></tr>
+</table>
+<h3>Liên hệ</h3>
+<p>Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com</p>
+
+</body>
+</html>

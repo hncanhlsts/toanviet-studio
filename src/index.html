@@ -1,0 +1,126 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>ToanViet Studio</title>
+<link rel="stylesheet" href="../node_modules/mathlive/mathlive-fonts.css">
+<link rel="stylesheet" href="../node_modules/mathlive/mathlive-static.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header id="ribbon">
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="new" title="Tài liệu mới (Ctrl+N)"><i>▢</i>Mới</button>
+      <button data-cmd="open" title="Mở (Ctrl+O)"><i>📂</i>Mở</button>
+      <button data-cmd="save" title="Lưu (Ctrl+S)"><i>💾</i>Lưu</button>
+    </div><span>Tệp</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="ins-formula" class="big" title="Chèn công thức (Ctrl+M)"><i>∑</i>Công thức</button>
+      <button data-cmd="ins-text" title="Chèn văn bản, dùng $...$ để gõ công thức trong dòng"><i>T</i>Văn bản</button>
+    </div><span>Soạn thảo</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="ins-graph" title="Đồ thị hàm số"><i>📈</i>Đồ thị</button>
+      <button data-cmd="ins-bbt" title="Bảng biến thiên (lập tự động)"><i>⤴</i>Biến thiên</button>
+      <button data-cmd="ins-sign" title="Bảng xét dấu"><i>±</i>Xét dấu</button>
+      <button data-cmd="ins-region" title="Miền nghiệm hệ bất phương trình bậc nhất hai ẩn"><i>▨</i>Miền nghiệm</button>
+      <button data-cmd="ins-numline" title="Trục số: biểu diễn điểm (lớp 6, 7), tập nghiệm bất phương trình, khoảng – đoạn, giao – hợp – hiệu (lớp 8, 10)"><i>↔</i>Trục số</button>
+      <button data-cmd="ins-venn" title="Biểu đồ Ven: phần tử, tập con, giao – hợp – hiệu – phần bù"><i>◎</i>Biểu đồ Ven</button>
+    </div><span>Đại số &amp; Giải tích</span>
+  </div>
+  <div class="grp">
+    <div class="stack">
+      <div><label>Hình không gian</label><select id="solidKind" title="Chọn hình không gian"></select><button data-cmd="ins-solid" title="Chèn hình không gian đã chọn">Chèn</button></div>
+      <div><label>Hình phẳng</label><select id="planeKind" title="Chọn hình phẳng mẫu (đổi được thông số ở khung Thuộc tính)"></select><button data-cmd="ins-plane" title="Chèn hình phẳng đã chọn">Chèn</button></div>
+      <div><label>Ký hiệu SGK</label><select id="symKind" title="Ký hiệu, hình vẽ thường gặp trong SGK Vật lí, Hoá học, Sinh học"></select><button data-cmd="ins-sym" title="Chèn ký hiệu đã chọn">Chèn</button></div>
+    </div><span>Hình học và ký hiệu Lí – Hoá – Sinh</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="ins-line" title="Đoạn thẳng"><i>╱</i>Đoạn</button>
+      <button data-cmd="ins-arrow" title="Mũi tên"><i>→</i>Mũi tên</button>
+      <button data-cmd="ins-rect" title="Hình chữ nhật"><i>▭</i>Chữ nhật</button>
+      <button data-cmd="ins-ellipse" title="Elip / đường tròn"><i>◯</i>Elip</button>
+    </div><span>Hình vẽ</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="undo" title="Hoàn tác (Ctrl+Z)"><i>↶</i>Hoàn tác</button>
+      <button data-cmd="redo" title="Làm lại (Ctrl+Y)"><i>↷</i>Làm lại</button>
+      <button data-cmd="dup" title="Nhân bản (Ctrl+D)"><i>⧉</i>Nhân bản</button>
+      <button data-cmd="front" title="Đưa lên trên"><i>▲</i>Lên trên</button>
+      <button data-cmd="back" title="Đưa xuống dưới"><i>▼</i>Xuống dưới</button>
+      <button data-cmd="del" title="Xoá (Delete)"><i>✕</i>Xoá</button>
+    </div><span>Sắp xếp</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="copyimg" title="Sao chép đối tượng đang chọn thành ảnh để dán vào Word/PowerPoint (Ctrl+C)"><i>🖼</i>Chép ảnh</button>
+      <button data-cmd="copytex" title="Sao chép mã LaTeX của công thức"><i>TeX</i>LaTeX</button>
+      <button data-cmd="copymml" title="Sao chép MathML: dán vào Word sẽ thành công thức soạn được"><i>W</i>MathML</button>
+      <button data-cmd="png" title="Xuất PNG (Ctrl+E)"><i>⇩</i>PNG</button>
+      <button data-cmd="pdf" title="Xuất PDF cả trang (Ctrl+P)"><i>⎙</i>PDF</button>
+    </div><span>Xuất sang Word / in ấn</span>
+  </div>
+  <div class="grp">
+    <div class="btns">
+      <button data-cmd="toword" title="Chèn đối tượng đang chọn vào tài liệu Word đang mở, tại vị trí con trỏ (hoặc thay cho hình ToanViet đang chọn)"><i>W→</i>Vào Word</button>
+      <button data-cmd="toppt" title="Chèn đối tượng đang chọn vào trang chiếu PowerPoint đang mở"><i>P→</i>Vào PPT</button>
+      <button data-cmd="fromoffice" title="Chọn một hình ToanViet trong Word/PowerPoint rồi bấm nút này để lấy về sửa lại"><i>↩</i>Lấy về sửa</button>
+    </div><span>Word / PowerPoint</span>
+  </div>
+</header>
+<div id="officebar" hidden><span id="officetxt"></span><button id="officeins" class="primary">Chèn và đóng</button><button id="officecancel">Đóng, không chèn</button></div>
+<main>
+  <div id="stage"><div id="page"></div></div>
+  <aside id="panel"><h3>Thuộc tính</h3><div id="props"></div></aside>
+</main>
+<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><span id="zoomlbl">100%</span></footer>
+
+<div id="fxback" hidden></div>
+<dialog id="fxdlg">
+  <div class="fhead">
+    <h2>Chèn công thức</h2>
+    <div class="seg" id="fMode"><button type="button" data-m="v">Trực quan</button><button type="button" data-m="l">LaTeX</button></div>
+    <label class="finl">Cỡ <select id="fSize"><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>16</option><option>18</option><option>20</option><option>22</option><option>24</option><option>28</option><option>36</option><option>48</option></select></label>
+    <button type="button" class="fbtn" id="fBold" title="Chữ đậm"><b>B</b></button>
+    <span class="fcols" id="fColors"></span>
+  </div>
+  <div id="tabs"></div>
+  <div id="palette"></div>
+  <div class="fpane">
+    <div class="fpt"><span id="fPaneT">TRỰC QUAN</span><span id="fVHint">Gõ như MathType: / phân số · ^ mũ · _ chỉ số · \omega rồi Tab ra ký hiệu · Enter xuống dòng · Ctrl+Enter chèn · Esc huỷ</span></div>
+    <div id="fMathBox"></div>
+    <textarea id="fTex" spellcheck="false" hidden></textarea>
+    <div class="frow"><div class="seg" id="fTM" title="Đang gõ toán hay gõ chữ tại con trỏ. Đổi qua lại bằng Ctrl+Shift+E"><button type="button" data-m="math">∑ Toán</button><button type="button" data-m="text">Abc Chữ</button></div><input type="text" id="fText" spellcheck="false" autocomplete="off" placeholder="Hoặc gõ chữ ở đây rồi nhấn Enter: chữ vào đúng chỗ con trỏ đang đứng, kể cả ô chú thích"><button type="button" class="fbtn" id="fTextAdd">Thêm chữ</button></div>
+    <div class="ferr" id="fPfx"></div>
+  </div>
+  <div class="fpane">
+    <div class="fpt"><span>XEM TRƯỚC</span></div>
+    <div id="fPrev"></div>
+  </div>
+  <div id="fKeyList" hidden></div>
+  <div class="frow"><button type="button" class="fbtn" id="fKb">⌨ Bàn phím toán</button><button type="button" class="fbtn" id="fKeys">Phím tắt</button><span style="flex:1"></span><button type="button" class="fbtn" id="fxcancel">Huỷ</button><button type="button" class="fbtn primary" id="fxok">Chèn vào trang</button></div>
+</dialog>
+
+<script src="../node_modules/mathlive/mathlive.min.js"></script>
+<script src="mathexpr.js"></script>
+<script src="numfmt.js"></script>
+<script src="graph.js"></script>
+<script src="bbt.js"></script>
+<script src="solid.js"></script>
+<script src="plane.js"></script>
+<script src="sgk.js"></script>
+<script src="numline.js"></script>
+<script src="space.js"></script>
+<script src="omml.js"></script>
+<script src="mtef.js"></script>
+<script src="mtefw.js"></script>
+<script src="symbols.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

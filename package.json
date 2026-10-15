@@ -1,0 +1,77 @@
+{
+  "name": "toanviet-studio",
+  "productName": "ToanViet Studio",
+  "version": "2.0.8",
+  "description": "Soan cong thuc Toan, do thi, bang bien thien, mien nghiem, hinh khong gian cho Toan pho thong Viet Nam",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "electron test/run.js",
+    "dist": "electron-packager . \"ToanViet Studio\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/dist\" --ignore=\"^/test\"",
+    "installer": "electron-builder --win nsis --x64"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mathlive": "^0.111.1"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "author": {
+    "name": "Hoàng Ngọc Cảnh",
+    "email": "canhld@gmail.com"
+  },
+  "build": {
+    "appId": "vn.toanviet.studio",
+    "productName": "ToanViet Studio",
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "cai-dat"
+    },
+    "win": {
+      "target": "nsis",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ToanViet Studio",
+      "artifactName": "ToanVietStudio-Setup-${version}.exe",
+      "license": "build/license.txt"
+    },
+    "fileAssociations": [
+      {
+        "description": "Tài liệu ToanViet Studio",
+        "name": "ToanViet Studio Document",
+        "ext": "tvs"
+      }
+    ],
+    "extraResources": [
+      {
+        "filter": [
+          "*.dll"
+        ],
+        "from": "office-addin",
+        "to": "addin"
+      },
+      {
+        "from": "huong-dan",
+        "to": "huong-dan",
+        "filter": [
+          "*.pdf"
+        ]
+      }
+    ],
+    "copyright": "© 2026 Hoàng Ngọc Cảnh - Giáo viên trường THCS - THPT Đinh Thiện Lý"
+  }
+}

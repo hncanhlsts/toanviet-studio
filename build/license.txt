@@ -1,0 +1,11 @@
+﻿TOANVIET STUDIO
+
+Thiết kế bởi: Thầy Hoàng Ngọc Cảnh
+Giáo viên trường THCS - THPT Đinh Thiện Lý
+Email: canhld@gmail.com
+
+© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.
+
+Phần mềm được cung cấp để phục vụ việc dạy và học Toán. Không sao chép, sửa đổi hay phân phối lại khi chưa có sự đồng ý của tác giả.
+
+Phần mềm có dùng các thư viện mã nguồn mở MathLive và Electron (giấy phép MIT).

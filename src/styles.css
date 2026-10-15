@@ -1,0 +1,179 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { display: flex; flex-direction: column; font: 13px "Segoe UI", Tahoma, sans-serif; color: #1c2430; background: #e9edf2; overflow: hidden; user-select: none; }
+
+#ribbon { display: flex; flex-wrap: wrap; gap: 0; background: #f7f9fb; border-bottom: 1px solid #c9d1db; padding: 4px 6px 2px; }
+.grp { display: flex; flex-direction: column; align-items: center; padding: 0 8px; border-right: 1px solid #dde3ea; }
+.grp:last-child { border-right: 0; }
+.grp > span { font-size: 11px; color: #6b7785; margin-top: 2px; }
+.btns { display: flex; align-items: stretch; gap: 2px; }
+#ribbon button { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 52px; height: 50px; padding: 2px 6px; border: 1px solid transparent; border-radius: 5px; background: none; font: inherit; font-size: 11.5px; color: inherit; cursor: pointer; }
+#ribbon button i { font-style: normal; font-size: 19px; line-height: 24px; color: #1f5fbf; font-family: "Cambria Math", "Segoe UI Symbol", serif; }
+#ribbon button:hover { background: #e2ecfa; border-color: #b7cdee; }
+#ribbon button:active { background: #cfe0f7; }
+#solidKind { align-self: center; height: 28px; max-width: 200px; font: inherit; }
+
+main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; overflow: auto; padding: 24px; }
+#page { position: relative; width: 794px; height: 1123px; margin: 0 auto; background: #fff; box-shadow: 0 2px 12px rgba(20, 40, 70, .22); }
+#panel { width: 300px; background: #f7f9fb; border-left: 1px solid #c9d1db; overflow-y: auto; padding: 0 12px 20px; user-select: text; }
+#panel h3 { font-size: 13px; margin: 10px 0 8px; color: #33445a; }
+#status { display: flex; justify-content: space-between; padding: 3px 10px; background: #1f5fbf; color: #fff; font-size: 12px; }
+#status.err { background: #b03a2e; }
+
+/* đối tượng trên trang */
+.obj { position: absolute; cursor: move; outline: 1px dashed transparent; outline-offset: 3px; }
+.obj:hover { outline-color: #a9c1e6; }
+.obj.sel { outline: 1.5px solid #1f5fbf; }
+.obj > svg { display: block; overflow: visible; }
+.obj .lb { position: absolute; white-space: nowrap; line-height: 1; pointer-events: none; font-family: KaTeX_Main, "Times New Roman", serif; }
+.obj .lb.bg { background: rgba(255, 255, 255, .82); padding: 1px 3px; border-radius: 3px; }
+.obj.formula { white-space: nowrap; line-height: 1.2; padding: 2px 4px; }
+.obj.formula .empty { color: #9aa5b1; font: italic 14px "Segoe UI"; }
+.obj.text { font-family: "Times New Roman", Cambria, serif; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; padding: 2px 4px; }
+.obj.text.editing { cursor: text; outline: 1.5px solid #e67e22; user-select: text; font-family: Consolas, monospace; font-size: 14px !important; font-weight: normal !important; font-style: normal !important; background: #fffdf5; }
+.handle { position: absolute; right: -7px; bottom: -7px; width: 11px; height: 11px; background: #fff; border: 1.5px solid #1f5fbf; border-radius: 2px; cursor: nwse-resize; display: none; }
+.obj.sel .handle { display: block; }
+.obj.text .handle { bottom: calc(50% - 6px); cursor: ew-resize; }
+.obj.editing .handle { display: none; }
+
+/* bảng thuộc tính */
+#props label { display: block; margin: 7px 0 2px; font-size: 12px; color: #4a5868; }
+#props input[type=text], #props input[type=number], #props textarea, #props select { width: 100%; padding: 4px 6px; border: 1px solid #bcc6d2; border-radius: 4px; font: 13px Consolas, "Segoe UI", monospace; background: #fff; }
+#props textarea { resize: vertical; min-height: 54px; }
+#props .row { display: flex; gap: 6px; }
+#props .row > div { flex: 1; min-width: 0; }
+#props .chk { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 12.5px; color: #1c2430; }
+#props input[type=color] { width: 100%; height: 26px; padding: 0 2px; border: 1px solid #bcc6d2; border-radius: 4px; }
+#props button, dialog button { padding: 6px 12px; border: 1px solid #9fb3cd; border-radius: 5px; background: #fff; font: inherit; cursor: pointer; }
+#props button { width: 100%; margin-top: 8px; }
+#props button.primary, dialog button.primary { background: #1f5fbf; color: #fff; border-color: #1f5fbf; }
+#props .help { font-size: 11.5px; color: #6b7785; margin: 4px 0; line-height: 1.45; }
+#props .help code { background: #e8edf3; padding: 0 3px; border-radius: 3px; }
+#props .err { color: #b03a2e; font-size: 12px; margin-top: 6px; white-space: pre-wrap; }
+#props h4 { margin: 14px 0 2px; font-size: 12px; color: #1f5fbf; border-bottom: 1px solid #dde3ea; padding-bottom: 3px; }
+
+/* hộp soạn công thức */
+dialog { border: 1px solid #9fb3cd; border-radius: 8px; padding: 0; width: 780px; max-width: 95vw; box-shadow: 0 12px 40px rgba(0, 0, 0, .3); user-select: none; }
+dialog::backdrop { background: rgba(20, 30, 45, .35); }
+.dlg-head { padding: 10px 14px; font-weight: 600; background: #f0f4f9; border-bottom: 1px solid #dde3ea; }
+.dlg-head small { font-weight: normal; color: #6b7785; }
+#tabs { display: flex; gap: 2px; padding: 8px 12px 0; }
+#tabs button { border: 1px solid #dde3ea; border-bottom: 0; border-radius: 5px 5px 0 0; background: #eef2f6; padding: 5px 12px; }
+#tabs button.on { background: #fff; color: #1f5fbf; font-weight: 600; }
+#palette { display: flex; flex-wrap: wrap; gap: 3px; margin: 0 12px; padding: 8px; border: 1px solid #dde3ea; height: 196px; overflow-y: auto; align-content: flex-start; align-items: center; background: #fff; }
+#palette button { min-width: 40px; min-height: 40px; padding: 4px 7px; overflow: hidden; font-size: 13px; border: 1px solid #e3e8ee; background: #fff; font-size: 15px; border-radius: 4px; }
+#palette button.wide { min-height: 46px; padding: 4px 10px; font-size: 13px; }
+#palette button:hover { background: #e2ecfa; border-color: #7fa6de; }
+#mf { display: block; margin: 10px 12px 6px; padding: 10px; font-size: 26px; min-height: 84px; border: 1.5px solid #1f5fbf; border-radius: 6px; background: #fff; }
+#mf::part(virtual-keyboard-toggle), #mf::part(menu-toggle) { display: none; }
+.texrow { display: flex; align-items: center; gap: 8px; margin: 0 12px; color: #4a5868; font-size: 12px; }
+.texrow input { flex: 1; padding: 5px 7px; border: 1px solid #bcc6d2; border-radius: 4px; font: 13px Consolas, monospace; }
+.dlg-foot { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.dlg-foot .hint { flex: 1; font-size: 11.5px; color: #6b7785; }
+
+/* chụp ảnh / in */
+body.capturing .obj { outline: none !important; }
+body.capturing .handle { display: none !important; }
+body.capturing #page { box-shadow: none; }
+@media print {
+  @page { size: A4; margin: 0; }
+  #ribbon, #panel, #status { display: none !important; }
+  body, main, #stage { display: block; overflow: visible; background: #fff; padding: 0; height: auto; }
+  #page { box-shadow: none; margin: 0; zoom: 1 !important; }
+  .obj { outline: none !important; }
+  .handle { display: none !important; }
+}
+
+/* gõ chữ tại vị trí nhấp chuột, công thức trong dòng */
+#page.placing, #page.placing .obj { cursor: text; }
+.obj.text .ifx { border-radius: 3px; }
+.obj.text .ifx:hover { background: #e2ecfa; cursor: pointer; }
+.obj.text:empty::before, .obj.text.editing:empty::before { content: "Gõ chữ…"; color: #9aa5b1; }
+#tabs { flex-wrap: wrap; }
+
+/* thanh chế độ add-in Word / PowerPoint */
+#officebar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: #fff4e5; border-bottom: 1px solid #f0c98a; font-size: 13px; }
+#officebar[hidden] { display: none; }
+#officebar span { flex: 1; }
+#officebar button { padding: 6px 14px; border: 1px solid #9fb3cd; border-radius: 5px; background: #fff; font: inherit; cursor: pointer; }
+#officebar button.primary { background: #1f5fbf; color: #fff; border-color: #1f5fbf; font-weight: 600; }
+
+/* hộp soạn công thức theo thiết kế Bảng vẽ Toán */
+#fxback { position: fixed; inset: 0; background: rgba(20, 30, 45, .4); z-index: 49; }
+#fxback[hidden] { display: none; }
+dialog#fxdlg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0; z-index: 50; width: 940px; max-width: 97vw; max-height: 97vh; overflow-y: auto; padding: 16px 18px; border-radius: 14px; border: 0; }
+.fhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.fhead h2 { font-size: 17px; margin: 0; flex: 1; }
+.seg { display: inline-flex; border: 1px solid #c9d1db; border-radius: 7px; overflow: hidden; }
+.seg button { border: 0; background: #fff; padding: 6px 12px; font: inherit; font-weight: 600; cursor: pointer; border-radius: 0; }
+.seg button + button { border-left: 1px solid #c9d1db; }
+.seg button[aria-pressed=true] { background: #0b5cad; color: #fff; }
+.finl { display: flex; align-items: center; gap: 6px; color: #4a5868; }
+.finl select { padding: 5px 6px; border: 1px solid #c9d1db; border-radius: 7px; font: inherit; }
+.fbtn { padding: 7px 13px; border: 1px solid #c9d1db; border-radius: 8px; background: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.fbtn:hover { background: #eef4fb; }
+.fbtn[aria-pressed=true] { background: #0b5cad; color: #fff; border-color: #0b5cad; }
+.fbtn.primary { background: #0b5cad; color: #fff; border-color: #0b5cad; padding: 8px 18px; }
+.fcols { display: inline-flex; gap: 5px; }
+.fcols button { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; outline: 1px solid #c9d1db; padding: 0; cursor: pointer; }
+.fcols button[aria-pressed=true] { outline: 2.5px solid #0b5cad; }
+dialog#fxdlg #tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 0 0 8px; border-bottom: 1px solid #dde3ea; margin-bottom: 10px; }
+dialog#fxdlg #tabs button { border: 0; background: none; padding: 6px 12px; border-radius: 8px; font: inherit; font-weight: 600; color: #4a5868; cursor: pointer; }
+dialog#fxdlg #tabs button.on { background: #0b5cad; color: #fff; }
+dialog#fxdlg #palette { margin: 0 0 10px; padding: 0; border: 0; height: auto; max-height: 132px; gap: 5px; }
+dialog#fxdlg #palette button { min-width: 44px; min-height: 42px; border: 1px solid #d5dbe3; border-radius: 9px; font-size: 15px; }
+.fpane { border: 1px solid #c9d1db; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.fpane:focus-within { border-color: #0b5cad; }
+.fpt { display: flex; justify-content: space-between; gap: 12px; font-size: 11.5px; color: #4a5868; margin-bottom: 6px; }
+.fpt span:first-child { font-weight: 700; letter-spacing: .08em; }
+dialog#fxdlg #mf { margin: 0 0 8px; border: 0; padding: 6px 2px; min-height: 76px; font-size: 26px; outline: none; --keyboard-zindex: 200; }
+dialog#fxdlg #mf::part(virtual-keyboard-toggle), dialog#fxdlg #mf::part(menu-toggle) { display: none; }
+#fTex { width: 100%; min-height: 96px; border: 0; outline: none; resize: vertical; font: 14px Consolas, monospace; }
+.frow { display: flex; align-items: center; gap: 8px; }
+#fText { flex: 1; padding: 8px 10px; border: 1px solid #c9d1db; border-radius: 8px; font: 14px "Segoe UI", sans-serif; }
+.ferr { color: #b45309; font-size: 12.5px; min-height: 0; margin-top: 4px; }
+#fPrev { min-height: 70px; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 6px; }
+#fPrev .ph { color: #6b7785; }
+#fKeyList { display: grid; grid-template-columns: max-content 1fr max-content 1fr; gap: 4px 12px; font-size: 12.5px; margin-bottom: 10px; max-height: 200px; overflow-y: auto; padding: 8px; background: #f7f9fb; border-radius: 8px; }
+#fKeyList[hidden] { display: none; }
+#fKeyList kbd { background: #fff; border: 1px solid #c9d1db; border-radius: 4px; padding: 1px 6px; font: 12px Consolas, monospace; white-space: nowrap; }
+
+/* nhóm ký hiệu theo khối lớp */
+dialog#fxdlg #palette.tall { max-height: 190px; }
+.gradebar { flex: 0 0 100%; display: flex; gap: 4px; position: sticky; top: 0; background: #fff; padding-bottom: 4px; z-index: 1; }
+dialog#fxdlg #palette .gradebar button { min-width: 0; min-height: 0; padding: 4px 12px; border-radius: 14px; font: 600 12.5px "Segoe UI", sans-serif; color: #33445a; }
+dialog#fxdlg #palette .gradebar button.on { background: #e67e22; border-color: #e67e22; color: #fff; }
+
+/* bản quyền trên thanh trạng thái */
+#status { gap: 16px; }
+#status #msg { flex: 1; }
+#credit { cursor: pointer; opacity: .92; white-space: nowrap; }
+#credit:hover { text-decoration: underline; opacity: 1; }
+
+/* màn chờ khi chuyển đổi hàng loạt */
+#convveil { position: fixed; inset: 0; z-index: 300; background: #f7f9fb; display: flex; align-items: center; justify-content: center; }
+#convveil > div { text-align: center; font-size: 15px; }
+#convveil b { font-size: 20px; color: #1f5fbf; }
+body.capturing #convveil { display: none; }
+
+/* danh sách hình phẳng trên thanh công cụ */
+#planeKind { align-self: center; height: 28px; max-width: 230px; font: inherit; }
+
+/* danh sách ký hiệu SGK */
+#symKind { align-self: center; height: 28px; max-width: 200px; font: inherit; }
+
+/* ba danh sách hình xếp chồng cho gọn thanh công cụ */
+.stack { display: flex; flex-direction: column; gap: 2px; }
+.stack > div { display: flex; align-items: center; gap: 4px; }
+.stack label { width: 92px; font-size: 11px; color: #4a5868; text-align: right; }
+#ribbon .stack select { height: 21px; width: 210px; max-width: 210px; font: 11.5px "Segoe UI", sans-serif; align-self: auto; }
+#ribbon .stack button { flex-direction: row; min-width: 0; height: 21px; padding: 0 8px; font-size: 11.5px; border-color: #b7cdee; background: #fff; color: #1f5fbf; }
+
+/* điểm kéo được / chọn được trên hình phẳng, hình không gian */
+.pth { position: absolute; width: 11px; height: 11px; margin: -6.5px 0 0 -6.5px; border-radius: 50%; border: 1.5px solid #1f5fbf; background: rgba(255,255,255,.75); cursor: pointer; display: none; font: 700 9px/11px 'Segoe UI', sans-serif; color: #fff; text-align: center; z-index: 2; }
+.pth.drag { background: #1f5fbf; cursor: move; }
+.pth.on { background: #e67e22; border-color: #e67e22; width: 15px; height: 15px; margin: -8.5px 0 0 -8.5px; line-height: 15px; }
+.obj.sel .pth { display: block; }
+body.capturing .pth { display: none !important; }
+@media print { .pth { display: none !important; } }

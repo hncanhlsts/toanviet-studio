@@ -1,0 +1,40 @@
+<!doctype html>
+<html><head><meta charset="utf-8"></head><body>
+<script src="../node_modules/mathlive/mathlive.min.js"></script>
+<script src="../src/mathexpr.js"></script>
+<script src="../src/numfmt.js"></script>
+<script src="../src/graph.js"></script>
+<script src="../src/bbt.js"></script>
+<script src="../src/solid.js"></script>
+<script src="../src/plane.js"></script>
+<script src="../src/sgk.js"></script>
+<script src="../src/numline.js"></script>
+<script src="../src/space.js"></script>
+<script src="../src/omml.js"></script>
+<script src="../src/mtef.js"></script>
+<script src="../src/mtefw.js"></script>
+<script>
+  // khung kiểm thử tối giản
+  let pass = 0, fail = 0, group = '';
+  const snapsOut = {};
+  window.nhom = (name) => { group = name; console.log('== ' + name); };
+  window.thu = (name, fn) => {
+    try { fn(); pass++; console.log('✔ ' + name); }
+    catch (e) { fail++; console.log('✘ ' + group + ' › ' + name + ': ' + e.message); }
+  };
+  window.bang = (a, b, msg) => { if (JSON.stringify(a) !== JSON.stringify(b)) throw new Error((msg || '') + ' mong đợi ' + JSON.stringify(b) + ', nhận ' + JSON.stringify(a)); };
+  window.gan = (a, b, eps, msg) => { if (!(Math.abs(a - b) <= (eps || 1e-6))) throw new Error((msg || '') + ' mong đợi ≈ ' + b + ', nhận ' + a); };
+  window.dung = (v, msg) => { if (!v) throw new Error(msg || 'điều kiện sai'); };
+  // so ảnh của hình với ảnh chuẩn đã lưu (chuỗi SVG + nhãn)
+  const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
+  window.anh = (key, res) => {
+    const h = hash(res.svg + JSON.stringify(res.labels));
+    snapsOut[key] = h;
+    if (window.__UPDATE) return;
+    const old = (window.__SNAPS || {})[key];
+    if (old === undefined) throw new Error('chưa có ảnh chuẩn (chạy npm test -- --cap-nhat)');
+    if (old !== h) throw new Error('hình đã thay đổi so với ảnh chuẩn');
+  };
+  window.__summary = () => ({ pass, fail, snaps: snapsOut });
+</script>
+</body></html>
