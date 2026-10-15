@@ -215,5 +215,38 @@
     window.__run('tieuhoc'); await w(100);
   });
 
+  await step('Hộp soạn công thức: nhấp chuột, Tab, hỗn số, Esc, chuyển LaTeX', async () => {
+    const B = String.fromCharCode(92);
+    __clear(); await w(100);
+    window.__run('ins-formula'); await w(600);
+    const mf = document.getElementById('mf'), tx = document.getElementById('fTex');
+    const mkey = (k, o) => mf.dispatchEvent(new KeyboardEvent('keydown', Object.assign({ key: k, bubbles: true, composed: true, cancelable: true }, o || {})));
+    // nhấp chuột (sự kiện thật) đặt con trỏ đúng chỗ
+    mf.setValue('x+y+z+t'); mf.focus(); mf.executeCommand('moveToMathfieldEnd'); await w(80);
+    const sp = [...mf.shadowRoot.querySelectorAll('span')].find((s) => s.textContent === 'y' && !s.children.length);
+    const r = sp.getBoundingClientRect();
+    await window.api.testClick(r.right - 1, r.top + r.height / 2); await w(250);
+    ok('nhấp chuột vào giữa công thức đặt được con trỏ', mf.position === 3, mf.position);
+    // Tab trong mẫu số: ra khỏi phân số, không chọn bao cả phân số
+    mf.setValue(B + 'frac{1}{2}'); mf.executeCommand('moveToMathfieldEnd'); mf.executeCommand('moveToPreviousChar'); mkey('Tab'); await w(50);
+    mf.insert('+x'); await w(80);
+    ok('Tab ra khỏi phân số sang bên phải', tx.value === B + 'frac{1}{2}+x', tx.value);
+    // hỗn số: 2, phím cách, 1, phân số
+    mf.setValue(''); mf.insert('2'); mf.executeCommand(['typedText', ' ']); mf.insert('1'); mf.insert(B + 'frac{#@}{#?}', { selectionMode: 'placeholder' }); mf.insert('3'); await w(80);
+    ok('gõ hỗn số 2 1/3 bằng phím cách', tx.value === '2' + B + 'frac{1}{3}', tx.value);
+    // phân số viết gọn \frac12 được viết lại đủ ngoặc
+    mf.setValue(B + 'frac12+' + B + 'sqrt2'); mf.dispatchEvent(new Event('input')); await w(80);
+    ok('viết lại đủ ngoặc: \\frac{1}{2}, \\sqrt{2}', tx.value === B + 'frac{1}{2}+' + B + 'sqrt{2}', tx.value);
+    // chuyển qua lại Trực quan / LaTeX giữ nguyên công thức nhiều dòng có chữ
+    const btn = (m) => [...document.getElementById('fMode').children].find((b) => b.dataset.m === m).click();
+    mf.setValue(B + 'displaylines{' + B + 'frac{1}{2}' + B + 'text{ khi đó }x=2' + B + B + 'y=3}'); mf.dispatchEvent(new Event('input')); await w(80);
+    const v0 = tx.value; btn('l'); await w(120); btn('v'); await w(150); btn('l'); await w(120);
+    ok('chuyển Trực quan ⇄ LaTeX không đổi công thức', tx.value === v0, tx.value);
+    btn('v'); await w(150);
+    // Esc: đóng hộp soạn, không chuyển công thức sang mã LaTeX thô
+    mkey('Escape'); await w(120);
+    ok('Esc đóng hộp soạn, không vào chế độ mã LaTeX', !document.getElementById('fxdlg').open && mf.mode !== 'latex', mf.mode);
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

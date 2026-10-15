@@ -50,7 +50,7 @@
   <div class="sub">Hướng dẫn sử dụng — từ làm quen đến thành thạo</div>
   <p>Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí – Hoá học – Sinh học<br>cho chương trình phổ thông Việt Nam, dùng độc lập hoặc ngay trong Word và PowerPoint.</p>
   <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
-  <div class="ver">Phiên bản 2.7.0 · © 2026 Hoàng Ngọc Cảnh</div>
+  <div class="ver">Phiên bản 2.7.1 · © 2026 Hoàng Ngọc Cảnh</div>
 </div>
 
 <h2>Mục lục</h2>
@@ -74,7 +74,7 @@
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
   <li>Đóng hết Word và PowerPoint.</li>
-  <li>Chạy tệp <code>ToanVietStudio-Setup-2.7.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.7.1.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
   <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
   <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
 </ol>
@@ -122,7 +122,9 @@
 <figure><img src="img/hop-soan.png"><figcaption>Hộp soạn công thức: các nhóm ký hiệu, ô soạn trực quan, ô gõ chữ, ô xem trước</figcaption></figure>
 <h3>4.1. Ba cách đưa ký hiệu vào <span class="level l1">Làm quen</span></h3>
 <ul>
-  <li><b>Bấm nút</b> trong các nhóm ký hiệu. Ô vuông trống là chỗ cần điền; <kbd>Tab</kbd> hoặc phím mũi tên để sang ô kế tiếp.</li>
+  <li><b>Bấm nút</b> trong các nhóm ký hiệu. Ô vuông trống là chỗ cần điền; <kbd>Tab</kbd> hoặc phím mũi tên để sang ô kế tiếp. Hết ô trống thì <kbd>Tab</kbd> đưa con trỏ ra khỏi phân số, căn, số mũ… sang bên phải (<kbd>Shift</kbd>+<kbd>Tab</kbd>: sang trái).</li>
+  <li><b>Nhấp chuột</b> vào bất kỳ chỗ nào trong công thức để đặt con trỏ ở đó và sửa.</li>
+  <li><b>Hỗn số</b>: gõ phần nguyên, nhấn phím cách rồi gõ phân số, ví dụ <code>2</code> <kbd>Space</kbd> <code>1/3</code> được 2⅓ (không có phím cách thì <code>21/3</code> là phân số 21 phần 3). Phím cách giữa hai nhóm chữ số dùng để tách lớp: <code>1</code> <kbd>Space</kbd> <code>000</code> được 1 000. Cũng có nút hỗn số ở thẻ <b>Tiểu học</b>.</li>
   <li><b>Gõ thẳng</b>: <kbd>/</kbd> ra phân số, <kbd>^</kbd> ra mũ, <kbd>_</kbd> ra chỉ số dưới. Ví dụ gõ <code>x^2</code> rồi <kbd>→</kbd> để ra khỏi mũ.</li>
   <li><b>Gõ tên LaTeX rồi <kbd>Tab</kbd></b>, ví dụ <code>\omega</code>, <code>\sqrt</code>.</li>
 </ul>
@@ -133,7 +135,7 @@
   <li><b>Xuống dòng</b>: <kbd>Enter</kbd> thêm dòng mới ở cuối, các dòng căn trái. <kbd>Shift</kbd>+<kbd>Enter</kbd> thêm hàng cho hệ phương trình hoặc ma trận đang đứng. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Backspace</kbd> xoá dòng đang đứng.</li>
   <li><b>Định dạng</b>: ô <b>Cỡ</b> tính theo pt như Word (mặc định 12), nút <b>B</b> là chữ đậm, sáu ô tròn là màu.</li>
   <li><b>LaTeX</b>: nút <b>LaTeX</b> ở trên cùng cho gõ hoặc dán mã LaTeX; nút <b>Trực quan</b> quay lại.</li>
-  <li><b>Kết thúc</b>: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> để chèn, <kbd>Esc</kbd> để huỷ.</li>
+  <li><b>Kết thúc</b>: <kbd>Ctrl</kbd>+<kbd>Enter</kbd> để chèn, <kbd>Esc</kbd> để đóng không chèn. Muốn xem, sửa mã LaTeX thì bấm nút <b>LaTeX</b> ở góc trên hộp soạn; bấm <b>Trực quan</b> để quay lại.</li>
 </ul>
 <div class="try"><b>Thử ngay — lời giải nhiều dòng.</b> Gõ <code>x^2-4=0</code>, <kbd>Enter</kbd>, bấm <kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>L</kbd> (ra ⇔), gõ <code>x=</code>, bấm <kbd>Ctrl</kbd>+<kbd>K</kbd> rồi <kbd>+</kbd> (ra ±), gõ <code>2</code>, <kbd>Enter</kbd>, bấm <b>Abc Chữ</b>, gõ "Vậy phương trình có hai nghiệm.", <kbd>Ctrl</kbd>+<kbd>Enter</kbd>.</div>
 

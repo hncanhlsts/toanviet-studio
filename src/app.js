@@ -261,8 +261,15 @@
   mf.mathVirtualKeyboardPolicy = 'manual';
   mf.macros = Object.assign({}, mf.macros, { dongdang: SIM_TEX });
   mf.inlineShortcuts = Object.assign({}, mf.inlineShortcuts, { dongdang: '\\dongdang' });
+  // Phím cách trong ô toán chèn khoảng \: để ngắt nhóm chữ số: gõ "2 1/3" ra hỗn số (không gộp 21 làm tử số),
+  // gõ "1 000" ra số tách lớp. Khi lấy giá trị: giữa hai chữ số thành \, (tách lớp), các chỗ khác bỏ đi.
+  mf.mathModeSpace = '\\:';
+  const spaceFix = (v) => v.replace(/(\d)\s*\\:\s*(?=\d)/g, '$1\\,').replace(/\\:\s*/g, '');
   let simInShadow = false;
-  const mfVal = () => collapseSim(mf.getValue('latex-expanded')).trim();
+  // MathLive viết gọn \frac12, \sqrt2: viết lại đủ ngoặc cho dễ đọc ở ô LaTeX và cho các bộ chuyển (MathType, Equation)
+  const braceFix = (v) => v.replace(/\\(dfrac|tfrac|frac|binom)(\d)(\d)/g, '\\$1{$2}{$3}').replace(/\\(dfrac|tfrac|frac|binom)(\d)(?=\{)/g, '\\$1{$2}')
+    .replace(/(\\(?:dfrac|tfrac|frac|binom)\{[^{}]*\})(\d)/g, '$1{$2}').replace(/\\sqrt(\d)/g, '\\sqrt{$1}');
+  const mfVal = () => braceFix(spaceFix(collapseSim(mf.getValue('latex-expanded')))).trim();
   const fxValue = () => (fMode === 'v' ? mfVal() : collapseSim(fTex.value).trim());
   const syncTex = () => { fTex.value = mfVal(); previewF(); };
 
@@ -309,6 +316,17 @@
       const p = pfx, t = p === 'g' ? (GREEK[e.key] ? '\\' + GREEK[e.key] : null) : p === 't' ? TPL[e.key.toLowerCase()] : SYM[e.key.toLowerCase()];
       setPfx(null); stop();
       if (t) fIns(t);
+      return;
+    }
+    // Esc: đóng hộp soạn (không để MathLive chuyển cả công thức sang dạng mã LaTeX thô — dễ làm hỏng công thức)
+    if (e.key === 'Escape' && mf.mode !== 'latex') { stop(); closeFx(false); return; }
+    // Tab: sang ô trống kế tiếp; hết ô trống thì ra khỏi phân số, căn, mũ… sang bên phải (không chọn bao cả nhóm)
+    if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && mf.mode !== 'latex') {
+      stop();
+      const p0 = mf.position;
+      mf.executeCommand(e.shiftKey ? 'moveToPreviousPlaceholder' : 'moveToNextPlaceholder');
+      if (mf.position === p0) mf.executeCommand(e.shiftKey ? 'moveBeforeParent' : 'moveAfterParent');
+      if (mf.position === p0) mf.executeCommand(e.shiftKey ? 'moveToPreviousChar' : 'moveToNextChar');
       return;
     }
     if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) { stop(); newLine(); return; }

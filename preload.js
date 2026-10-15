@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('api', {
   info: (msg) => ipcRenderer.invoke('info', msg),
   renderPng: (target, withData, release) => ipcRenderer.invoke('renderPng', target, !!withData, !!release),
   renderBatch: (ids) => ipcRenderer.invoke('renderBatch', ids),
+  testClick: (x, y) => ipcRenderer.invoke('test-click', { x, y }),
   lib: (o) => ipcRenderer.invoke('lib', o),
   shared: (o) => ipcRenderer.invoke('shared', o),
   report: (o) => ipcRenderer.invoke('report', o),

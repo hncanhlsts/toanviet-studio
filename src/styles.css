@@ -329,3 +329,5 @@ body.present .obj { cursor: pointer; outline: none !important; }
 .maubai:hover { background: #f1f5fb; }
 .maubai span:first-child { flex: 1; }
 .maucnt { color: #8090a0; font-size: 12px; }
+/* ô soạn công thức phải cho chọn được: MathLive bỏ qua nhấp chuột (không đặt được con trỏ) khi user-select là none */
+math-field { user-select: text; -webkit-user-select: text; }

@@ -592,6 +592,15 @@ function runOffice(env) {
 }
 app.on('will-quit', () => { try { if (psProc) psProc.kill(); } catch (e) { /* đã thoát */ } });
 // chụp nhiều công thức một lượt khi chuyển đổi hàng loạt: đo tất cả trong một lần rồi chụp liên tiếp
+// kiểm thử giao diện: gửi cú nhấp chuột thật (sự kiện tin cậy) vào cửa sổ — chỉ khi chạy ở chế độ kiểm thử
+ipcMain.handle('test-click', async (e, p) => {
+  if (!shotArg) return false;
+  const x = Math.round(p.x), y = Math.round(p.y);
+  e.sender.sendInputEvent({ type: 'mouseMove', x, y });
+  e.sender.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
+  e.sender.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
+  return true;
+});
 ipcMain.handle('renderBatch', async (e, ids) => {
   const scale = 4, wc = e.sender, dbg = wc.debugger;
   capture.keep = true;
