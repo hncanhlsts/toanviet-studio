@@ -80,6 +80,9 @@ function createWindow() {
         fs.writeFileSync(shotArg.slice(7), buf);
         const ev = process.argv.find((a) => a.startsWith('--eval='));
         if (ev) { await win.webContents.executeJavaScript(ev.slice(7)); await new Promise((r) => setTimeout(r, 1200)); }
+        // kiểm thử giao diện: kịch bản dài đọc từ tệp
+        const evf = process.argv.find((a) => a.startsWith('--evalfile='));
+        if (evf) { await win.webContents.executeJavaScript(fs.readFileSync(evf.slice(11), 'utf8')); await new Promise((r) => setTimeout(r, 300)); }
         // kiểm thử hộp thoại khi đóng: đóng cửa sổ giống như bấm nút ✕
         if (process.env.TVS_AUTO_CLOSE) { win.close(); await new Promise((r) => setTimeout(r, 2500)); if (win.isDestroyed()) return; console.log('WINDOW-STILL-OPEN'); }
         fs.writeFileSync(shotArg.slice(7).replace(/\.png$/, '.pdf'), await win.webContents.printToPDF({ pageSize: 'A4', printBackground: true, margins: { marginType: 'none' } }));

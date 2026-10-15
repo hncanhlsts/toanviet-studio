@@ -1661,6 +1661,7 @@
   window.__clear = () => loadDoc([], null);
   window.__add = (type, kind, extra) => { const o = insert(type, kind, extra); renderObj(o); return o.id; };
   window.__unselect = () => select(null);
+  window.__run = (c) => run(c);
 
   // ---------- Tài liệu mẫu ----------
   window.__demo = () => {
