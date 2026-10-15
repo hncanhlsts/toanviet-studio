@@ -63,6 +63,7 @@ function createWindow() {
     { label: 'Trợ giúp', submenu: [
       { label: 'Hướng dẫn sử dụng (PDF)', accelerator: 'F1', click: () => showGuide('Huong-dan-su-dung-ToanViet-Studio.pdf') },
       { label: 'Hướng dẫn lập kịch bản vẽ hình (PDF)', accelerator: 'Shift+F1', click: () => showGuide('Huong-dan-lap-kich-ban-ve-hinh.pdf') },
+      { label: 'Kiểm tra bản mới (thư mục dùng chung)…', click: send('update') },
       { label: 'Báo lỗi / góp ý…', click: send('report') },
       { type: 'separator' },
       { label: 'Giới thiệu ToanViet Studio', click: showAbout },
@@ -187,6 +188,62 @@ ipcMain.handle('lib', async (_e, o) => {
   }
   return null;
 });
+// ---------- Thư mục dùng chung của tổ: thư viện chung (*.tvslib) và bộ cài bản mới ----------
+const setFile = () => path.join(app.getPath('userData'), 'cai-dat.json');
+const readSet = () => { try { return JSON.parse(fs.readFileSync(setFile(), 'utf8')); } catch (err) { return {}; } };
+const writeSet = (o) => { fs.mkdirSync(path.dirname(setFile()), { recursive: true }); fs.writeFileSync(setFile(), JSON.stringify(Object.assign(readSet(), o), null, 1), 'utf8'); };
+const verCmp = (x, y) => { const a = x.split('.').map(Number), b = y.split('.').map(Number); for (let i = 0; i < 3; i++) if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) - (b[i] || 0); return 0; };
+let pendingInstaller = null;
+ipcMain.handle('shared', async (_e, o) => {
+  const st = readSet(), dir = st.sharedDir || '';
+  if (o.action === 'get') return { dir, ok: !!dir && fs.existsSync(dir), author: st.author || '' };
+  if (o.action === 'author') { writeSet({ author: String(o.author || '').slice(0, 60) }); return true; }
+  if (o.action === 'choose') {
+    const r = process.env.TVS_SHARED_DIR ? { filePaths: [process.env.TVS_SHARED_DIR] } : await dialog.showOpenDialog(win, { title: 'Chọn thư mục dùng chung của tổ (ổ mạng, OneDrive, Google Drive…)', properties: ['openDirectory'] });
+    if (r.canceled || !r.filePaths[0]) return null;
+    writeSet({ sharedDir: r.filePaths[0] }); return r.filePaths[0];
+  }
+  if (o.action === 'clear') { writeSet({ sharedDir: '' }); return true; }
+  if (!dir || !fs.existsSync(dir)) return o.action === 'load' ? { items: [], bad: [], error: dir ? 'Không mở được thư mục ' + dir : '' } : null;
+  if (o.action === 'load') {
+    const items = [], bad = [];
+    fs.readdirSync(dir).filter((f) => /\.tvslib$/i.test(f)).forEach((f) => {
+      try { const d = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); if (d.format !== 'tvslib') throw new Error('không phải gói thư viện'); d.items.forEach((it) => { if (it && it.obj) items.push(Object.assign({}, it, { src: f.replace(/\.tvslib$/i, '') })); }); } catch (err) { bad.push(f + ': ' + err.message); }
+    });
+    return { items, bad };
+  }
+  if (o.action === 'put') {
+    // ghi các mục vào tệp của người chia sẻ trong thư mục chung (mục cùng mã thì thay bản mới)
+    const name = (String(o.name || 'Chung').replace(/[\\/:*?"<>|]/g, '-').trim() || 'Chung');
+    const f = path.join(dir, 'ThuVien-' + name + '.tvslib');
+    let old = []; try { old = JSON.parse(fs.readFileSync(f, 'utf8')).items || []; } catch (err) { /* tệp mới */ }
+    const ids = new Set(o.items.map((it) => it.id));
+    const items = old.filter((it) => !ids.has(it.id)).concat(o.items.map((it) => { const c = Object.assign({}, it); delete c.src; return c; }));
+    const tmp = f + '.tmp'; fs.writeFileSync(tmp, JSON.stringify({ format: 'tvslib', version: 1, author: o.name || '', items }), 'utf8'); fs.renameSync(tmp, f);
+    return f;
+  }
+  if (o.action === 'unput') {
+    const f = path.join(dir, String(o.src || '') + '.tvslib');
+    try { const d = JSON.parse(fs.readFileSync(f, 'utf8')); d.items = d.items.filter((it) => it.id !== o.id); fs.writeFileSync(f, JSON.stringify(d), 'utf8'); return true; } catch (err) { return false; }
+  }
+  if (o.action === 'checkUpdate') {
+    if (shotArg && !process.env.TVS_UPDATE_TEST) return null;
+    const found = fs.readdirSync(dir).map((f) => { const m = f.match(/^ToanVietStudio-Setup-(\d+\.\d+\.\d+)\.exe$/i); return m ? { version: m[1], file: path.join(dir, f) } : null; }).filter(Boolean)
+      .filter((x) => verCmp(x.version, app.getVersion()) > 0).sort((x, y) => verCmp(y.version, x.version));
+    return found[0] || { none: true, current: app.getVersion() };
+  }
+  if (o.action === 'runUpdate') {
+    // chép bộ cài về máy rồi chạy sau khi phần mềm đã đóng (để cài đè được)
+    const tmp = path.join(app.getPath('temp'), path.basename(o.file));
+    fs.copyFileSync(o.file, tmp);
+    pendingInstaller = tmp;
+    if (process.env.TVS_UPDATE_TEST) { fs.appendFileSync(process.env.TVS_UPDATE_TEST, 'INSTALLER: ' + tmp + '\n'); pendingInstaller = null; return tmp; }
+    app.quit();
+    return tmp;
+  }
+  return null;
+});
+app.on('will-quit', () => { if (pendingInstaller) { try { require('child_process').spawn(pendingInstaller, [], { detached: true, stdio: 'ignore' }).unref(); } catch (err) { /* bỏ qua */ } } });
 // ---------- Báo lỗi / góp ý: ghi thông tin cần thiết ra Desktop để người dùng tự gửi ----------
 ipcMain.handle('report', async (_e, o) => {
   const t = new Date(), z = (n) => String(n).padStart(2, '0'), stamp = t.getFullYear() + z(t.getMonth() + 1) + z(t.getDate()) + '-' + z(t.getHours()) + z(t.getMinutes()) + z(t.getSeconds());

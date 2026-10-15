@@ -968,6 +968,7 @@
     'font-times': () => setFormulaFont(true),
     'font-tex': () => setFormulaFont(false),
     report: () => openReport(),
+    update: () => checkUpdate(true),
   };
   // Lựa chọn 'chèn dạng Equation của Word' (nhớ cho lần sau)
   const eqMode = () => { try { return localStorage.getItem('tvs-insert-eq') === '1'; } catch (e) { return false; } };
@@ -1131,6 +1132,19 @@
     loadDoc(objs, null);
   };
 
+  // bản mới đặt trong thư mục dùng chung của tổ (tệp ToanVietStudio-Setup-x.y.z.exe)
+  async function checkUpdate(manual) {
+    if (!api || !api.shared || (api.officeMode && api.officeMode.app)) return;
+    const sh = await api.shared({ action: 'get' });
+    if (!sh.dir) { if (manual) api.info('Chưa chọn thư mục dùng chung của tổ.\n\nMở Thư viện (Ctrl+L) ▸ thẻ "Thư viện tổ" ▸ "Chọn thư mục…". Người phụ trách chép bộ cài bản mới (ToanVietStudio-Setup-x.y.z.exe) vào thư mục đó, các máy sẽ tự thấy bản mới.'); return; }
+    if (!sh.ok) { if (manual) api.info('Không mở được thư mục dùng chung: ' + sh.dir); return; }
+    const r = await api.shared({ action: 'checkUpdate' });
+    if (!r) return;
+    if (r.none) { if (manual) api.info('Đang dùng bản mới nhất (' + r.current + ').'); return; }
+    if (!(await api.confirm('Đã có ToanViet Studio ' + r.version + ' trong thư mục dùng chung của tổ.\n\nCài bản mới ngay? Phần mềm sẽ đóng rồi chạy bộ cài (nếu tài liệu chưa lưu, phần mềm sẽ hỏi trước).'))) return;
+    await api.shared({ action: 'runUpdate', file: r.file });
+  }
+  setTimeout(() => checkUpdate(false), 4000);
   // nạp các mô-đun (src/mod/*.js) trước lần vẽ đầu tiên
   ({ isSel, selObjs, many, cleanObj, paintSel, groupOf, setSel, toggleSel, elOf, boxOf, groupData, pasteGroup, pasteMany, multiProps, rubberBand, snapper } = TVM.chonnhieu({ page, props, S, msg, get, commit, title, renderObj, pagePt, buildProps, run }));
   ({ ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag } = TVM.keodiem({ $, S, msg, cur, commit, title, renderObj, buildProps }));

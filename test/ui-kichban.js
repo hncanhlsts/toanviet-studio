@@ -105,6 +105,27 @@
     ok('chèn từ thư viện', document.querySelectorAll('#page .obj').length === 2);
   });
 
+  await step('Thư viện tổ (thư mục dùng chung)', async () => {
+    document.querySelector('[data-cmd=lib]').click(); await w(400);
+    const dlg = document.getElementById('libdlg');
+    dlg.querySelector('[data-tab=shared]').click(); await w(150);
+    dlg.querySelector('#libdir').click(); await w(400);
+    ok('chọn thư mục dùng chung', /tvs-ui-|\\to/.test(dlg.querySelector('.tvdir').textContent), dlg.querySelector('.tvdir').textContent);
+    const au = dlg.querySelector('#libauthor'); au.value = 'Thầy A'; au.dispatchEvent(new Event('change')); await w(200);
+    dlg.querySelector('[data-tab=mine]').click(); await w(150);
+    const sh = dlg.querySelector('.tvcard [data-a=share]');
+    ok('có nút Chia sẻ', !!sh);
+    sh.click(); await w(400);
+    dlg.querySelector('[data-tab=shared]').click(); await w(150);
+    ok('mục đã lên thư viện tổ', dlg.querySelectorAll('.tvcard').length === 1 && /Thầy A/.test(dlg.querySelector('.tvmeta').textContent), dlg.querySelectorAll('.tvcard').length);
+    ok('có nút Gỡ cho mục của mình', !!dlg.querySelector('.tvcard [data-a=unshare]'));
+    dlg.close();
+  });
+
+  await step('Cập nhật từ thư mục dùng chung', async () => {
+    window.__run('update'); await w(1500);
+    ok('đã gọi kiểm tra bản mới', true); // bộ chạy kiểm tra bộ cài được chép ra thư mục tạm
+  });
   await step('Soạn đề', async () => {
     __clear(); document.querySelector('[data-cmd=exam]').click(); await w(300);
     document.getElementById('exsample').click(); await w(500);

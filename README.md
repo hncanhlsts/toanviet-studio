@@ -52,10 +52,19 @@ Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS -
 
 © 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.
 
+## Cấu trúc mã
+
+- `main.js`: tiến trình chính (menu, lưu/mở, cầu nối Word/PowerPoint bằng PowerShell, thư viện, thư mục dùng chung, cập nhật).
+- `src/app.js`: lõi giao diện (trang, vẽ đối tượng, khung Thuộc tính, hộp soạn công thức, lệnh).
+- `src/mod/*.js`: các mô-đun giao diện tách riêng (chonnhieu, keodiem, thuvien, soande). Mỗi mô-đun nhận các hàm dùng chung qua đối số `C` và trả về các hàm nó cung cấp; `app.js` gọi chúng ngay trước lần vẽ đầu tiên.
+- `src/*.js` khác: bộ vẽ (plane, space, graph, bbt, numline, sgk…) và bộ chuyển đổi (omml, mtef, mtefw, mmlfix).
+
 ## Kiểm thử
 
-    npm test                 # chạy toàn bộ kiểm thử tự động (test/*.test.js)
-    npm test -- --cap-nhat   # khi cố ý đổi hình mẫu: cập nhật ảnh chuẩn trong test/anh-chuan.json
+    npm test                 # kiểm thử chức năng (test/*.test.js) và giao diện (test/ui.js)
+    npx electron test/run.js --cap-nhat   # khi cố ý đổi hình mẫu: cập nhật ảnh chuẩn trong test/anh-chuan.json
+    node test/ui.js          # chỉ chạy kiểm thử giao diện (thao tác giả lập trong phần mềm thật, dữ liệu tạm)
+    powershell -File build\test-tuluu.ps1 -Out <thư mục tạm>   # tự lưu, khôi phục, hộp thoại khi đóng
 
 ## Quản lý phiên bản (Git)
 
