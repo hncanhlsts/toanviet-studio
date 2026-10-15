@@ -277,6 +277,22 @@ $ErrorActionPreference = 'Stop'
 function GetApp($n) { try { [Runtime.InteropServices.Marshal]::GetActiveObject($n) } catch { $null } }
 $pkgA = '<?xml version="1.0" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage"><pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part><pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"><pkg:xmlData><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body><w:p>'
 $pkgB = '</w:p></w:body></w:document></pkg:xmlData></pkg:part></pkg:package>'
+# dữ liệu ToanViet ghi trong ảnh PNG (khối tEXt "ToanViet") của một hình trong dòng
+function PngTvs($shape) {
+  try {
+    $mb = [regex]::Match($shape.Range.WordOpenXML, '<pkg:part pkg:name="/word/media/[^"]+\.png"[^>]*>\s*<pkg:binaryData>([\s\S]*?)</pkg:binaryData>')
+    if (-not $mb.Success) { return $null }
+    $b = [Convert]::FromBase64String(($mb.Groups[1].Value -replace '\s', '')); $p = 8
+    while ($p + 8 -le $b.Length) {
+      $n = ([int]$b[$p] -shl 24) -bor ([int]$b[$p + 1] -shl 16) -bor ([int]$b[$p + 2] -shl 8) -bor [int]$b[$p + 3]
+      $t = [Text.Encoding]::ASCII.GetString($b, $p + 4, 4)
+      if ($t -eq 'tEXt') { $s = [Text.Encoding]::GetEncoding(28591).GetString($b, $p + 8, $n); if ($s.StartsWith('ToanViet' + [char]0)) { return $s.Substring(9) } }
+      if ($t -eq 'IEND') { break }
+      $p += 12 + $n
+    }
+  } catch {}
+  $null
+}
 # MathML -> OMML bằng bộ chuyển của chính Word (nạp một lần)
 function MmlToOmml($a, $mml) {
   if (-not $global:TvsXsl) { $global:TvsXsl = New-Object System.Xml.Xsl.XslCompiledTransform; $global:TvsXsl.Load((Join-Path $a.Path 'MML2OMML.XSL')) }
@@ -327,7 +343,10 @@ try {
       for ($i = 1; $i -le $doc.InlineShapes.Count; $i++) {
         try {
           $s = $doc.InlineShapes.Item($i); $al = "$($s.AlternativeText)"
-          if ($kind -eq 'tvs') { if ($al.StartsWith('TVS1:')) { [void]$sb.AppendLine("$i|0|" + $al.Substring(5)); $n++ } }
+          if ($kind -eq 'tvs') {
+            if ($al.StartsWith('TVS1:')) { [void]$sb.AppendLine("$i|0|" + $al.Substring(5)); $n++ }
+            elseif ($s.Type -eq 3) { $d0 = PngTvs $s; if ($d0) { [void]$sb.AppendLine("$i|0|" + $d0); $n++ } }
+          }
           elseif (-not $al.StartsWith('TVS1:')) {
             $pg = ''; try { $pg = "$($s.OLEFormat.ProgID)" } catch {}
             if ($pg -like 'Equation*') {
@@ -459,7 +478,7 @@ try {
       if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
       $sel = $a.Selection; $rep = 0
       $omOld = $null
-      if ($env:TVS_SRC -eq 'ole') {
+      if ($env:TVS_SRC -eq 'ole' -or $env:TVS_SRC -eq 'img') {
         # nguồn là công thức MathType đang chọn: xoá đối tượng gốc, ảnh ToanViet vào đúng chỗ đó
         try { if ($sel.InlineShapes.Count -ge 1) { $sel.InlineShapes.Item(1).Delete(); $rep = 1 } } catch {}
       } elseif ($env:TVS_SRC -eq 'omath') {
@@ -506,6 +525,11 @@ try {
             $x = $ish.Range.WordOpenXML
             $mb = [regex]::Match($x, '<pkg:part pkg:name="/word/embeddings/[^"]+"[^>]*>\s*<pkg:binaryData>([\s\S]*?)</pkg:binaryData>')
             if ($mb.Success) { $payload = ($mb.Groups[1].Value -replace '\s', '') }
+          } elseif ($ish.Type -eq 3) {
+            # ảnh thường (không còn văn bản thay thế): gửi ảnh để tìm dữ liệu ToanViet ghi trong PNG
+            $x = $ish.Range.WordOpenXML
+            $mb = [regex]::Match($x, '<pkg:part pkg:name="/word/media/[^"]+\.png"[^>]*>\s*<pkg:binaryData>([\s\S]*?)</pkg:binaryData>')
+            if ($mb.Success) { $kind = 'Img'; $payload = ($mb.Groups[1].Value -replace '\s', '') }
           } }
         }
         if (-not $r.StartsWith('TVS1:') -and -not $kind -and $sel.OMaths.Count -ge 1) {
@@ -595,6 +619,18 @@ ipcMain.handle('renderPng', async (e, target, withData, release) => {
   if (withData) { res.b64 = buf.toString('base64'); fs.unlink(file, () => {}); }
   return res;
 });
+// Đọc khối dữ liệu tEXt "ToanViet" trong ảnh PNG (nếu có). Word nén lại ảnh khi lưu nên thường không còn;
+// dùng để phân biệt và báo rõ khi hình ToanViet đã mất "văn bản thay thế".
+function pngData(buf) {
+  let p = 8;
+  while (p + 8 <= buf.length) {
+    const n = buf.readUInt32BE(p), type = buf.toString('latin1', p + 4, p + 8);
+    if (type === 'tEXt') { const s = buf.toString('latin1', p + 8, p + 8 + n); if (s.startsWith('ToanViet\0')) return s.slice(9); }
+    if (type === 'IEND') break;
+    p += 12 + n;
+  }
+  return null;
+}
 ipcMain.handle('office', async (e, opts) => {
   const name = opts.app === 'ppt' ? 'PowerPoint' : 'Word';
   const noApp = 'Chưa mở tài liệu Word nào.';
@@ -626,7 +662,12 @@ ipcMain.handle('office', async (e, opts) => {
   }
   if (opts.action === 'read') {
     const out = await runOffice({ TVS_ACT: 'read', TVS_APP: opts.app || '' });
-    const m = out.match(/^OK:(Word|PPT|WordEq|MathType):(.+)$/);
+    const m = out.match(/^OK:(Word|PPT|WordEq|MathType|Img):(.+)$/);
+    if (m && m[1] === 'Img') {
+      const d = pngData(Buffer.from(m[2], 'base64'));
+      if (d) return { ok: true, from: 'Word', data: d, src: 'img' };
+      return { ok: false, error: 'Hình đang chọn không có dữ liệu ToanViet. Nếu đây là công thức ToanViet, dữ liệu của nó đã bị mất (thường do tài liệu từng được mở, lưu bằng phần mềm khác như WPS, Google Docs) — cần soạn lại công thức này.' };
+    }
     if (m) return { ok: true, from: m[1], data: m[2] };
     return { ok: false, error: out === 'ERR:NOSEL' ? 'Hãy chọn (nhấp vào) một hình ToanViet trong Word hoặc PowerPoint trước' : 'Lỗi: ' + out.slice(4) };
   }
@@ -659,7 +700,7 @@ ipcMain.handle('office', async (e, opts) => {
   const k = (opts.app === 'ppt' ? 2 : 1) * 0.75 / scale; // px ảnh -> point; trên trang chiếu phóng gấp đôi
   const hideNow = !!office && !!opts.quick && win && !shotArg;
   if (hideNow) win.hide();
-  const out = await runOffice({ TVS_ACT: 'insert', TVS_APP: opts.app, TVS_PNG: file, TVS_ALT: 'TVS1:' + opts.data, TVS_POS: String(capture.depthPt || 0), TVS_SRC: /^(ole|omath)$/.test(opts.source || '') ? opts.source : '', TVS_W: String(size.width * k), TVS_H: String(size.height * k) });
+  const out = await runOffice({ TVS_ACT: 'insert', TVS_APP: opts.app, TVS_PNG: file, TVS_ALT: 'TVS1:' + opts.data, TVS_POS: String(capture.depthPt || 0), TVS_SRC: /^(ole|omath|img)$/.test(opts.source || '') ? opts.source : '', TVS_W: String(size.width * k), TVS_H: String(size.height * k) });
   fs.unlink(file, () => {});
   if (out.startsWith('OK')) return { ok: true, replaced: out === 'OK:1' };
   if (hideNow) { win.show(); win.focus(); }

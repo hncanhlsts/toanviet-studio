@@ -118,5 +118,6 @@
     if (doc.querySelector('parsererror')) throw new Error('Không đọc được công thức Equation');
     return conv(doc.documentElement).replace(/ +/g, ' ').replace(/ (?=[}^_)\]])/g, '').trim();
   }
-  root.OMML = { toLatex: ommlToLatex };
+  // bỏ các ký tự vô hình (U+2061–2064: áp dụng hàm, nhân ẩn, dấu phẩy ẩn, cộng ẩn) mà Word chèn khi chuyển công thức
+  root.OMML = { toLatex: (x) => ommlToLatex(x).replace(/[\u2061-\u2064]/g, '') };
 })(window);

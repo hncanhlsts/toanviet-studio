@@ -218,7 +218,8 @@
     else out = top.map(node).join('');
     return out.replace(/\\text\{\s*\}/g, '').replace(/ +/g, ' ').replace(/ (?=[}^_)\]'])/g, '').trim();
   }
-  const oleToLatex = (bytes) => mtefToLatex(mtefFromOle(bytes));
+  // gõ dấu gạch ngang (–) thay cho dấu trừ là thói quen phổ biến trong MathType: đưa về dấu trừ
+  const oleToLatex = (bytes) => mtefToLatex(mtefFromOle(bytes)).replace(/[\u2013\u2212]/g, '-');
 
   root.MTEF = { readOleStream, mtefFromOle, mtefToLatex, oleToLatex, parseMtef };
 })(typeof window !== 'undefined' ? window : globalThis);

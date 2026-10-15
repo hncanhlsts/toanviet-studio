@@ -1420,6 +1420,7 @@
           return api.quit();
         }
       } else if (r.ok) {
+        if (r.src === 'img') OFFICE.source = 'img';
         try {
           const o = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(r.data), (c) => c.charCodeAt(0))));
           o.x = 60; o.y = 50;
@@ -1428,7 +1429,11 @@
           if (o.type === 'formula') { OFFICE.auto = true; editFormula(o); }
           else msg('Sửa xong bấm "Chèn vào ' + officeName() + ' và đóng" để thay cho hình đang chọn.');
           return;
-        } catch (e) { /* dữ liệu hỏng: soạn mới */ }
+        } catch (e) {
+          await api.info('Không đọc được dữ liệu của hình ToanViet đang chọn (dữ liệu bị hỏng). Hình trong tài liệu được giữ nguyên.\n\nThầy cô có thể soạn lại công thức mới, rồi xoá hình cũ.');
+        }
+      } else if (r.error && !/Hãy chọn/.test(r.error)) {
+        await api.info(r.error);
       }
       msg('Chưa chọn công thức ToanViet nào trong ' + officeName() + ' — soạn công thức mới.', true);
     }

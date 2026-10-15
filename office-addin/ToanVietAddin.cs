@@ -1,6 +1,7 @@
 ﻿// Add-in COM cho Word / PowerPoint: thêm thẻ "ToanViet" trên ribbon, bấm nút thì mở ToanViet Studio.
 // Phần mềm tự chèn kết quả vào tài liệu rồi đóng lại (kiểu MathType).
-// Biên dịch: csc /target:library /platform:anycpu /out:ToanVietAddin.dll ToanVietAddin.cs
+// Biên dịch (nhúng kiểu Office, không cần thư viện ngoài khi chạy):
+//   csc /target:library /platform:anycpu /out:ToanVietAddin.dll /link:<GAC>Microsoft.Office.Interop.Word.dll /link:<GAC>Microsoft.Office.Interop.PowerPoint.dll /link:<GAC>office.dll /r:System.Windows.Forms.dll ToanVietAddin.cs
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -122,9 +123,15 @@ namespace ToanViet
             try
             {
                 string alt = null;
-                if (Sel.InlineShapes.Count == 1) alt = Sel.InlineShapes[1].AlternativeText;
-                else if (Sel.Type == Word.WdSelectionType.wdSelectionShape && Sel.ShapeRange.Count == 1) alt = Sel.ShapeRange[1].AlternativeText;
-                if (IsOurs(alt)) { Cancel = true; Launch("edit"); }
+                bool ours = false;
+                if (Sel.InlineShapes.Count == 1)
+                {
+                    Word.InlineShape ish = Sel.InlineShapes[1];
+                    alt = ish.AlternativeText;
+                    ours = IsOurs(alt);
+                }
+                else if (Sel.Type == Word.WdSelectionType.wdSelectionShape && Sel.ShapeRange.Count == 1) ours = IsOurs(Sel.ShapeRange[1].AlternativeText);
+                if (ours) { Cancel = true; Launch("edit"); }
             }
             catch { }
         }
@@ -162,6 +169,8 @@ namespace ToanViet
                 if (host == "word")
                 {
                     try { float fs = ((Word.Application)appRef).Selection.Font.Size; if (fs >= 5 && fs <= 200) extra = " --size=" + fs.ToString(CultureInfo.InvariantCulture); } catch { }
+                    // báo ngay trên thanh trạng thái của Word: lần đầu mở máy, ToanViet có thể cần vài giây để khởi động
+                    try { ((Word.Application)appRef).StatusBar = mode == "edit" ? "ToanViet Studio đang mở công thức để sửa…" : mode == "convert" ? "ToanViet Studio đang chuyển đổi công thức…" : "ToanViet Studio đang mở…"; } catch { }
                 }
                 Process.Start(new ProcessStartInfo(exe, "--office=" + host + " --mode=" + mode + extra + more) { UseShellExecute = false });
             }
