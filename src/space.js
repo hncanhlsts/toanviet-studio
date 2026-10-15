@@ -264,6 +264,7 @@
       drawCap(c.c0, mul(a, -1), c.r1, color); drawCap(c.c1, a, c.r2, color);
       if (ok) { drawSeg(add(c.c0, mul(s, c.r1)), add(c.c1, mul(s, c.r2)), color, 'solid'); drawSeg(add(c.c0, mul(s, -c.r1)), add(c.c1, mul(s, -c.r2)), color, 'solid'); }
     };
+    const planeAt = {}; // vị trí tên mặt phẳng trên hình (để nhấp chọn mặt phẳng)
     cmds.forEach((c) => {
       if (c.k === 'plane') {
         const pl = PL[c.p], pc = pl.color || col;
@@ -272,6 +273,7 @@
         const S = pl.pts.map(T);
         let k = pl.corner;
         if (k < 0 || k >= S.length) { k = 0; S.forEach((s, i) => { if (s[0] - s[1] < S[k][0] - S[k][1]) k = i; }); }
+        planeAt[pl.name] = [S.reduce((t, p) => t + p[0], 0) / S.length, S.reduce((t, p) => t + p[1], 0) / S.length];
         if (pl.corner !== -2) {
           const cn = S[k], u = s2.sub(S[(k + 1) % S.length], cn), v = s2.sub(S[(k + S.length - 1) % S.length], cn);
           const lu = s2.len(u) || 1, lv = s2.len(v) || 1, a1 = Math.atan2(u[1], u[0]), a2 = Math.atan2(v[1], v[0]);
@@ -279,6 +281,7 @@
           const R = 15, mid = a1 + df / 2;
           marks.push(`<path d="M${r1(cn[0] + R * u[0] / lu)},${r1(cn[1] + R * u[1] / lu)}A${R},${R} 0 0 ${df > 0 ? 1 : 0} ${r1(cn[0] + R * v[0] / lv)},${r1(cn[1] + R * v[1] / lv)}" fill="none" stroke="${pc}" stroke-width="1"/>`);
           labels.push({ x: cn[0] + Math.cos(mid) * 27, y: cn[1] + Math.sin(mid) * 27, tex: pl.label || texName(pl.name), size: 16, color: o.pcolor || lcol });
+          planeAt[pl.name] = [cn[0] + Math.cos(mid) * 27, cn[1] + Math.sin(mid) * 27];
         }
       } else if (c.k === 'seg') {
         const e = segEnds(c), color = c.color || col;
@@ -357,7 +360,7 @@
     vecIds.forEach((c) => { defs += `<marker id="sv${o.id}${c.replace('#', '')}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${c}"/></marker>`; });
     // hướng trên màn hình của ba trục (để đổi chuyển động chuột thành toạ độ khi kéo điểm)
     const axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map((e) => { const p = cam.proj(e); return [p[0] * sc, p[1] * sc]; });
-    return { svg: (defs ? '<defs>' + defs + '</defs>' : '') + fills.join('') + parts.join('') + marks.join(''), labels, errors, pts: S, view: { sc, cx: vx, cy: vy, dim: 3, axes, oxyz } };
+    return { svg: (defs ? '<defs>' + defs + '</defs>' : '') + fills.join('') + parts.join('') + marks.join(''), labels, errors, pts: S, planes: planeAt, view: { sc, cx: vx, cy: vy, dim: 3, axes, oxyz } };
   }
 
   // ---------- Hình mẫu lớp 11 ----------

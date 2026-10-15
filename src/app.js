@@ -130,6 +130,30 @@
     return out;
   }
   const ptSel = (o) => (S.ptSel && S.ptSel.id === o.id ? S.ptSel.names : []);
+  const plSel = (o) => (S.ptSel && S.ptSel.id === o.id ? (S.ptSel.planes || []) : []);
+  function togglePlane(o, n) {
+    if (!S.ptSel || S.ptSel.id !== o.id) S.ptSel = { id: o.id, names: [], planes: [] };
+    const a = S.ptSel.planes || (S.ptSel.planes = []), k = a.indexOf(n);
+    if (k >= 0) a.splice(k, 1); else a.push(n);
+    renderObj(o); buildProps();
+  }
+  // xoay hình không gian bằng chuột: kéo ngang đổi góc xoay, kéo dọc đổi góc nhìn từ trên
+  function rotateDrag(e, o) {
+    const p0 = { x: e.clientX, y: e.clientY };
+    if (o.type === 'space' && o.proj !== 'xoay') { o.proj = 'xoay'; o.yaw = -25; o.pitch = 20; }
+    const y0 = parseFloat(o.yaw) || 0, q0 = isFinite(parseFloat(o.pitch)) ? parseFloat(o.pitch) : 20;
+    let moved = false;
+    const mv = (ev) => {
+      const dx = (ev.clientX - p0.x) / S.zoom, dy = (ev.clientY - p0.y) / S.zoom;
+      if (!moved && Math.hypot(dx, dy) < 2) return;
+      moved = true;
+      o.yaw = Math.round(y0 - dx * 0.6); o.pitch = Math.round(Math.max(-85, Math.min(85, q0 + dy * 0.5)));
+      renderObj(o); msg('Xoay ngang ' + o.yaw + '°, nhìn từ trên ' + o.pitch + '° — nhấp đúp nút ⟳ để về góc nhìn SGK');
+    };
+    const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); if (moved) { commit(); buildProps(); } };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    e.preventDefault(); e.stopPropagation();
+  }
   // điểm tính từ thông số: các thông số xuất hiện trên dòng định nghĩa điểm
   function paramPts(o) {
     const M = o.type === 'space' ? Space : Plane, ps = M.params(o.script).map((p) => p.name), out = {};
@@ -236,7 +260,7 @@
       delete o._view;
       if (moved && (fr || pnames)) { renderObj(o); commit(); buildProps(); return; }
       if (!moved) { // nhấp: chọn / bỏ chọn điểm để dựng nhanh
-        if (!S.ptSel || S.ptSel.id !== o.id) S.ptSel = { id: o.id, names: [] };
+        if (!S.ptSel || S.ptSel.id !== o.id) S.ptSel = { id: o.id, names: [], planes: [] };
         const k = S.ptSel.names.indexOf(name);
         if (k >= 0) S.ptSel.names.splice(k, 1); else S.ptSel.names.push(name);
         renderObj(o); buildProps();
@@ -276,6 +300,8 @@
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
         o._err = res.errors.join('\n');
         if (res.pts && (o.type === 'plane' || o.type === 'space')) { o._res = res; html += pointHandles(o, res); }
+        if (res.planes) { const on = plSel(o); html += Object.keys(res.planes).map((n) => `<div class="plh${on.includes(n) ? ' on' : ''}" data-pl="${esc(n)}" style="left:${Math.round(res.planes[n][0])}px;top:${Math.round(res.planes[n][1])}px" title="Mặt phẳng ${esc(n)} — nhấp để chọn (dựng nhanh)"></div>`).join(''); }
+        if (o.type === 'space' || o.type === 'solid') html += '<div class="roth" title="Kéo để xoay hình (nhấp đúp: về góc nhìn SGK)">⟳</div>';
       }
     } catch (e) { o._err = e.message; html = `<span class="empty" style="color:#b03a2e">${esc(e.message)}</span>`; }
     el.innerHTML = html + '<div class="handle"></div>';
@@ -738,6 +764,8 @@
     const mod = e.shiftKey || e.ctrlKey, wasIn = isSel(o.id) && many();
     if (mod) { toggleSel(o.id); if (!isSel(o.id)) return; } else if (!isSel(o.id)) select(o.id);
     if (e.target.classList.contains('pth') && !many()) return pointDrag(e, o, el, e.target.dataset.pt);
+    if (e.target.classList.contains('roth') && !many()) return rotateDrag(e, o);
+    if (e.target.classList.contains('plh') && !many()) { e.preventDefault(); return togglePlane(o, e.target.dataset.pl); }
     const resizing = e.target.classList.contains('handle') && !many();
     const p0 = { x: e.clientX, y: e.clientY }, st = { x: o.x, y: o.y, w: o.w, h: o.h, size: o.size, bw: el.offsetWidth };
     const moving = selObjs().map((x) => ({ o: x, sx: x.x, sy: x.y, b: boxOf(x), el: elOf(x.id) }));
@@ -772,6 +800,7 @@
     e.preventDefault();
   });
   page.addEventListener('dblclick', (e) => {
+    if (e.target.classList.contains('roth')) { const ob = get(e.target.closest('.obj').dataset.id); if (ob.type === 'space') Object.assign(ob, Space.viewOf(ob.kind)); else { ob.yaw = 25; ob.pitch = 18; } renderObj(ob); commit(); buildProps(); msg('Đã về góc nhìn mặc định'); return; }
     const el = e.target.closest('.obj');
     if (!el) { newTextAt(pagePt(e)); return; } // nhấp đúp vào chỗ trống: gõ chữ ngay tại đó
     if (el.classList.contains('editing')) return;
@@ -824,9 +853,9 @@
     const h4 = (t) => add(mk('h4', '', t));
     // dựng nhanh bằng nút bấm từ các điểm đã chọn trên hình
     const quickEd = (dim) => {
-      const sel = ptSel(o), N = sel.length, Q = (t) => t;
+      const sel = ptSel(o), N = sel.length, Q = (t) => t, PLS = dim === 3 ? plSel(o) : [], NP = PLS.length;
       h4('Dựng nhanh');
-      help(N ? 'Đã chọn: <b>' + sel.join(', ') + '</b> (theo thứ tự nhấp)' : 'Nhấp vào các chấm tròn trên hình để chọn điểm (nhấp lại để bỏ). Chấm xanh dương: kéo để đổi toạ độ; chấm xanh lá: kéo để đổi thông số (a, h, góc…); chấm rỗng: điểm dựng từ điểm khác.');
+      help(N || NP ? 'Đã chọn: <b>' + sel.join(', ') + '</b>' + (NP ? (N ? '; ' : '') + 'mặt phẳng <b>' + PLS.join(', ') + '</b>' : '') + ' (theo thứ tự nhấp)' : 'Nhấp vào các chấm tròn trên hình để chọn điểm (nhấp lại để bỏ). Chấm xanh dương: kéo để đổi toạ độ; chấm xanh lá: kéo để đổi thông số (a, h, góc…); chấm rỗng: điểm dựng từ điểm khác.');
       const box = mk('div'); box.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 6px';
       const addLines = (lines) => { o.script = String(o.script || '').replace(/\s*$/, '') + '\n' + lines.join('\n'); S.ptSel = null; renderObj(o); commit(); buildProps(); };
       const B = (label, need, title, fn) => { const b = mk('button', '', label); b.title = title; b.style.cssText = 'width:auto;padding:3px 8px;font-size:12px;margin:0'; const ok = typeof need === 'number' ? N === need : need(N); b.disabled = !ok; b.onclick = () => addLines(fn(sel)); box.appendChild(b); };
@@ -852,6 +881,17 @@
       B('Đánh dấu bằng nhau', 4, 'Gạch đánh dấu đoạn (1,2) bằng đoạn (3,4)', (a) => ['bang ' + a[0] + a[1] + ' ' + a[2] + a[3]]);
       B('Đa giác', (n) => n >= 3, 'Nối các điểm thành đa giác', (a) => ['dagiac ' + P(a)]);
       if (dim === 2) B('Độ dài', 2, 'Ghi độ dài thật của đoạn', (a) => ['ghi ' + P(a) + ' = ?']);
+      if (dim === 3) {
+        // các thao tác với mặt phẳng: nhấp vào ô vuông nhỏ ở tên mặt phẳng để chọn
+        const pl = PLS[0], need = (np, f) => () => NP === np && f(N);
+        const freshParam = (base) => { const used = new Set(Space.params(o.script).map((p) => p.name)); for (let i = 1; ; i++) if (!used.has(base + i)) return base + i; };
+        B('Giao với mặt phẳng', need(1, (n) => n === 2), 'Giao điểm của đường thẳng (2 điểm) với mặt phẳng đã chọn', (a) => { const n = freshName(o, 'I'); return [n + ' = giao(' + a[0] + ', ' + a[1] + ', ' + pl + ')', 'duongthang ' + a[0] + n + ' keo 0.15', 'diem ' + n]; }); // vẽ đường thẳng tới tận giao điểm
+        B('Hình chiếu lên mặt phẳng', need(1, (n) => n === 1), 'Hình chiếu vuông góc của điểm lên mặt phẳng đã chọn', (a) => { const n = freshName(o, 'H'); return [n + ' = chanmp(' + a[0] + ', ' + pl + ')', 'doan ' + a[0] + n, 'diem ' + n]; });
+        B('Vuông góc với mặt phẳng', need(1, (n) => n === 1), 'Dựng đoạn vuông góc với mặt phẳng tại điểm đã chọn (điểm nằm trên mặt phẳng), dài 3', (a) => { const n = freshName(o, 'T'), h = freshParam('h'); return [h + ' = 3   # Độ dài ' + a[0] + n, n + ' = vuonggoc(' + a[0] + ', ' + pl + ', ' + h + ')', 'doan ' + a[0] + n]; });
+        B('Đối xứng qua mặt phẳng', need(1, (n) => n === 1), 'Điểm đối xứng với điểm đã chọn qua mặt phẳng', (a) => { const n = freshName(o, 'K'); return [n + ' = doixungmp(' + a[0] + ', ' + pl + ')', 'netdut ' + a[0] + n, 'diem ' + n]; });
+        B('Điểm trên mặt phẳng', need(1, (n) => n === 0), 'Thêm một điểm luôn nằm trên mặt phẳng đã chọn (kéo chấm xanh lá để di chuyển trên mặt phẳng)', () => { const n = freshName(o, 'M'), u = freshParam('u'), v = freshParam('v'); return [u + ' = 0.5   # Vị trí ' + n + ' trên (' + pl + ') theo chiều thứ nhất', v + ' = 0.5   # Vị trí ' + n + ' trên (' + pl + ') theo chiều thứ hai', n + ' = trenmp(' + pl + ', ' + u + ', ' + v + ')', 'diem ' + n]; });
+        B('Mặt phẳng qua 3 điểm', need(0, (n) => n === 3), 'Vẽ mặt phẳng (tam giác) qua 3 điểm đã chọn', (a) => { const used = new Set(String(o.script).split('\n').map((l) => (l.trim().match(/^mp\s+([^\s:]+)/) || [])[1]).filter(Boolean)); const nm = ['Q', 'R', 'alpha', 'beta', 'P1', 'P2'].find((x) => !used.has(x)) || 'P' + used.size; return ['mp ' + nm + ': ' + a.join(' ')]; });
+      }
       add(box);
       if (N) { const c = mk('button', '', 'Bỏ chọn'); c.style.cssText = 'padding:2px 8px;font-size:12px;margin-bottom:6px'; c.onclick = () => { S.ptSel = null; renderObj(o); buildProps(); }; add(c); }
     };    // các điểm cho bằng toạ độ số trong kịch bản: hiện thành ô số để sửa nhanh

@@ -49,7 +49,7 @@
   <div class="sub">Hướng dẫn sử dụng — từ làm quen đến thành thạo</div>
   <p>Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí – Hoá học – Sinh học<br>cho chương trình phổ thông Việt Nam, dùng độc lập hoặc ngay trong Word và PowerPoint.</p>
   <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
-  <div class="ver">Phiên bản 2.2.0 · © 2026 Hoàng Ngọc Cảnh</div>
+  <div class="ver">Phiên bản 2.3.0 · © 2026 Hoàng Ngọc Cảnh</div>
 </div>
 
 <h2>Mục lục</h2>
@@ -73,7 +73,7 @@
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
   <li>Đóng hết Word và PowerPoint.</li>
-  <li>Chạy tệp <code>ToanVietStudio-Setup-2.2.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.3.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
   <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
   <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
 </ol>
@@ -291,7 +291,20 @@ goc HAB = ?                # ghi số đo góc thật</pre>
   <tr><td>Ký hiệu</td><td><code>vuong SHA</code> · <code>goc HAB = \varphi</code> hoặc <code>= ?</code> · <code>bang AI IB = 1</code> · <code>ghi MH = ?</code> · <code>diem H</code> · <code>an X</code> · <code>nhan A1 = A'</code> · <code>vitri A tren</code></td></tr>
 </table>
 <p>Khung Thuộc tính có thêm <b>Cách chiếu</b>: chiếu xiên như SGK (mặt nằm ngang vẽ thành hình bình hành; chỉnh góc xiên và tỉ số rút gọn) hoặc xoay tự do. Những dòng <code>ten = số # chú thích</code> trong kịch bản hiện thành ô <b>Thông số</b> (ví dụ số đo góc nhị diện, khoảng cách MH).</p>
-<figure><img src="img/trang-khong-gian.png" style="width:74%"><figcaption>Một số hình mẫu lớp 11 dựng bằng ToanViet</figcaption></figure>
+<h3>Dựng nhanh với mặt phẳng, xoay hình bằng chuột <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li><b>Chọn mặt phẳng</b>: khi chọn hình, ở tên mỗi mặt phẳng có một ô vuông tím nhỏ. Nhấp vào ô để chọn mặt phẳng (nhấp lại để bỏ), nhấp các chấm để chọn điểm, rồi bấm nút ở mục <b>Dựng nhanh</b>:
+    <ul>
+      <li><b>Giao với mặt phẳng</b> (2 điểm + 1 mặt phẳng): giao điểm của đường thẳng với mặt phẳng; phần đường thẳng dưới mặt phẳng tự đứt nét.</li>
+      <li><b>Hình chiếu lên mặt phẳng</b> (1 điểm + 1 mặt phẳng).</li>
+      <li><b>Vuông góc với mặt phẳng</b> (1 điểm trên mặt phẳng + mặt phẳng): đoạn vuông góc, độ dài thành ô Thông số (kéo đầu mút xanh lá để đổi).</li>
+      <li><b>Đối xứng qua mặt phẳng</b>.</li>
+      <li><b>Điểm trên mặt phẳng</b> (chỉ chọn mặt phẳng): điểm mới luôn nằm trên mặt phẳng; kéo chấm xanh lá để di chuyển trên mặt phẳng.</li>
+      <li><b>Mặt phẳng qua 3 điểm</b> (3 điểm, không chọn mặt phẳng).</li>
+    </ul></li>
+  <li><b>Xoay hình</b>: kéo nút <b>⟳</b> ở góc trên phải của hình. Kéo ngang để xoay quanh trục đứng, kéo dọc để đổi góc nhìn từ trên. <b>Nhấp đúp</b> vào nút để về góc nhìn kiểu SGK.</li>
+</ul>
+<figure><img src="img/dung-mat-phang.png"><figcaption>Chọn mặt phẳng P (ô tím) và điểm A, bấm "Hình chiếu lên mặt phẳng" được H; chọn P, A, B rồi bấm "Giao với mặt phẳng" được I</figcaption></figure><figure><img src="img/trang-khong-gian.png" style="width:74%"><figcaption>Một số hình mẫu lớp 11 dựng bằng ToanViet</figcaption></figure>
 <h3>5.8. Vectơ (lớp 10) và hệ trục toạ độ Oxyz (lớp 12) <span class="level l2">Thường dùng</span></h3>
 <p><b>Lớp 10</b>: cuối danh sách <b>Hình phẳng</b> có nhóm <b>Vectơ</b>: vectơ cùng phương, cùng hướng, bằng nhau; quy tắc ba điểm; quy tắc hình bình hành; hiệu hai vectơ; tích của vectơ với một số; trọng tâm tam giác; góc giữa hai vectơ; toạ độ vectơ trong mặt phẳng Oxy; hợp lực (dùng cho Vật lí).</p>
 <figure><img src="img/trang-vecto10.png" style="width:74%"><figcaption>Các mẫu vectơ lớp 10</figcaption></figure>

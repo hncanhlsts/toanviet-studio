@@ -220,3 +220,12 @@ body.capturing .pth { display: none !important; }
 body.capturing .guide, body.capturing .rband { display: none !important; }
 body.capturing .obj.msel { outline: none !important; }
 .pth.pdrag { background: #2e8b57; border-color: #2e8b57; cursor: move; }
+
+/* chọn mặt phẳng, nút xoay hình không gian */
+.plh { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border: 1.5px solid #8e44ad; background: rgba(255,255,255,.8); border-radius: 2px; cursor: pointer; display: none; z-index: 2; }
+.plh.on { background: #8e44ad; }
+.obj.sel .plh { display: block; }
+.roth { position: absolute; right: -9px; top: -9px; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 1.5px solid #1f5fbf; color: #1f5fbf; font: 700 13px/18px 'Segoe UI', sans-serif; text-align: center; cursor: grab; display: none; z-index: 3; }
+.obj.sel .roth { display: block; }
+.obj.msel .plh, .obj.msel .roth, body.capturing .plh, body.capturing .roth { display: none !important; }
+@media print { .plh, .roth { display: none !important; } }
