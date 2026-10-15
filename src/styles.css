@@ -219,3 +219,4 @@ body.capturing .pth { display: none !important; }
 .guide.gh { left: 0; right: 0; height: 1px; }
 body.capturing .guide, body.capturing .rband { display: none !important; }
 body.capturing .obj.msel { outline: none !important; }
+.pth.pdrag { background: #2e8b57; border-color: #2e8b57; cursor: move; }

@@ -846,5 +846,7 @@ diem O`],
     return String(script || '').split('\n').map((line) => { const m = line.trim().match(PARAM); return m && m[1] === name ? name + ' = ' + value + (m[3] ? '   # ' + m[3] : '') : line; }).join('\n');
   }
 
-  root.Plane = { render, KINDS, scriptOf, params, setParam };
+  // toạ độ các điểm (dùng khi kéo điểm để giải ngược thông số)
+  const points = (script) => build(script).P;
+  root.Plane = { render, KINDS, scriptOf, params, setParam, points };
 })(window);

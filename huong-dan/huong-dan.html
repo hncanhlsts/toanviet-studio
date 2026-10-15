@@ -49,7 +49,7 @@
   <div class="sub">Hướng dẫn sử dụng — từ làm quen đến thành thạo</div>
   <p>Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí – Hoá học – Sinh học<br>cho chương trình phổ thông Việt Nam, dùng độc lập hoặc ngay trong Word và PowerPoint.</p>
   <div class="who">Thiết kế bởi: <b>Thầy Hoàng Ngọc Cảnh</b><br>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>Email: canhld@gmail.com</div>
-  <div class="ver">Phiên bản 2.1.1 · © 2026 Hoàng Ngọc Cảnh</div>
+  <div class="ver">Phiên bản 2.2.0 · © 2026 Hoàng Ngọc Cảnh</div>
 </div>
 
 <h2>Mục lục</h2>
@@ -73,7 +73,7 @@
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
   <li>Đóng hết Word và PowerPoint.</li>
-  <li>Chạy tệp <code>ToanVietStudio-Setup-2.1.1.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.2.0.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
   <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
   <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
 </ol>
@@ -157,7 +157,15 @@
 <h3>4.4. Ký hiệu và công thức theo môn, theo lớp <span class="level l2">Thường dùng</span></h3>
 <p>Bốn nhóm cuối trong hộp soạn là <b>Toán theo lớp</b>, <b>Vật lí</b>, <b>Hoá học</b>, <b>Sinh học</b>. Mỗi nhóm có hàng nút chọn lớp; phần mềm nhớ lớp bạn dùng lần cuối cho từng môn. Bấm một công thức mẫu để chèn rồi sửa số, sửa chữ cho hợp bài của mình. Các chương 5 – 8 giới thiệu từng môn.</p>
 
-<h2>5. Môn Toán</h2>
+<h3>4.5. Làm việc với nhiều đối tượng <span class="level l2">Thường dùng</span></h3>
+<ul>
+  <li><b>Chọn nhiều</b>: Shift + nhấp (hoặc Ctrl + nhấp) để thêm / bớt; kéo một khung trên vùng trống của trang; <b>Ctrl+A</b> chọn tất cả.</li>
+  <li><b>Di chuyển cùng lúc</b>: kéo một đối tượng trong vùng chọn hoặc dùng phím mũi tên. Khi kéo, đối tượng tự <b>bắt dính</b> vào mép, tâm các đối tượng khác và giữa trang (có đường dóng màu đỏ); giữ <b>Alt</b> để tắt.</li>
+  <li><b>Căn thẳng hàng, chia đều</b>: khung Thuộc tính có các nút căn trái / giữa / phải / trên / giữa / dưới, chia đều ngang / dọc, đặt giữa trang. Dùng để dàn các phương án A, B, C, D hay các hình minh hoạ cho thẳng hàng.</li>
+  <li><b>Nhóm</b> (Ctrl+G) / <b>bỏ nhóm</b> (Ctrl+Shift+G): nhấp vào một đối tượng trong nhóm là chọn cả nhóm. Nhóm chèn vào Word thành một hình; lấy về sửa thì tách lại đúng các đối tượng. Lưu được cả nhóm vào Thư viện.</li>
+  <li>Nhân bản (Ctrl+D), sao chép / dán (Ctrl+C / Ctrl+V), xoá (Delete), lên trên / xuống dưới áp dụng cho cả vùng chọn.</li>
+</ul>
+<figure><img src="img/chon-nhieu.png"><figcaption>Chọn hai đối tượng: khung Thuộc tính hiện các nút căn thẳng hàng, chia đều, nhóm</figcaption></figure><h2>5. Môn Toán</h2>
 <h3>5.1. Ký hiệu theo lớp 6 – 12 <span class="level l2">Thường dùng</span></h3>
 <figure><img src="img/tab-toan.png"><figcaption>Nhóm Toán theo lớp, đang mở Lớp 9</figcaption></figure>
 <table>
@@ -215,6 +223,7 @@
 <p>Không cần gõ kịch bản cho các thao tác thường gặp. Khi chọn một hình phẳng hoặc hình không gian tự dựng, mỗi điểm hiện một chấm tròn:</p>
 <ul>
   <li><b>Chấm đặc</b> (điểm cho bằng toạ độ số): <b>kéo bằng chuột</b> để di chuyển; kịch bản tự cập nhật toạ độ. Giữ <b>Ctrl</b> để làm tròn số nguyên. Ở hình không gian, kéo thường thì điểm chạy trên mặt nằm ngang, giữ <b>Shift</b> để kéo lên xuống.</li>
+  <li><b>Chấm xanh lá</b> (điểm tính từ thông số, ví dụ <code>C = (a, 0)</code>, <code>A = tron(D, b, goc)</code>): kéo để <b>đổi thông số</b>. Phần mềm tự tính ra giá trị mới của a, b, góc… và ô Thông số cập nhật theo, nên số đo trên hình luôn khớp.</li>
   <li><b>Chấm rỗng</b> (điểm dựng từ điểm khác như trung điểm, chân đường cao): không kéo được, vì nó luôn đi theo các điểm gốc.</li>
   <li><b>Nhấp</b> vào các chấm để chọn điểm (số thứ tự hiện trên chấm), rồi bấm nút ở mục <b>Dựng nhanh</b>: Đoạn, Đường thẳng, Vectơ, Trung điểm, Đường tròn, Hạ vuông góc, Phân giác góc, Số đo góc, Góc vuông, Trọng tâm, Hình bình hành, Giao điểm, Đánh dấu bằng nhau, Đa giác, Độ dài. Mỗi nút tự viết dòng kịch bản tương ứng, đúng quy ước thứ tự điểm.</li>
   <li><b>＋ Điểm mới</b> thêm một điểm tự do ở giữa hình để kéo đến chỗ cần.</li>

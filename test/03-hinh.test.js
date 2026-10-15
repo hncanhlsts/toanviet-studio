@@ -31,7 +31,14 @@ thu('mọi hình mẫu dựng không lỗi và giữ đúng ảnh chuẩn', () =
   bang(bad, []);
 });
 
+thu('toạ độ điểm theo thông số (dùng khi kéo điểm)', () => {
+  const s = Plane.scriptOf('hbhphangiac'); const P = Plane.points(s);
+  gan(P.C[0], 5.6); const P2 = Plane.points(Plane.setParam(s, 'a', 7)); gan(P2.C[0], 7);
+  gan(Math.hypot(P2.A[0] - P2.D[0], P2.A[1] - P2.D[1]), 3.4, 1e-9, 'AD = b');
+});
+
 nhom('Hình không gian (space.js)');
+thu('toạ độ điểm theo thông số (không gian)', () => { const P = Space.points(Space.setParam(Space.scriptOf('k_chop4sa'), 'h', 6)); gan(P.S[2], 6); });
 thu('mọi hình mẫu dựng không lỗi và giữ đúng ảnh chuẩn', () => {
   const bad = [];
   Space.KINDS.forEach((g) => { for (const k in g[1]) {

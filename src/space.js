@@ -969,5 +969,6 @@ vitri O trentrai`],
   // góc nhìn riêng cho khối tròn xoay: nhìn thẳng, đáy là elip nằm ngang như SGK
   const VIEW = { k_tru: { proj: 'xoay', yaw: 0, pitch: 16 }, k_non: { proj: 'xoay', yaw: 0, pitch: 16 }, k_noncut: { proj: 'xoay', yaw: 0, pitch: 16 }, k_cau: { proj: 'xoay', yaw: 0, pitch: 16 } };
   const viewOf = (kind) => Object.assign({ proj: 'xien', ob: 45, ok: 0.5 }, VIEW[kind] || {});
-  root.Space = { render, KINDS, scriptOf, params, setParam, viewOf };
+  const points = (script) => build(script).P; // toạ độ trong (x phải, y sau, z lên)
+  root.Space = { render, KINDS, scriptOf, params, setParam, viewOf, points };
 })(typeof window !== 'undefined' ? window : globalThis);
