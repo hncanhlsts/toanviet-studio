@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 let win;
+// kiểm thử: dùng thư mục dữ liệu riêng để không đụng thư viện thật của người dùng
+if (process.env.TVS_USERDATA) app.setPath('userData', process.env.TVS_USERDATA);
 const shotArg = process.argv.find((a) => a.startsWith('--shot='));
 // Chế độ gọi từ add-in Word/PowerPoint: --office=word|ppt --mode=new|edit|full
 const argVal = (name) => { const a = process.argv.find((t) => t.startsWith(name + '=')); return a ? a.slice(name.length + 1) : ''; };
@@ -22,6 +24,9 @@ function createWindow() {
   // mở tệp .tvs khi nhấp đúp trong Explorer
   const fileArg = process.argv.slice(1).find((a) => /\.tvs$/i.test(a) && fs.existsSync(a));
   if (fileArg) win.webContents.once('did-finish-load', () => win.webContents.send('openfile', { file: fileArg, data: fs.readFileSync(fileArg, 'utf8') }));
+  // nhấp đúp gói thư viện .tvslib: nhập vào Thư viện của tôi
+  const libArg = process.argv.slice(1).find((a) => /\.tvslib$/i.test(a) && fs.existsSync(a));
+  if (libArg) win.webContents.once('did-finish-load', () => win.webContents.send('libfile', { file: path.basename(libArg), data: fs.readFileSync(libArg, 'utf8') }));
   const send = (cmd) => () => win.webContents.send('menu', cmd);
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'Tệp', submenu: [
@@ -34,6 +39,7 @@ function createWindow() {
       { label: 'Xuất PDF…', accelerator: 'Ctrl+P', click: send('pdf') },
       { type: 'separator' },
       { label: 'Tài liệu mẫu', click: send('demo') },
+      { label: 'Thư viện của tôi…', accelerator: 'Ctrl+L', click: send('lib') },
       { type: 'separator' },
       { label: 'Thoát', accelerator: 'Ctrl+Q', role: 'quit' },
     ] },
@@ -52,6 +58,8 @@ function createWindow() {
     { label: 'Trợ giúp', submenu: [
       { label: 'Hướng dẫn sử dụng (PDF)', accelerator: 'F1', click: () => showGuide('Huong-dan-su-dung-ToanViet-Studio.pdf') },
       { label: 'Hướng dẫn lập kịch bản vẽ hình (PDF)', accelerator: 'Shift+F1', click: () => showGuide('Huong-dan-lap-kich-ban-ve-hinh.pdf') },
+      { label: 'Báo lỗi / góp ý…', click: send('report') },
+      { type: 'separator' },
       { label: 'Giới thiệu ToanViet Studio', click: showAbout },
     ] },
   ]));
@@ -144,8 +152,47 @@ ipcMain.handle('open', async () => {
   if (r.canceled || !r.filePaths[0]) return null;
   return { file: r.filePaths[0], data: fs.readFileSync(r.filePaths[0], 'utf8') };
 });
-ipcMain.handle('copyText', (_e, t) => { clipboard.writeText(String(t)); return true; });
-ipcMain.handle('confirm', async (_e, msg) => {
+// ---------- Thư viện của tôi: các công thức, hình hay dùng (lưu trong thư mục dữ liệu của người dùng) ----------
+const libFile = () => path.join(app.getPath('userData'), 'thu-vien.json');
+ipcMain.handle('lib', async (_e, o) => {
+  if (o.action === 'load') { try { const d = JSON.parse(fs.readFileSync(libFile(), 'utf8')); return Array.isArray(d.items) ? d.items : []; } catch (err) { return []; } }
+  if (o.action === 'save') { fs.mkdirSync(path.dirname(libFile()), { recursive: true }); fs.writeFileSync(libFile(), JSON.stringify({ format: 'tvslib', version: 1, items: o.items }), 'utf8'); return true; }
+  if (o.action === 'export') {
+    const r = process.env.TVS_LIBFILE ? { filePath: process.env.TVS_LIBFILE } : await dialog.showSaveDialog(win, { title: 'Xuất gói thư viện để chia sẻ', defaultPath: (o.name || 'ThuVien-ToanViet') + '.tvslib', filters: [{ name: 'Gói thư viện ToanViet', extensions: ['tvslib'] }] });
+    if (r.canceled) return null;
+    fs.writeFileSync(r.filePath, JSON.stringify({ format: 'tvslib', version: 1, author: o.author || '', items: o.items }), 'utf8');
+    return r.filePath;
+  }
+  if (o.action === 'import') {
+    const r = process.env.TVS_LIBFILE ? { filePaths: [process.env.TVS_LIBFILE] } : await dialog.showOpenDialog(win, { title: 'Nhập gói thư viện', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Gói thư viện ToanViet', extensions: ['tvslib', 'json'] }] });
+    if (r.canceled || !r.filePaths.length) return null;
+    const items = [], bad = [];
+    r.filePaths.forEach((f) => { try { const d = JSON.parse(fs.readFileSync(f, 'utf8')); if (d.format !== 'tvslib' || !Array.isArray(d.items)) throw new Error('không phải gói thư viện'); items.push(...d.items); } catch (err) { bad.push(path.basename(f) + ': ' + err.message); } });
+    return { items, bad };
+  }
+  return null;
+});
+// ---------- Báo lỗi / góp ý: ghi thông tin cần thiết ra Desktop để người dùng tự gửi ----------
+ipcMain.handle('report', async (_e, o) => {
+  const t = new Date(), z = (n) => String(n).padStart(2, '0'), stamp = t.getFullYear() + z(t.getMonth() + 1) + z(t.getDate()) + '-' + z(t.getHours()) + z(t.getMinutes()) + z(t.getSeconds());
+  const dir = process.env.TVS_REPORT_DIR || app.getPath('desktop'), base = path.join(dir, 'BaoLoi-ToanViet-' + stamp);
+  const info = ['Phiên bản: ' + app.getVersion(), 'Windows: ' + require('os').release() + ' (' + process.arch + ')', 'Electron: ' + process.versions.electron, 'Thời điểm: ' + new Date().toLocaleString('vi-VN'), ''].join('\r\n');
+  fs.writeFileSync(base + '.txt', info + String(o.text || '').replace(/\r?\n/g, '\r\n'), 'utf8');
+  let png = '';
+  try { const img = await win.webContents.capturePage(); png = base + '.png'; fs.writeFileSync(png, img.toPNG()); } catch (err) { png = ''; }
+  if (process.env.TVS_AUTO) { fs.appendFileSync(process.env.TVS_AUTO, 'REPORT: ' + base + '.txt\n'); return base + '.txt'; }
+  const r = await dialog.showMessageBox(win, {
+    type: 'info', title: 'Báo lỗi / góp ý',
+    message: 'Đã tạo tệp báo lỗi trên Desktop:\n' + path.basename(base + '.txt') + (png ? '\n' + path.basename(png) + ' (ảnh màn hình)' : ''),
+    detail: 'Tệp gồm: phiên bản phần mềm, mô tả của bạn, đối tượng đang chọn (nếu có) và các thông báo lỗi gần đây. Hãy mở xem trước khi gửi, rồi đính kèm vào thư gửi tác giả (canhld@gmail.com).',
+    buttons: ['Mở thư mục chứa tệp', 'Soạn thư', 'Đóng'], defaultId: 0, cancelId: 2,
+  });
+  const { shell } = require('electron');
+  if (r.response === 0) shell.showItemInFolder(base + '.txt');
+  if (r.response === 1) { shell.showItemInFolder(base + '.txt'); shell.openExternal('mailto:canhld@gmail.com?subject=' + encodeURIComponent('[ToanViet ' + app.getVersion() + '] Báo lỗi / góp ý') + '&body=' + encodeURIComponent('Kính gửi thầy,\n\n' + String(o.summary || '') + '\n\n(Đính kèm tệp ' + path.basename(base + '.txt') + (png ? ' và ảnh màn hình' : '') + ' trên Desktop.)')); }
+  return base + '.txt';
+});
+ipcMain.handle('copyText', (_e, t) => { clipboard.writeText(String(t)); return true; });ipcMain.handle('confirm', async (_e, msg) => {
   if (process.env.TVS_AUTO) { fs.appendFileSync(process.env.TVS_AUTO, 'CONFIRM: ' + String(msg).replace(/\n+/g, ' / ') + '\n'); return true; }
   const r = await dialog.showMessageBox(win, { type: 'question', buttons: ['Đồng ý', 'Huỷ'], defaultId: 0, cancelId: 1, message: msg });
   return r.response === 0;
@@ -421,9 +468,9 @@ ipcMain.handle('renderBatch', async (e, ids) => {
   return out;
 });
 // dựng ảnh PNG của một đối tượng ra tệp tạm (dùng khi chuyển đổi hàng loạt)
-ipcMain.handle('renderPng', async (e, target, withData) => {
+ipcMain.handle('renderPng', async (e, target, withData, release) => {
   const scale = 4;
-  capture.keep = true; // đang chuyển đổi hàng loạt
+  capture.keep = !release; // chuyển đổi hàng loạt: giữ chế độ chụp; ảnh thu nhỏ cho thư viện: trả cửa sổ về như cũ
   const buf = await capture(e.sender, target, scale);
   const size = nativeImage.createFromBuffer(buf).getSize();
   const file = path.join(app.getPath('temp'), 'toanviet-' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.png');

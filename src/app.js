@@ -54,7 +54,13 @@
     }
     return mkCache.get(key);
   }
+  // nhật ký ngắn các thông báo gần đây (đưa vào tệp báo lỗi)
+  const LOG = [];
+  const logPush = (t) => { LOG.push(new Date().toLocaleTimeString('vi-VN') + '  ' + t); if (LOG.length > 40) LOG.shift(); };
+  window.addEventListener('error', (e) => logPush('LỖI: ' + e.message + ' (' + String(e.filename || '').replace(/^.*[\\/]/, '') + ':' + e.lineno + ')'));
+  window.addEventListener('unhandledrejection', (e) => logPush('LỖI: ' + (e.reason && e.reason.message ? e.reason.message : e.reason)));
   function msg(t, err) {
+    if (err) logPush(t);
     $('#msg').textContent = t;
     $('#status').classList.toggle('err', !!err);
   }
@@ -911,6 +917,131 @@
     if (!S.dirty || !S.objs.length) return true;
     return api ? api.confirm('Tài liệu chưa lưu. Bỏ các thay đổi?') : window.confirm('Tài liệu chưa lưu. Bỏ các thay đổi?');
   }
+  // ---------- Thư viện của tôi ----------
+  const modal = (id, title) => {
+    let d = document.getElementById(id);
+    if (!d) { d = document.createElement('dialog'); d.id = id; d.className = 'tvdlg'; document.body.appendChild(d); }
+    d.innerHTML = '<div class="tvhead"><b>' + esc(title) + '</b><button class="tvx" title="Đóng (Esc)">✕</button></div><div class="tvbody"></div>';
+    d.querySelector('.tvx').onclick = () => d.close();
+    return d;
+  };
+  const libThumb = async (o) => {
+    // ảnh thu nhỏ của đối tượng: dựng ảnh nét cao rồi thu nhỏ còn tối đa 240 × 150
+    const r = await api.renderPng(o.id, true, true);
+    const img = new Image(); img.src = 'data:image/png;base64,' + r.b64; await img.decode();
+    const k = Math.min(1, 240 / img.width, 150 / img.height), c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    return c.toDataURL('image/png');
+  };
+  const LIBKEY = () => 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+  const KIND_NAME = { formula: 'Công thức', text: 'Văn bản', graph: 'Đồ thị', bbt: 'Bảng', region: 'Miền nghiệm', solid: 'Khối', plane: 'Hình phẳng', space: 'Hình không gian', sym: 'Ký hiệu', numline: 'Trục số', venn: 'Biểu đồ Ven', shape: 'Hình vẽ' };
+  async function openLib() {
+    if (!api) return;
+    let items = await api.lib({ action: 'load' });
+    let q = '', grp = '';
+    const d = modal('libdlg', 'Thư viện của tôi');
+    const body = d.querySelector('.tvbody');
+    const save = () => api.lib({ action: 'save', items });
+    const draw = () => {
+      const groups = [...new Set(items.map((it) => it.group || 'Chung'))].sort();
+      const shown = items.filter((it) => (!grp || (it.group || 'Chung') === grp) && (!q || (it.name + ' ' + (it.group || '') + ' ' + (it.obj.latex || '') + ' ' + (it.obj.script || '')).toLowerCase().includes(q.toLowerCase())));
+      const o = cur();
+      body.innerHTML = `
+        <div class="tvrow">
+          <input id="libq" placeholder="Tìm theo tên, nhóm, nội dung…" value="${esc(q)}">
+          <select id="libg"><option value="">Mọi nhóm (${items.length})</option>${groups.map((g) => `<option${g === grp ? ' selected' : ''}>${esc(g)}</option>`).join('')}</select>
+        </div>
+        <div class="tvrow tvsave">
+          <input id="libname" placeholder="Tên mục mới, vd: Công thức nghiệm bậc hai" ${o ? '' : 'disabled'}>
+          <input id="libgroup" placeholder="Nhóm, vd: Lớp 10 – Vectơ" list="libgroups" value="${esc(grp)}" ${o ? '' : 'disabled'}>
+          <datalist id="libgroups">${groups.map((g) => `<option>${esc(g)}</option>`).join('')}</datalist>
+          <button id="libadd" class="primary" ${o ? '' : 'disabled'} title="${o ? '' : 'Chọn một đối tượng trên trang trước'}">＋ Lưu đối tượng đang chọn</button>
+        </div>
+        <div class="tvgrid">${shown.length ? shown.map((it) => `
+          <div class="tvcard" data-k="${it.id}">
+            <div class="tvimg">${it.thumb ? `<img src="${it.thumb}" alt="">` : '<span>' + esc(KIND_NAME[it.obj.type] || it.obj.type) + '</span>'}</div>
+            <div class="tvname" title="${esc(it.name)}">${esc(it.name)}</div>
+            <div class="tvmeta">${esc(it.group || 'Chung')} · ${esc(KIND_NAME[it.obj.type] || it.obj.type)}</div>
+            <div class="tvbtns"><button data-a="ins" class="primary">Chèn</button><button data-a="ren">Đổi tên</button><button data-a="del">Xoá</button></div>
+          </div>`).join('') : '<p class="tvempty">' + (items.length ? 'Không có mục nào khớp.' : 'Thư viện còn trống. Chọn một công thức hoặc hình trên trang rồi bấm “Lưu đối tượng đang chọn”.') + '</p>'}</div>
+        <div class="tvrow tvfoot">
+          <button id="libimp">Nhập gói thư viện…</button>
+          <button id="libexp" ${shown.length ? '' : 'disabled'}>Xuất ${shown.length} mục đang hiện thành gói…</button>
+          <span style="flex:1"></span><span class="tvhint">Gói thư viện (.tvslib) gửi được cho đồng nghiệp qua email, Zalo, USB.</span>
+        </div>`;
+      const qi = body.querySelector('#libq');
+      qi.oninput = () => { q = qi.value; draw(); const n = body.querySelector('#libq'); n.focus(); n.setSelectionRange(q.length, q.length); };
+      body.querySelector('#libg').onchange = (e) => { grp = e.target.value; draw(); };
+      body.querySelector('#libadd').onclick = async () => {
+        const ob = cur(); if (!ob) return;
+        const name = body.querySelector('#libname').value.trim() || (KIND_NAME[ob.type] || 'Mục') + ' ' + (items.length + 1);
+        const group = body.querySelector('#libgroup').value.trim() || 'Chung';
+        const btn = body.querySelector('#libadd'); btn.disabled = true; btn.textContent = 'Đang lưu…';
+        // tạm đóng hộp thoại khi chụp ảnh thu nhỏ để lớp nền tối không lẫn vào ảnh
+        let thumb = ''; d.close(); try { thumb = await libThumb(ob); } catch (e) { /* không có ảnh thu nhỏ vẫn lưu */ } d.showModal();
+        const obj = JSON.parse(JSON.stringify(ob, (k, v) => (k[0] === '_' || k === 'id' ? undefined : v)));
+        items.unshift({ id: LIBKEY(), name, group, obj, thumb, created: Date.now() });
+        await save(); msg('Đã lưu “' + name + '” vào thư viện'); draw();
+      };
+      body.querySelectorAll('.tvcard').forEach((card) => card.addEventListener('click', async (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        const it = items.find((x) => x.id === card.dataset.k); if (!it) return;
+        if (b.dataset.a === 'ins') {
+          const o2 = JSON.parse(JSON.stringify(it.obj));
+          o2.x = Math.round(40 + stage.scrollLeft / S.zoom); o2.y = Math.round(30 + stage.scrollTop / S.zoom);
+          paste(o2); d.close(); msg('Đã chèn “' + it.name + '” từ thư viện');
+        } else if (b.dataset.a === 'ren') {
+          const nm = card.querySelector('.tvname'); nm.innerHTML = `<input value="${esc(it.name)}">`; const inp = nm.querySelector('input'); inp.focus(); inp.select();
+          let finished = false;
+          const done = async () => { if (finished) return; finished = true; it.name = inp.value.trim() || it.name; await save(); draw(); };
+          inp.onkeydown = (ev) => { if (ev.key === 'Enter') done(); if (ev.key === 'Escape') { ev.preventDefault(); finished = true; draw(); } }; inp.onblur = done;
+        } else if (b.dataset.a === 'del') {
+          if (!(await api.confirm('Xoá “' + it.name + '” khỏi thư viện?'))) return;
+          items = items.filter((x) => x !== it); await save(); draw();
+        }
+      }));
+      body.querySelector('#libimp').onclick = async () => {
+        const r = await api.lib({ action: 'import' }); if (!r) return;
+        const have = new Set(items.map((x) => x.id)); let added = 0;
+        r.items.forEach((it) => { if (it && it.obj && it.obj.type && !have.has(it.id)) { if (!it.id) it.id = LIBKEY(); items.push(it); have.add(it.id); added++; } });
+        await save(); draw();
+        api.info('Đã thêm ' + added + ' mục vào thư viện' + (r.items.length - added ? ' (' + (r.items.length - added) + ' mục đã có sẵn, bỏ qua)' : '') + '.' + (r.bad.length ? '\n\nKhông đọc được:\n' + r.bad.join('\n') : ''));
+      };
+      body.querySelector('#libexp').onclick = async () => {
+        const f = await api.lib({ action: 'export', items: shown, name: grp ? 'ThuVien-' + grp.replace(/[\\/:*?"<>|]/g, '-') : 'ThuVien-ToanViet' });
+        if (f) msg('Đã xuất ' + shown.length + ' mục: ' + f);
+      };
+    };
+    draw();
+    d.showModal();
+  }
+  // ---------- Báo lỗi / góp ý ----------
+  function openReport() {
+    if (!api) return;
+    const d = modal('repdlg', 'Báo lỗi / góp ý');
+    const o = cur();
+    d.querySelector('.tvbody').innerHTML = `
+      <p>Mô tả ngắn: bạn đã làm gì, mong đợi điều gì, phần mềm làm gì khác đi.</p>
+      <textarea id="reptxt" rows="6" placeholder="Ví dụ: Vẽ hình bình hành ABCD rồi bấm Phân giác góc, nhưng đường phân giác không chia đôi góc A…"></textarea>
+      <label class="chk"><input type="checkbox" id="repobj" ${o ? 'checked' : 'disabled'}> Kèm đối tượng đang chọn${o ? ' (' + esc(KIND_NAME[o.type] || o.type) + ')' : ' (chưa chọn đối tượng nào)'}</label>
+      <label class="chk"><input type="checkbox" id="repall"> Kèm toàn bộ nội dung trang (${S.objs.length} đối tượng)</label>
+      <p class="tvhint">Phần mềm tạo một tệp văn bản và một ảnh màn hình trên Desktop. Bạn mở xem rồi tự gửi qua email; phần mềm không tự gửi gì đi.</p>
+      <div class="tvrow tvfoot"><span style="flex:1"></span><button id="repgo" class="primary">Tạo tệp báo lỗi</button></div>`;
+    d.querySelector('#repgo').onclick = async () => {
+      const txt = d.querySelector('#reptxt').value.trim();
+      const strip = (x) => JSON.parse(JSON.stringify(x, (k, v) => (k === '_res' || k === '_view' ? undefined : v)));
+      const parts = ['MÔ TẢ', txt || '(không có)', ''];
+      if (d.querySelector('#repobj').checked && o) parts.push('ĐỐI TƯỢNG ĐANG CHỌN', JSON.stringify(strip(o), null, 1), o._err ? 'Lỗi của đối tượng: ' + o._err : '', '');
+      const errs = S.objs.filter((x) => x._err).map((x) => (KIND_NAME[x.type] || x.type) + ' ' + x.id + ': ' + x._err);
+      if (errs.length) parts.push('ĐỐI TƯỢNG ĐANG BÁO LỖI', ...errs, '');
+      if (d.querySelector('#repall').checked) parts.push('TOÀN BỘ TRANG', JSON.stringify(S.objs.map(strip), null, 1), '');
+      parts.push('THÔNG BÁO GẦN ĐÂY', ...(LOG.length ? LOG : ['(không có)']));
+      d.close();
+      await api.report({ text: parts.join('\n'), summary: txt.slice(0, 600) });
+    };
+    d.showModal();
+  }
   const CMD = {
     'ins-formula': () => editFormula(insert('formula'), true),
     'ins-text': () => { S.placing = true; page.classList.add('placing'); msg('Nhấp vào vị trí bất kỳ trên trang để gõ chữ (Esc: thôi)'); },
@@ -980,6 +1111,8 @@
     },
     zoomin: () => setZoom(S.zoom + 0.1), zoomout: () => setZoom(S.zoom - 0.1), zoom100: () => setZoom(1),
     demo: async () => { if (await confirmDiscard()) window.__demo(); },
+    lib: () => openLib(),
+    report: () => openReport(),
   };
   // Lựa chọn 'chèn dạng Equation của Word' (nhớ cho lần sau)
   const eqMode = () => { try { return localStorage.getItem('tvs-insert-eq') === '1'; } catch (e) { return false; } };
@@ -1016,6 +1149,18 @@
   }
   $('#ribbon').addEventListener('click', (e) => { const b = e.target.closest('button[data-cmd]'); if (b) run(b.dataset.cmd); });
   if (api) api.onMenu(run);
+  if (api && api.onLibFile) api.onLibFile(async (r) => {
+    try {
+      const d = JSON.parse(r.data);
+      if (d.format !== 'tvslib' || !Array.isArray(d.items)) throw new Error('không phải gói thư viện');
+      const items = await api.lib({ action: 'load' }), have = new Set(items.map((x) => x.id));
+      const add = d.items.filter((it) => it && it.obj && it.obj.type && !have.has(it.id));
+      if (!add.length) { await api.info('Các mục trong gói “' + r.file + '” đều đã có trong thư viện.'); return openLib(); }
+      if (!(await api.confirm('Nhập ' + add.length + ' mục từ gói “' + r.file + '” vào Thư viện của tôi?'))) return;
+      await api.lib({ action: 'save', items: items.concat(add) });
+      openLib();
+    } catch (e) { api.info('Không đọc được gói thư viện “' + r.file + '”: ' + e.message); }
+  });
   if (api && api.onOpenFile) api.onOpenFile((r) => { try { const d = JSON.parse(r.data); loadDoc(Array.isArray(d) ? d : d.objects, r.file); msg('Đã mở ' + r.file); } catch (e) { msg('Tệp không hợp lệ', true); } });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && S.placing) { S.placing = false; page.classList.remove('placing'); msg('Sẵn sàng'); return; }

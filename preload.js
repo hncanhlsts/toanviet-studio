@@ -6,8 +6,10 @@ contextBridge.exposeInMainWorld('api', {
   officeMode: argVal('--tvs-office') ? { app: argVal('--tvs-office'), mode: argVal('--tvs-mode') || 'new', sizePt: parseFloat(argVal('--tvs-size')) || 0, op: argVal('--tvs-op') } : null,
   quit: () => ipcRenderer.send('quit'),
   info: (msg) => ipcRenderer.invoke('info', msg),
-  renderPng: (target, withData) => ipcRenderer.invoke('renderPng', target, !!withData),
+  renderPng: (target, withData, release) => ipcRenderer.invoke('renderPng', target, !!withData, !!release),
   renderBatch: (ids) => ipcRenderer.invoke('renderBatch', ids),
+  lib: (o) => ipcRenderer.invoke('lib', o),
+  report: (o) => ipcRenderer.invoke('report', o),
   about: () => ipcRenderer.send('about'),
   capture: (opts) => ipcRenderer.invoke('capture', opts),
   pdf: () => ipcRenderer.invoke('pdf'),
@@ -19,4 +21,5 @@ contextBridge.exposeInMainWorld('api', {
   onOpenFile: (cb) => ipcRenderer.on('openfile', (_e, r) => cb(r)),
   office: (opts) => ipcRenderer.invoke('office', opts),
   onMenu: (cb) => ipcRenderer.on('menu', (_e, cmd) => cb(cmd)),
+  onLibFile: (cb) => ipcRenderer.on('libfile', (_e, r) => cb(r)),
 });

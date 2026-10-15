@@ -179,3 +179,33 @@ body.capturing .pth { display: none !important; }
 @media print { .pth { display: none !important; } }
 #fEqWrap { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 13px; color: #33445a; cursor: pointer; }
 #fEqWrap[hidden] { display: none; }
+
+/* hộp thoại Thư viện, Báo lỗi */
+.tvdlg { width: min(900px, 92vw); max-height: 86vh; padding: 0; border: 1px solid #c9d1db; border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.25); font: 13px 'Segoe UI', sans-serif; color: #1c2430; }
+.tvdlg::backdrop { background: rgba(20,30,45,.35); }
+.tvhead { display: flex; align-items: center; padding: 10px 14px; border-bottom: 1px solid #e3e8ef; font-size: 15px; }
+.tvhead b { flex: 1; color: #14407f; }
+.tvx { border: 0 !important; background: none !important; font-size: 16px; cursor: pointer; color: #6b7785; }
+.tvbody { padding: 12px 14px; overflow: auto; max-height: calc(86vh - 50px); }
+.tvrow { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.tvrow input, .tvrow select, #reptxt { padding: 6px 8px; border: 1px solid #c9d1db; border-radius: 5px; font: inherit; }
+#libq { flex: 2; } #libg { flex: 1; } #libname { flex: 2; } #libgroup { flex: 1.3; }
+#reptxt { width: 100%; box-sizing: border-box; resize: vertical; }
+.tvdlg button { padding: 5px 12px; border: 1px solid #9fb3cd; border-radius: 5px; background: #fff; font: inherit; cursor: pointer; }
+.tvdlg button.primary { background: #1f5fbf; color: #fff; border-color: #1f5fbf; }
+.tvdlg button:disabled { opacity: .5; cursor: default; }
+.tvdlg label.chk { display: flex; gap: 6px; align-items: center; margin: 6px 0; }
+.tvsave { padding: 8px; background: #f3f7fc; border-radius: 6px; }
+.tvgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.tvcard { border: 1px solid #dde3ea; border-radius: 7px; padding: 8px; display: flex; flex-direction: column; gap: 4px; background: #fff; }
+.tvimg { height: 110px; display: flex; align-items: center; justify-content: center; background: #fafbfc; border-radius: 4px; overflow: hidden; }
+.tvimg img { max-width: 100%; max-height: 100%; }
+.tvimg span { color: #8a96a3; }
+.tvname { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tvname input { width: 100%; box-sizing: border-box; }
+.tvmeta { font-size: 11.5px; color: #6b7785; }
+.tvbtns { display: flex; gap: 4px; }
+.tvbtns button { padding: 3px 8px; font-size: 12px; }
+.tvempty { color: #6b7785; grid-column: 1 / -1; text-align: center; padding: 24px; }
+.tvfoot { border-top: 1px solid #e3e8ef; padding-top: 10px; margin: 0; }
+.tvhint { color: #6b7785; font-size: 12px; }

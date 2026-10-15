@@ -1,7 +1,7 @@
 {
   "name": "toanviet-studio",
   "productName": "ToanViet Studio",
-  "version": "2.0.9",
+  "version": "2.1.0",
   "description": "Soan cong thuc Toan, do thi, bang bien thien, mien nghiem, hinh khong gian cho Toan pho thong Viet Nam",
   "main": "main.js",
   "scripts": {
@@ -54,6 +54,11 @@
         "description": "Tài liệu ToanViet Studio",
         "name": "ToanViet Studio Document",
         "ext": "tvs"
+      },
+      {
+        "description": "Gói thư viện ToanViet",
+        "name": "ToanViet Library",
+        "ext": "tvslib"
       }
     ],
     "extraResources": [
