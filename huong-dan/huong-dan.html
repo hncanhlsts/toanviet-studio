@@ -21,33 +21,41 @@
   img { max-width: 100%; border: 1px solid #c9d1db; border-radius: 4px; display: block; margin: 6pt auto; }
   figure { margin: 6pt 0 10pt; page-break-inside: avoid; }
   figcaption { text-align: center; font-size: 9.3pt; color: #4a5868; }
-  .cover { height: 258mm; display: flex; flex-direction: column; text-align: center; border-top: 6pt solid #14407f; position: relative; }
-  .cover h1 { font: 700 40pt/1.1 Cambria, "Times New Roman", serif; color: #14407f; letter-spacing: .5pt; margin: 6pt 0 0; }
-  .cv-top { display: flex; justify-content: space-between; font-size: 8.5pt; letter-spacing: 1.6pt; color: #6b7785; padding: 6pt 0 0; border-bottom: 1px solid #dde3ea; padding-bottom: 5pt; }
+  .cover { height: 258mm; display: flex; flex-direction: column; text-align: center; border-top: 6pt solid #14407f; }
+  .cover h1 { font: 700 36pt/1.1 Cambria, "Times New Roman", serif; color: #14407f; letter-spacing: .5pt; margin: 4pt 0 0; }
+  .cv-top { display: flex; justify-content: space-between; font-size: 8.5pt; letter-spacing: 1.6pt; color: #6b7785; padding: 6pt 0 5pt; border-bottom: 1px solid #dde3ea; }
   .cv-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .cv-kicker { font-size: 10pt; letter-spacing: 2pt; text-transform: uppercase; color: #1f5fbf; font-weight: 600; }
-  .cv-rule { width: 60mm; height: 0; border-top: 1.5pt solid #c0392b; margin: 12pt auto 12pt; }
-  .cover .sub { font: 18pt/1.35 Cambria, "Times New Roman", serif; color: #1c2430; margin: 0; }
-  .cover .sub span { font-size: 13pt; font-style: italic; color: #4a5868; }
-  .cv-secs { width: 168mm; display: flex; flex-direction: column; gap: 7pt; margin: 14pt 0 12pt; }
-  .cv-sec { border: 1px solid #dde3ea; border-left: 4pt solid var(--c); border-radius: 3pt; padding: 5pt 10pt 4pt; text-align: left; background: linear-gradient(90deg, var(--bg), #fff 45%); }
+  .cv-kicker { font-size: 9.5pt; letter-spacing: 1.8pt; text-transform: uppercase; color: #1f5fbf; font-weight: 600; }
+  .cv-rule { width: 60mm; border-top: 1.5pt solid #c0392b; margin: 8pt auto; }
+  .cv-desc { max-width: 150mm; font-size: 10.3pt; line-height: 1.5; color: #33445a; text-wrap: balance; }
+  .cv-secs { width: 172mm; display: flex; flex-direction: column; gap: 6pt; margin: 12pt 0 10pt; }
+  .cv-sec { border: 1px solid #dde3ea; border-left: 4pt solid var(--c); border-radius: 3pt; padding: 4pt 8pt 3pt; text-align: left; background: linear-gradient(90deg, var(--bg), #fff 55%); }
   .cv-a { --c: #1f5fbf; --bg: #eef4fc; } .cv-b { --c: #e67e22; --bg: #fdf3e8; } .cv-c { --c: #2e8b57; --bg: #edf7f0; }
   .cv-h { display: flex; align-items: baseline; gap: 7pt; }
   .cv-h .n { width: 15pt; height: 15pt; line-height: 15pt; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: 9pt; text-align: center; align-self: center; }
   .cv-h b { font: 700 12.5pt Cambria, serif; color: var(--c); }
-  .cv-h em { font-size: 9pt; color: #6b7785; font-style: normal; margin-left: auto; }
-  .cv-art { width: 128mm; display: block; margin: 2pt auto 0; }
-  .cv-desc { max-width: 145mm; font-size: 10.8pt; line-height: 1.6; color: #33445a; text-wrap: balance; }
-  .cv-subj { display: grid; grid-template-columns: repeat(5, 1fr); width: 170mm; margin-top: 20pt; border-top: 1px solid #c9d1db; border-bottom: 1px solid #c9d1db; }
-  .cv-subj div { padding: 7pt 4pt; border-right: 1px solid #dde3ea; }
-  .cv-subj div:last-child { border-right: 0; }
-  .cv-subj b { display: block; font-size: 8.5pt; letter-spacing: 1pt; text-transform: uppercase; color: #1f5fbf; margin-bottom: 3pt; }
-  .cv-subj i { font: italic 11.5pt "Cambria Math", Cambria, serif; color: #1c2430; white-space: nowrap; }
-  .cv-subj .up { font-style: normal; }
-  .cv-foot { display: flex; justify-content: space-between; align-items: flex-end; text-align: left; border-top: 1px solid #dde3ea; padding-top: 9pt; }
-  .cover .who { font-size: 10pt; line-height: 1.55; color: #33445a; margin: 0; }
+  .cv-h em { font-size: 8.8pt; color: #6b7785; font-style: normal; margin-left: auto; }
+  .cv-body { display: grid; grid-template-columns: 1fr 45mm; align-items: center; gap: 8pt; }
+  .cv-art { width: 100%; display: block; margin: 1pt 0 0; }
+  .cv-f { list-style: none; margin: 0; padding: 0 0 0 8pt; border-left: 1px solid #dde3ea; }
+  .cv-f li { margin: 0; padding: 2.5pt 0; font: italic 10.5pt/1.3 "Cambria Math", Cambria, serif; color: #1c2430; white-space: nowrap; border-bottom: 1px dotted #dde3ea; }
+  .cv-f li:last-child { border-bottom: 0; }
+  .cv-f .up, .cv-f.up li, .cv-f li.up { font-style: normal; }
+  .cv-f .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 8.5pt; line-height: 1.05; }
+  .cv-f .fr span:first-child { border-bottom: 1px solid currentColor; padding: 0 1pt; }
+  .cv-f .arr { position: relative; display: inline-block; padding: 0 3pt; }
+  .cv-f .arr small { position: absolute; left: 0; right: 0; top: -5.5pt; text-align: center; font-size: 7pt; font-style: italic; }
+  .cv-plus { width: 172mm; border: 1px solid #c9d1db; border-radius: 3pt; padding: 5pt 8pt 4pt; background: #f7f9fb; }
+  .cv-plus-h { font: 700 11pt Cambria, serif; color: #14407f; text-align: left; margin-bottom: 4pt; }
+  .cv-plus-h::before { content: "★ "; color: #c0392b; }
+  .cv-plus-g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8pt; }
+  .cv-plus figure { margin: 0; background: #fff; border: 1px solid #dde3ea; border-radius: 2pt; padding: 4pt; }
+  .cv-plus svg { width: 100%; display: block; border: 0; }
+  .cv-plus figcaption { font-size: 8.3pt; color: #33445a; margin-top: 2pt; }
+  .cv-foot { display: flex; justify-content: space-between; align-items: flex-end; text-align: left; border-top: 1px solid #dde3ea; padding-top: 7pt; }
+  .cover .who { font-size: 9.8pt; line-height: 1.5; color: #33445a; margin: 0; }
   .cover .who span { display: block; font-size: 8pt; letter-spacing: 1.4pt; text-transform: uppercase; color: #6b7785; }
-  .cover .who b { display: block; font: 700 13pt Cambria, serif; color: #14407f; }
+  .cover .who b { display: block; font: 700 12.5pt Cambria, serif; color: #14407f; }
   .cover .ver { color: #6b7785; font-size: 9pt; margin: 0; }
   .note { background: #fff4e5; border-left: 4px solid #e67e22; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
   .tip { background: #eaf3ff; border-left: 4px solid #1f5fbf; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
@@ -69,131 +77,197 @@
 <body>
 
 <div class="cover">
-  <div class="cv-top">
-    <span>TÀI LIỆU HƯỚNG DẪN</span>
-    <span>Phiên bản 2.7.4</span>
-  </div>
+  <div class="cv-top"><span>TÀI LIỆU HƯỚNG DẪN</span><span>Phiên bản 2.7.4</span></div>
   <div class="cv-main">
-    <div class="cv-kicker">Phần mềm soạn thảo Toán và Khoa học tự nhiên</div>
+    <div class="cv-kicker">Phần mềm soạn thảo Toán và Khoa học tự nhiên · Lớp 1 – 12</div>
     <h1>ToanViet Studio</h1>
     <div class="cv-rule"></div>
+    <div class="cv-desc">Soạn công thức, vẽ hình, đồ thị, bảng biến thiên cho đề kiểm tra, phiếu học tập và bài giảng — dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
     <div class="cv-secs">
+
     <section class="cv-sec cv-a">
-      <div class="cv-h"><span class="n">1</span><b>Toán THCS – THPT</b><em>Lớp 6 – 12: đại số, giải tích, hình học phẳng và không gian</em></div>
-    <svg class="cv-art" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs><marker id="cva" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#33445a"/></marker></defs>
-      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <!-- đồ thị hàm số -->
-        <g stroke="#d6dee8" stroke-width="0.8"><path d="M20 30V150M40 30V150M60 30V150M80 30V150M100 30V150M120 30V150M140 30V150M160 30V150M10 40H170M10 60H170M10 80H170M10 100H170M10 120H170M10 140H170"/></g>
-        <path d="M10 120H172M90 158V24" stroke="#33445a" stroke-width="1.2" marker-end="url(#cva)"/>
-        <path d="M30 40Q90 200 150 40" stroke="#1f5fbf" stroke-width="2.4"/>
-        <circle cx="90" cy="120" r="2.6" fill="#c0392b" stroke="none"/>
-        <!-- tam giác có góc vuông, đường cao -->
-        <path d="M215 145L345 145L250 45Z" stroke="#14407f" stroke-width="2"/>
-        <path d="M250 45V145" stroke="#14407f" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <path d="M250 135H260V145" stroke="#14407f" stroke-width="1.1"/>
-        <path d="M230 145A15 15 0 0 0 225 133" stroke="#c0392b" stroke-width="1.4"/>
-        <!-- hình lập phương -->
-        <path d="M400 70H480V150H400Z M400 70L430 45H510L480 70 M510 45V125L480 150" stroke="#14407f" stroke-width="2"/>
-        <path d="M400 150L430 125H510 M430 125V45" stroke="#14407f" stroke-width="1.2" stroke-dasharray="4 3"/>
-        <path d="M400 150L510 45" stroke="#c0392b" stroke-width="1.3"/>
-      </g>
-      <g font-family="Cambria Math, Cambria, serif" font-size="14" fill="#1c2430" font-style="italic">
-        <text x="174" y="134">x</text><text x="96" y="30">y</text><text x="78" y="134">O</text>
-        <text x="203" y="158">B</text><text x="348" y="158">C</text><text x="243" y="38">A</text><text x="247" y="160">H</text>
-        <text x="388" y="164">A</text><text x="514" y="44">C′</text>
-      </g>
-    </svg>
+      <div class="cv-h"><span class="n">1</span><b>Toán THCS – THPT</b><em>Lớp 6 – 12</em></div>
+      <div class="cv-body">
+      <svg class="cv-art" viewBox="0 0 470 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <g stroke="#d6dee8" stroke-width="0.7"><path d="M14 10V90M32 10V90M68 10V90M86 10V90M5 22H95M5 40H95M5 58H95M5 88H95"/></g>
+          <path d="M4 70H98M50 94V8" stroke="#33445a" stroke-width="1.1"/>
+          <path d="M96 67L101 70L96 73M47 10L50 5L53 10" stroke="#33445a" stroke-width="1.1"/>
+          <path d="M15 14Q50 126 85 14" stroke="#1f5fbf" stroke-width="2.4"/>
+          <path d="M125 86L185 86L210 64M125 86L165 14L185 86M165 14L210 64" stroke="#14407f" stroke-width="1.7"/>
+          <path d="M125 86L150 64L210 64M150 64L165 14M165 14V75" stroke="#14407f" stroke-width="1.1" stroke-dasharray="4 3"/>
+          <circle cx="285" cy="52" r="34" stroke="#14407f" stroke-width="1.7"/>
+          <path d="M285 18L255 68L315 68Z" stroke="#14407f" stroke-width="1.5"/>
+          <path d="M248 18H322" stroke="#c0392b" stroke-width="1.5"/>
+          <path d="M262 56A14 14 0 0 1 266 68" stroke="#c0392b" stroke-width="1.3"/>
+          <rect x="350" y="12" width="114" height="80" rx="2" stroke="#33445a" stroke-width="1.1"/>
+          <circle cx="393" cy="52" r="29" fill="#1f5fbf" fill-opacity=".18" stroke="#1f5fbf" stroke-width="1.5"/>
+          <circle cx="423" cy="52" r="29" fill="#e67e22" fill-opacity=".2" stroke="#e67e22" stroke-width="1.5"/>
+        </g>
+        <g font-family="Cambria Math, Cambria, serif" font-size="11.5" font-style="italic" fill="#1c2430">
+          <text x="99" y="82">x</text><text x="55" y="12">y</text><text x="40" y="81">O</text>
+          <text x="160" y="11">S</text><text x="115" y="96">A</text><text x="184" y="98">B</text><text x="212" y="62">C</text><text x="141" y="62">D</text>
+          <text x="281" y="13">A</text><text x="244" y="79">B</text><text x="317" y="79">C</text>
+          <text x="355" y="25" font-size="10">E</text><text x="380" y="56">A</text><text x="430" y="56">B</text>
+        </g>
+        <g font-family="Segoe UI, sans-serif" font-size="9.5" fill="#6b7785" text-anchor="middle"><text x="52" y="109">Đồ thị hàm số</text><text x="167" y="109">Hình không gian</text><text x="285" y="109">Hình học phẳng</text><text x="407" y="109">Biểu đồ Ven</text></g>
+      </svg>
+      <ul class="cv-f">
+        <li><i><span class="up">Δ</span> = b<sup>2</sup> − 4ac</i></li>
+        <li><i><span class="up">sin</span><sup>2</sup>x + <span class="up">cos</span><sup>2</sup>x = 1</i></li>
+        <li><i>AB ⫽ CD, <span class="up">Δ</span>ABC ∽ <span class="up">Δ</span>MNP</i></li>
+        <li><i>y = <span class="up">log</span><sub>2</sub>(x − 1)</i></li>
+      </ul>
+      </div>
     </section>
+
     <section class="cv-sec cv-b">
-      <div class="cv-h"><span class="n">2</span><b>Toán Tiểu học</b><em>Lớp 1 – 5: trình bày theo sách Kết nối tri thức</em></div>
-    <svg class="cv-art" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <g font-family="Segoe UI, sans-serif" fill="#1c2430">
-        <!-- đặt tính cộng -->
-        <g font-size="17" text-anchor="middle">
-          <text x="52" y="30">4</text><text x="68" y="30">5</text><text x="84" y="30">7</text>
-          <text x="52" y="54">2</text><text x="68" y="54">3</text><text x="84" y="54">8</text>
-          <text x="52" y="86" fill="#c0392b">6</text><text x="68" y="86" fill="#c0392b">9</text><text x="84" y="86" fill="#c0392b">5</text>
-          <text x="30" y="43">+</text>
+      <div class="cv-h"><span class="n">2</span><b>Toán Tiểu học</b><em>Lớp 1 – 5 · theo sách Kết nối tri thức</em></div>
+      <div class="cv-body">
+      <svg class="cv-art" viewBox="0 0 470 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g font-family="Segoe UI, sans-serif" fill="#1c2430" font-size="15" text-anchor="middle">
+          <text x="26" y="28">4</text><text x="38" y="28">5</text><text x="50" y="28">7</text>
+          <text x="26" y="48">2</text><text x="38" y="48">3</text><text x="50" y="48">8</text>
+          <text x="26" y="78" fill="#c0392b">6</text><text x="38" y="78" fill="#c0392b">9</text><text x="50" y="78" fill="#c0392b">5</text>
+          <text x="10" y="40">+</text>
         </g>
-        <path d="M38 64H96" stroke="#1c2430" stroke-width="1.4"/>
-        <!-- phân số trên hình tròn -->
-        <circle cx="200" cy="52" r="38" fill="#fff" stroke="#14407f" stroke-width="1.6"/>
-        <path d="M200 52V14A38 38 0 1 1 162 52Z" fill="#f5b041" stroke="#14407f" stroke-width="1.6"/>
-        <path d="M200 52H238" stroke="#14407f" stroke-width="1.6"/>
-        <g font-family="Cambria Math, Cambria, serif" font-size="15" text-anchor="middle"><text x="258" y="44">3</text><text x="258" y="70">4</text></g>
-        <path d="M250 51H266" stroke="#1c2430" stroke-width="1.3"/>
-        <!-- đồng hồ -->
-        <circle cx="350" cy="52" r="38" fill="#fff" stroke="#e67e22" stroke-width="5"/>
-        <g font-size="10" text-anchor="middle" fill="#33445a"><text x="350" y="26">12</text><text x="377" y="56">3</text><text x="350" y="86">6</text><text x="323" y="56">9</text></g>
-        <path d="M350 52V24M350 52H372" stroke="#1c2430" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="350" cy="52" r="2.6" fill="#c0392b"/>
-        <!-- tia số -->
-        <path d="M420 60H548" stroke="#1c2430" stroke-width="1.4" fill="none"/>
-        <path d="M548 56L556 60L548 64Z" fill="#1c2430"/>
-        <g stroke="#1c2430" stroke-width="1.2"><path d="M426 55V65M450 55V65M474 55V65M498 55V65M522 55V65"/></g>
-        <g font-size="12" text-anchor="middle"><text x="426" y="80">0</text><text x="450" y="80">1</text><text x="474" y="80">2</text><text x="498" y="80">3</text><text x="522" y="80">4</text></g>
-        <path d="M426 50Q438 36 450 50M450 50Q462 36 474 50M474 50Q486 36 498 50" stroke="#8e44ad" stroke-width="1.4" fill="none"/>
-        <circle cx="498" cy="60" r="3.2" fill="#c0392b"/>
-        <!-- tên -->
-        <g font-size="10.5" fill="#6b7785" text-anchor="middle"><text x="62" y="112">Đặt tính</text><text x="210" y="112">Phân số</text><text x="350" y="112">Xem đồng hồ</text><text x="485" y="112">Tia số</text></g>
-      </g>
-    </svg>
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 58H58" stroke="#1c2430" stroke-width="1.3"/>
+          <circle cx="104" cy="48" r="25" fill="#fff" stroke="#14407f" stroke-width="1.5"/>
+          <path d="M104 48V23A25 25 0 1 1 79 48Z" fill="#f5b041" stroke="#14407f" stroke-width="1.5"/>
+          <path d="M104 48H129" stroke="#14407f" stroke-width="1.5"/>
+          <path d="M138 47H150" stroke="#1c2430" stroke-width="1.2"/>
+          <circle cx="196" cy="48" r="27" fill="#fff" stroke="#e67e22" stroke-width="4.5"/>
+          <path d="M196 48V27M196 48L210 56" stroke="#1c2430" stroke-width="2.2"/>
+          <path d="M238 84V16M238 84H308" stroke="#33445a" stroke-width="1.1"/>
+          <g fill="#e67e22" stroke="none"><rect x="245" y="54" width="11" height="30"/><rect x="262" y="36" width="11" height="48"/><rect x="279" y="62" width="11" height="22"/><rect x="296" y="28" width="11" height="56"/></g>
+          <path d="M322 30Q338 12 360 18T392 24Q402 44 390 64T352 78Q326 80 322 60T322 30Z" fill="#e8f3e4" stroke="#2e8b57" stroke-width="1.3"/>
+          <path d="M334 60Q350 40 362 50T384 32" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="3 3"/>
+          <path d="M325 92H357" stroke="#1c2430" stroke-width="2.4"/><path d="M341 92H357" stroke="#fff" stroke-width="1.1"/>
+          <path d="M402 26L405 16L408 26Z" fill="#c0392b" stroke="none"/><path d="M402 26L405 36L408 26Z" fill="#9aa6b2" stroke="none"/>
+          <path d="M418 74H466M418 69V79M466 69V79" stroke="#1c2430" stroke-width="1.3"/>
+          <path d="M444 70V78" stroke="#c0392b" stroke-width="1.5"/>
+          <g stroke="none"><rect x="418" y="46" width="18" height="9" rx="2" fill="#1f5fbf"/><rect x="421" y="41" width="10" height="6" rx="2" fill="#1f5fbf"/><circle cx="422" cy="57" r="2.6" fill="#1c2430"/><circle cx="432" cy="57" r="2.6" fill="#1c2430"/>
+          <rect x="448" y="46" width="18" height="9" rx="2" fill="#e67e22"/><rect x="453" y="41" width="10" height="6" rx="2" fill="#e67e22"/><circle cx="452" cy="57" r="2.6" fill="#1c2430"/><circle cx="462" cy="57" r="2.6" fill="#1c2430"/></g>
+          <path d="M427 34H438M457 34H446" stroke="#c0392b" stroke-width="1.4"/>
+          <path d="M435 31L440 34L435 37M449 31L444 34L449 37" stroke="#c0392b" stroke-width="1.4"/>
+        </g>
+        <g font-family="Segoe UI, sans-serif" fill="#1c2430" text-anchor="middle">
+          <text x="144" y="43" font-size="12">3</text><text x="144" y="61" font-size="12">4</text>
+          <g font-size="8.5" fill="#33445a"><text x="196" y="30">12</text><text x="216" y="51">3</text><text x="196" y="72">6</text><text x="176" y="51">9</text></g>
+          <text x="405" y="13" font-size="8" font-weight="700">B</text>
+          <text x="341" y="102" font-size="7.5" fill="#33445a">1 : 100 000</text>
+          <g font-family="Cambria Math, Cambria, serif" font-style="italic" font-size="10.5"><text x="418" y="90">A</text><text x="466" y="90">B</text><text x="444" y="90" fill="#c0392b">C</text></g>
+        </g>
+        <g font-family="Segoe UI, sans-serif" font-size="9.5" fill="#6b7785" text-anchor="middle"><text x="36" y="109">Đặt tính</text><text x="118" y="109">Phân số</text><text x="196" y="109">Xem đồng hồ</text><text x="272" y="109">Biểu đồ cột</text><text x="362" y="112">Bản đồ, tỉ lệ</text><text x="442" y="109">Chuyển động</text></g>
+      </svg>
+      <ul class="cv-f up">
+        <li>457 + 238 = 695</li>
+        <li><span class="fr"><span>3</span><span>4</span></span> &gt; <span class="fr"><span>2</span><span>3</span></span> &nbsp;·&nbsp; 2<span class="fr"><span>1</span><span>3</span></span></li>
+        <li>1 giờ 15 phút = 75 phút</li>
+        <li>v = s : t</li>
+      </ul>
+      </div>
     </section>
+
     <section class="cv-sec cv-c">
-      <div class="cv-h"><span class="n">3</span><b>Khoa học tự nhiên</b><em>Vật lí · Hoá học · Sinh học · bản đồ, toán ứng dụng</em></div>
-    <svg class="cv-art" viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs><marker id="cvb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#c0392b"/></marker></defs>
-      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <!-- Vật lí: mạch điện -->
-        <path d="M12 20H44M54 20H92V84H12V20" stroke="#1c2430" stroke-width="1.6"/>
-        <path d="M44 10V30M54 14V26" stroke="#1c2430" stroke-width="2.2"/>
-        <circle cx="92" cy="52" r="10" fill="#fff" stroke="#1c2430" stroke-width="1.6"/>
-        <path d="M85 45L99 59M99 45L85 59" stroke="#e67e22" stroke-width="1.6"/>
-        <rect x="30" y="78" width="28" height="12" fill="#fff" stroke="#1c2430" stroke-width="1.6"/>
-        <!-- Hoá học: vòng benzen -->
-        <path d="M150 14L176 29V59L150 74L124 59V29Z" stroke="#14407f" stroke-width="1.8"/>
-        <circle cx="150" cy="44" r="17" stroke="#14407f" stroke-width="1.4"/>
-        <!-- Sinh học: chuỗi xoắn kép ADN -->
-        <path d="M212 14C232 14 232 44 252 44S272 74 292 74" stroke="#2e8b57" stroke-width="2"/>
-        <path d="M212 74C232 74 232 44 252 44S272 14 292 14" stroke="#8e44ad" stroke-width="2"/>
-        <g stroke="#9aa6b2" stroke-width="1.3"><path d="M220 18V70M230 26V62M274 26V62M284 18V70"/></g>
-        <!-- Bản đồ: đường đi, la bàn, tỉ lệ -->
-        <path d="M322 30Q340 10 368 18T408 24Q420 44 404 66T356 80Q324 82 320 60T322 30Z" fill="#e8f3e4" stroke="#2e8b57" stroke-width="1.4"/>
-        <path d="M336 62Q356 40 372 50T398 32" stroke="#c0392b" stroke-width="1.4" stroke-dasharray="4 3"/>
-        <circle cx="336" cy="62" r="2.6" fill="#14407f" stroke="none"/><circle cx="398" cy="32" r="2.6" fill="#14407f" stroke="none"/>
-        <path d="M426 30L430 18L434 30Z" fill="#c0392b" stroke="none"/><path d="M426 30L430 42L434 30Z" fill="#9aa6b2" stroke="none"/>
-        <path d="M330 92H370" stroke="#1c2430" stroke-width="2.4"/><path d="M350 92H370" stroke="#fff" stroke-width="1.2"/>
-        <!-- Toán chuyển động: hai xe ngược chiều -->
-        <path d="M460 70H552" stroke="#1c2430" stroke-width="1.4"/>
-        <path d="M460 64V76M552 64V76" stroke="#1c2430" stroke-width="1.4"/>
-        <path d="M506 66V74" stroke="#c0392b" stroke-width="1.6"/>
-        <rect x="462" y="40" width="22" height="11" rx="2" fill="#1f5fbf" stroke="none"/><rect x="466" y="34" width="12" height="7" rx="2" fill="#1f5fbf" stroke="none"/>
-        <circle cx="467" cy="53" r="3" fill="#1c2430" stroke="none"/><circle cx="480" cy="53" r="3" fill="#1c2430" stroke="none"/>
-        <rect x="528" y="40" width="22" height="11" rx="2" fill="#e67e22" stroke="none"/><rect x="534" y="34" width="12" height="7" rx="2" fill="#e67e22" stroke="none"/>
-        <circle cx="532" cy="53" r="3" fill="#1c2430" stroke="none"/><circle cx="545" cy="53" r="3" fill="#1c2430" stroke="none"/>
-        <path d="M488 45H500" stroke="#c0392b" stroke-width="1.6" marker-end="url(#cvb)"/><path d="M524 45H512" stroke="#c0392b" stroke-width="1.6" marker-end="url(#cvb)"/>
-      </g>
-      <g font-family="Segoe UI, sans-serif" fill="#1c2430">
-        <text x="46" y="44" font-size="10" text-anchor="middle">+  −</text>
-        <text x="430" y="15" font-size="9" text-anchor="middle" font-weight="700">B</text>
-        <text x="350" y="104" font-size="8" text-anchor="middle" fill="#33445a">1 : 100 000</text>
-        <g font-family="Cambria Math, Cambria, serif" font-style="italic" font-size="12" text-anchor="middle">
-          <text x="460" y="88">A</text><text x="552" y="88">B</text><text x="506" y="88" fill="#c0392b">C</text>
-          <text x="494" y="30" font-size="10">v₁</text><text x="518" y="30" font-size="10">v₂</text>
+      <div class="cv-h"><span class="n">3</span><b>Khoa học tự nhiên</b><em>Vật lí · Hoá học · Sinh học</em></div>
+      <div class="cv-body">
+      <svg class="cv-art" viewBox="0 0 470 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs><marker id="cvr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#c0392b"/></marker><marker id="cvu" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#1f5fbf"/></marker></defs>
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22H40M48 22H82V82H12V22" stroke="#1c2430" stroke-width="1.5"/>
+          <path d="M40 12V32M48 16V28" stroke="#1c2430" stroke-width="2.2"/>
+          <circle cx="82" cy="52" r="9" fill="#fff8d6" stroke="#1c2430" stroke-width="1.5"/>
+          <path d="M76 46L88 58M88 46L76 58" stroke="#e67e22" stroke-width="1.5"/>
+          <rect x="34" y="76" width="26" height="12" fill="#fff" stroke="#1c2430" stroke-width="1.5"/>
+          <path d="M100 86H186V30Z" fill="#eef2f6" stroke="#1c2430" stroke-width="1.5"/>
+          <rect x="132" y="45" width="24" height="14" fill="#1f5fbf" stroke="none" transform="rotate(-33 144 52)"/>
+          <path d="M139 50V80" stroke="#c0392b" stroke-width="1.6" marker-end="url(#cvr)"/>
+          <path d="M139 50L125 28" stroke="#1f5fbf" stroke-width="1.6" marker-end="url(#cvu)"/>
+          <path d="M116 86A16 16 0 0 0 114 77" stroke="#1c2430" stroke-width="1.2"/>
+          <path d="M215 66L205 86H245L235 66" fill="#cfe6fb" stroke="none"/>
+          <path d="M218 14H232M220 14V40L198 86H252L230 40V14" stroke="#14407f" stroke-width="1.6"/>
+          <circle cx="222" cy="76" r="2" fill="#fff" stroke="#14407f" stroke-width=".8"/><circle cx="230" cy="70" r="1.6" fill="#fff" stroke="#14407f" stroke-width=".8"/>
+          <path d="M276 34L290 42V58L276 66L262 58V42Z" stroke="#14407f" stroke-width="1.5"/>
+          <circle cx="276" cy="50" r="9" stroke="#14407f" stroke-width="1.2"/>
+          <path d="M306 14C324 14 324 48 342 48S360 82 378 82" stroke="#2e8b57" stroke-width="2"/>
+          <path d="M306 82C324 82 324 48 342 48S360 14 378 14" stroke="#8e44ad" stroke-width="2"/>
+          <g stroke="#9aa6b2" stroke-width="1.2"><path d="M313 17V79M322 26V70M362 26V70M371 17V79"/></g>
+          <rect x="400" y="26" width="30" height="30" fill="#d5efdc" stroke="none"/><rect x="430" y="26" width="30" height="30" fill="#d5efdc" stroke="none"/><rect x="400" y="56" width="30" height="30" fill="#d5efdc" stroke="none"/>
+          <path d="M430 26V86M400 56H460" stroke="#1c2430" stroke-width="1.1"/>
+          <rect x="400" y="26" width="60" height="60" stroke="#1c2430" stroke-width="1.3"/>
         </g>
-        <g font-size="10.5" fill="#6b7785" text-anchor="middle"><text x="52" y="114">Vật lí</text><text x="150" y="114">Hoá học</text><text x="252" y="114">Sinh học</text><text x="375" y="114">Bản đồ</text><text x="506" y="114">Toán chuyển động</text></g>
-      </g>
-    </svg>
+        <g font-family="Cambria Math, Cambria, serif" font-style="italic" fill="#1c2430" text-anchor="middle">
+          <text x="44" y="42" font-size="8.5" font-style="normal">+ −</text>
+          <text x="148" y="90" font-size="11" fill="#c0392b">P</text><text x="120" y="26" font-size="11" fill="#1f5fbf">N</text><text x="125" y="83" font-size="10">α</text>
+          <g font-size="11"><text x="415" y="20">A</text><text x="445" y="20">a</text><text x="392" y="45">A</text><text x="392" y="75">a</text>
+          <text x="415" y="45">AA</text><text x="445" y="45">Aa</text><text x="415" y="75">Aa</text><text x="445" y="75">aa</text></g>
+        </g>
+        <g font-family="Segoe UI, sans-serif" font-size="9.5" fill="#6b7785" text-anchor="middle"><text x="47" y="109">Mạch điện</text><text x="143" y="109">Phân tích lực</text><text x="246" y="109">Hoá học</text><text x="342" y="109">Cấu trúc ADN</text><text x="430" y="109">Sơ đồ lai</text></g>
+      </svg>
+      <ul class="cv-f">
+        <li><i>F = ma, &nbsp;U = IR</i></li>
+        <li class="up">2H<sub>2</sub> + O<sub>2</sub> <span class="arr"><small>t°</small>→</span> 2H<sub>2</sub>O</li>
+        <li class="up">pH = −lg[H<sup>+</sup>], &nbsp;Fe<sup>3+</sup></li>
+        <li><i>AaBb × aabb</i></li>
+      </ul>
+      </div>
     </section>
     </div>
-    <div class="cv-desc">Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí, Hoá học, Sinh học cho chương trình giáo dục phổ thông Việt Nam, từ lớp 1 đến lớp 12. Dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
-    <div class="cv-subj">
-      <div><b>Toán học</b><i><span class="up">Δ</span> = b<sup>2</sup> − 4ac</i></div>
-      <div><b>Vật lí</b><i>F = ma</i></div>
-      <div><b>Hoá học</b><i class="up">2H<sub>2</sub> + O<sub>2</sub> → 2H<sub>2</sub>O</i></div>
-      <div><b>Sinh học</b><i>AaBb × aabb</i></div>
-      <div><b>Tiểu học</b><i class="up">457 + 238 = 695</i></div>
+
+    <div class="cv-plus">
+      <div class="cv-plus-h">Có sẵn trong ToanViet, MathType không làm được</div>
+      <div class="cv-plus-g">
+        <figure>
+          <svg viewBox="0 0 200 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="#33445a" stroke-width="1"><rect x="1" y="1" width="198" height="90"/><path d="M30 1V91M1 21H199M1 41H199"/></g>
+            <g font-family="Cambria Math, Cambria, serif" font-size="11" fill="#1c2430" text-anchor="middle">
+              <text x="15" y="15" font-style="italic">x</text><text x="15" y="35" font-style="italic">y′</text><text x="15" y="70" font-style="italic">y</text>
+              <text x="45" y="15">−∞</text><text x="90" y="15">−1</text><text x="140" y="15">1</text><text x="184" y="15">+∞</text>
+              <text x="66" y="35">+</text><text x="90" y="35">0</text><text x="115" y="35">−</text><text x="140" y="35">0</text><text x="163" y="35">+</text>
+              <text x="90" y="54">2</text><text x="140" y="87">−2</text><text x="45" y="87">−∞</text><text x="184" y="54">+∞</text>
+            </g>
+            <g stroke="#1f5fbf" stroke-width="1.3" fill="none"><path d="M54 80L82 56M98 56L131 80M149 80L176 56"/><path d="M77 56L82 56L81 61M126 79L131 80L130 75M171 56L176 56L175 61"/></g>
+          </svg>
+          <figcaption>Bảng biến thiên</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g fill="none" stroke="#33445a" stroke-width="1"><rect x="1" y="16" width="198" height="60"/><path d="M38 16V76M1 46H199"/><path d="M90 46V76M140 46V76" stroke-dasharray="3 2"/></g>
+            <g font-family="Cambria Math, Cambria, serif" font-size="11" fill="#1c2430" text-anchor="middle">
+              <text x="19" y="35" font-style="italic">x</text><text x="19" y="65" font-style="italic">f(x)</text>
+              <text x="52" y="35">−∞</text><text x="90" y="35">1</text><text x="140" y="35">3</text><text x="184" y="35">+∞</text>
+              <text x="66" y="65">+</text><text x="90" y="65">0</text><text x="115" y="65" fill="#c0392b">−</text><text x="140" y="65">0</text><text x="163" y="65">+</text>
+            </g>
+          </svg>
+          <figcaption>Bảng xét dấu</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <g font-family="Segoe UI, sans-serif" font-size="14" fill="#1c2430" text-anchor="middle">
+              <text x="62" y="22">6</text><text x="76" y="22">7</text><text x="90" y="22">2</text><text x="116" y="22">4</text>
+              <text x="62" y="42">2</text><text x="76" y="42">7</text>
+              <text x="76" y="62">3</text><text x="90" y="62">2</text>
+              <text x="90" y="82">0</text>
+              <g fill="#c0392b"><text x="116" y="44">1</text><text x="130" y="44">6</text><text x="144" y="44">8</text></g>
+            </g>
+            <path d="M102 6V86M102 28H154" stroke="#1c2430" stroke-width="1.3" fill="none"/>
+          </svg>
+          <figcaption>Đặt tính chia kiểu Việt Nam</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 200 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs><pattern id="cvh" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V5" stroke="#9aa6b2" stroke-width="1.4"/></pattern></defs>
+            <rect x="10" y="40" width="50" height="10" fill="url(#cvh)"/><rect x="140" y="40" width="44" height="10" fill="url(#cvh)"/>
+            <path d="M8 50H190" stroke="#1c2430" stroke-width="1.3"/><path d="M186 46L193 50L186 54Z" fill="#1c2430"/>
+            <path d="M80 46V54" stroke="#1c2430" stroke-width="1.2"/>
+            <g fill="none" stroke="#c0392b" stroke-width="2"><path d="M64 40H60V60H64"/><path d="M136 40Q141 50 136 60"/></g>
+            <g font-family="Cambria Math, Cambria, serif" font-size="11.5" fill="#1c2430" text-anchor="middle"><text x="60" y="74">−1</text><text x="80" y="74">0</text><text x="140" y="74">3</text></g>
+          </svg>
+          <figcaption>Tập hợp [−1; 3) trên trục số</figcaption>
+        </figure>
+      </div>
     </div>
   </div>
   <div class="cv-foot">
