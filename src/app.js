@@ -198,7 +198,7 @@
       case 'graph': return { w: 360, h: 330, funcs: 'x^3 - 3x', xmin: '-4', xmax: '4', ymin: '-4', ymax: '4', xstep: '1', ystep: '1', grid: true, ticks: true, legend: true, proj: true, points: '', guides: '', shadeA: '', shadeB: '', stroke: 1.8 };
       case 'bbt': return { w: 520, h: 170, expr: 'x^3 - 3x', a: '', b: '', xrow: '', drow: '', frow: '', lx: 'x', ld: "y'", lf: 'y' };
       case 'sign': return { type: 'bbt', signOnly: true, w: 480, h: 76, expr: '(x-1)(x+2)/(x-3)', a: '', b: '', xrow: '', drow: '', frow: '', lx: 'x', ld: 'f(x)', lf: '' };
-      case 'region': return { w: 360, h: 360, ineqs: 'x + y <= 4\nx - 2y <= 2\nx >= 0\ny >= 0', style: 'hatch', vertices: true, lineNames: true, xmin: '-2', xmax: '6', ymin: '-2', ymax: '6', xstep: '1', ystep: '1', grid: true, ticks: true };
+      case 'region': return { w: 360, h: 360, ineqs: 'x + y <= 4\nx - 2y <= 2\nx >= 0\ny >= 0', style: 'hatch', vertices: true, lineNames: true, xmin: '-2', xmax: '6', ymin: '-2', ymax: '6', xstep: '1', ystep: '1', grid: false, ticks: true };
       case 'solid': return Object.assign({ kind, w: 300, h: 300, a: 4, b: 4, ch: 4, yaw: -18, pitch: 20, labels: true, fill: false, stroke: 1.5, color: '#111111', points: '', segs: '' }, SOLID_DEFAULTS[kind]);
       case 'sym': return Object.assign({ kind, label: '', data: 'ud ud u u u', inner: true, stroke: 1.5, color: '#111111' }, SGK.sizeOf(kind));
       case 'space': return Object.assign({ kind, w: 360, h: 300, script: Space.scriptOf(kind), labels: true, dots: false, stroke: 1.5, color: '#111111', lcolor: '#1a6fc4', yaw: 20, pitch: 20 }, Space.viewOf(kind));

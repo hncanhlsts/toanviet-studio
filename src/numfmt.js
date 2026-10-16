@@ -61,7 +61,8 @@
   }
 
   function plain(v) {
-    return (Math.round(v * 1000) / 1000).toString().replace('.', ',');
+    // số trên trục toạ độ: dấu trừ thật (−), không dùng dấu gạch nối, như sách
+    return (Math.round(v * 1000) / 1000).toString().replace('.', ',').replace('-', '−');
   }
   root.NumFmt = { toTex, plain, asFraction };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -162,7 +162,8 @@
     for (let i = 0; i < n - 1; i++) {
       if (signs[i].toLowerCase() === 'x') parts.push(`<rect x="${r1(cx(i))}" y="${h1}" width="${r1(cx(i + 1) - cx(i))}" height="${h - h1}" fill="url(#${id})"/>`);
     }
-    parts.push(`<rect x="0.6" y="0.6" width="${w - 1.2}" height="${h - 1.2}" fill="none" stroke="#222" stroke-width="1.2"/>`);
+    // SGK Kết nối tri thức: bảng biến thiên để mở (không khung ngoài), bảng xét dấu có khung
+    if (!hasF) parts.push(`<rect x="0.6" y="0.6" width="${w - 1.2}" height="${h - 1.2}" fill="none" stroke="#222" stroke-width="1.2"/>`);
     parts.push(`<path d="M0,${h1}H${w}${hasF ? `M0,${fTop}H${w}` : ''}M${LW},0V${h}" stroke="#222" stroke-width="1.2" fill="none"/>`);
     labels.push({ x: LW / 2, y: h1 / 2, tex: o.lx || 'x', size: 16 });
     labels.push({ x: LW / 2, y: h1 + h2 / 2, tex: o.ld || "f'(x)", size: 16 });

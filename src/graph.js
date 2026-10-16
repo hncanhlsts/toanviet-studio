@@ -192,8 +192,8 @@
       ineqs.forEach((q, i) => {
         if (q.eq) return;
         const ang = [45, -45, 0, 90, 20, -20][i % 6];
-        const col = COLORS[i % COLORS.length];
-        defs += `<pattern id="ht${o.id}_${i}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(${ang})"><line x1="0" y1="0" x2="0" y2="9" stroke="${col}" stroke-width="0.9" stroke-opacity="0.75"/></pattern>`;
+        const col = '#8c8c8c'; // SGK: phần bị gạch bỏ dùng nét xám, mỗi bất phương trình một hướng gạch
+        defs += `<pattern id="ht${o.id}_${i}" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(${ang})"><line x1="0" y1="0" x2="0" y2="9" stroke="${col}" stroke-width="0.8" stroke-opacity="0.8"/></pattern>`;
         const bad = clipPoly(box, -q.a, -q.b, -q.c);
         if (bad.length > 2) parts.push(`<polygon points="${toPts(bad)}" fill="url(#ht${o.id}_${i})" stroke="none"/>`);
       });
@@ -202,7 +202,7 @@
       parts.push(`<polygon points="${toPts(feas)}" fill="#5dade2" fill-opacity="0.38" stroke="none"/>`);
     }
     ineqs.forEach((q, i) => {
-      const col = COLORS[i % COLORS.length];
+      const col = hatchMode ? '#d63031' : COLORS[i % COLORS.length]; // SGK: bờ miền nghiệm màu đỏ
       let p1, p2;
       if (Math.abs(q.b) >= Math.abs(q.a)) {
         p1 = [fr.xmin, -(q.a * fr.xmin + q.c) / q.b]; p2 = [fr.xmax, -(q.a * fr.xmax + q.c) / q.b];
