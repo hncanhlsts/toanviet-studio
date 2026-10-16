@@ -608,6 +608,30 @@ ipcMain.handle('test-shot', async (e, file) => {
   fs.writeFileSync(String(file), img.toPNG());
   return true;
 });
+// kiểm thử giao diện: gõ phím thật (sự kiện tin cậy) — chỉ khi chạy ở chế độ kiểm thử.
+// Mỗi mục: chuỗi ký tự để gõ, hoặc { key: 'Tab' | 'Enter' | 'F' ..., mods: ['control', 'shift'] }
+ipcMain.handle('test-keys', async (e, seq) => {
+  if (!shotArg) return false;
+  const wc = e.sender, pause = () => new Promise((r) => setTimeout(r, 25));
+  for (const it of seq) {
+    if (typeof it === 'string') {
+      for (const ch of it) {
+        const kc = ch === ' ' ? 'Space' : ch;
+        wc.sendInputEvent({ type: 'keyDown', keyCode: kc });
+        wc.sendInputEvent({ type: 'char', keyCode: ch });
+        wc.sendInputEvent({ type: 'keyUp', keyCode: kc });
+        await pause();
+      }
+    } else {
+      const modifiers = it.mods || [];
+      wc.sendInputEvent({ type: 'keyDown', keyCode: it.key, modifiers });
+      if (it.char) wc.sendInputEvent({ type: 'char', keyCode: it.char, modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: it.key, modifiers });
+      await pause();
+    }
+  }
+  return true;
+});
 ipcMain.handle('renderBatch', async (e, ids) => {
   const scale = 4, wc = e.sender, dbg = wc.debugger;
   capture.keep = true;

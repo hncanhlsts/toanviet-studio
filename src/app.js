@@ -260,7 +260,9 @@
   $('#fMathBox').append(mf);
   mf.mathVirtualKeyboardPolicy = 'manual';
   mf.macros = Object.assign({}, mf.macros, { dongdang: SIM_TEX });
-  mf.inlineShortcuts = Object.assign({}, mf.inlineShortcuts, { dongdang: '\\dongdang' });
+  // <=> ra ⇔ như sách (MathLive mặc định ra mũi tên dài ⟺ kèm khoảng trắng)
+  mf.inlineShortcuts = Object.assign({}, mf.inlineShortcuts, { dongdang: '\\dongdang', '<=>': '\\Leftrightarrow', '=>': '\\Rightarrow' });
+  let lastSlash = 0;
   // Phím cách trong ô toán chèn một khoảng rộng 0 (\kern0pt) để ngắt nhóm chữ số: gõ "2 1/3" ra hỗn số liền như sách
   // (không gộp 21 làm tử số, không có khoảng trống thừa), gõ "1 000" ra số tách lớp.
   // Khi lấy giá trị: giữa hai chữ số thành \, (tách lớp), các chỗ khác bỏ đi.
@@ -270,7 +272,9 @@
   // MathLive viết gọn \frac12, \sqrt2: viết lại đủ ngoặc cho dễ đọc ở ô LaTeX và cho các bộ chuyển (MathType, Equation)
   const braceFix = (v) => v.replace(/\\(dfrac|tfrac|frac|binom)(\d)(\d)/g, '\\$1{$2}{$3}').replace(/\\(dfrac|tfrac|frac|binom)(\d)(?=\{)/g, '\\$1{$2}')
     .replace(/(\\(?:dfrac|tfrac|frac|binom)\{[^{}]*\})(\d)/g, '$1{$2}').replace(/\\sqrt(\d)/g, '\\sqrt{$1}');
-  const mfVal = () => braceFix(spaceFix(collapseSim(mf.getValue('latex-expanded')))).trim();
+  // chữ thường đứng ngay trước chữ có dấu (gõ "và" trong ô toán: v rồi tự chuyển sang chữ) gộp vào \text{…}: v\text{à} → \text{và}
+  const textJoin = (v) => v.replace(/([A-Za-z]+)\\text\{(?=[À-ỹđĐ])/g, '\\text{$1');
+  const mfVal = () => textJoin(braceFix(spaceFix(collapseSim(mf.getValue('latex-expanded'))))).trim();
   const fxValue = () => (fMode === 'v' ? mfVal() : collapseSim(fTex.value).trim());
   const syncTex = () => { fTex.value = mfVal(); previewF(); };
 
@@ -307,10 +311,36 @@
     previewF();
   }
   function setPfx(p) { pfx = p; $('#fPfx').textContent = p ? 'Ctrl+' + p.toUpperCase() + ': gõ tiếp một phím' + (p === 'g' ? ' chữ cái để ra chữ Hy Lạp' : '') + '…' : ''; }
-  mf.addEventListener('input', syncTex);
+  // chữ có dấu tiếng Việt vừa vào ô toán (gõ trực tiếp hoặc qua Unikey / telex): đổi sang chữ đứng trong \text{…}
+  // rồi để ô soạn ở chế độ gõ chữ cho các chữ tiếp theo
+  // (làm sau sự kiện, một lần: MathLive phát sự kiện input lồng nhau khi xoá / chèn, xử lý ngay sẽ lặp vô tận)
+  let viFix = false;
+  mf.addEventListener('input', (e) => {
+    syncTex();
+    if (viFix || mf.mode !== 'math' || !e || e.inputType !== 'insertText') return;
+    const at = (i) => { try { return mf.getValue(i - 1, i, 'latex').trim(); } catch (err) { return ''; } };
+    const p = mf.position, d = at(p);
+    if (d.length !== 1 || !/[À-ỹđĐ]/.test(d)) return;
+    // lấy cả các chữ cái Latin liền trước (vd "v" trong "và") để cả từ nằm trong một \text{…}
+    let i = p - 1, word = d;
+    while (i > 0 && /^[A-Za-z]$/.test(at(i))) { word = at(i) + word; i--; }
+    viFix = true;
+    setTimeout(() => {
+      try {
+        for (let k = 0; k < word.length; k++) mf.executeCommand('deleteBackward');
+        mf.executeCommand(['switchMode', 'text']);
+        mf.insert(word, { mode: 'text' });
+      } finally { viFix = false; }
+      syncTM(); syncTex();
+      $('#fPfx').textContent = 'Đã chuyển sang gõ chữ (Abc Chữ). Bấm Ctrl+Shift+E hoặc nút ∑ Toán để gõ toán tiếp.';
+    }, 0);
+  });
   mf.addEventListener('mode-change', () => setTimeout(syncTM, 0));
   mf.addEventListener('selection-change', syncTM);
-  mf.addEventListener('keydown', (e) => {
+  // Bắt phím ở tầng cửa sổ (pha bắt sự kiện), trước khi MathLive nhận: MathLive xử lý phím thật trước mọi bộ xử lý gắn trên
+  // ô công thức, nên Tab (đẩy focus ra ngoài), Esc (chuyển sang mã LaTeX thô)… phải chặn từ đây mới có tác dụng.
+  window.addEventListener('keydown', (e) => {
+    if (!dlg.open || !e.composedPath().includes(mf)) return;
     const stop = () => { e.preventDefault(); e.stopPropagation(); };
     if (pfx && !e.ctrlKey && !e.metaKey && !e.altKey) {
       if (e.key === 'Shift') return;
@@ -319,14 +349,30 @@
       if (t) fIns(t);
       return;
     }
+    // gõ hai dấu / liền nhau: ký hiệu song song ⫽ như sách (dấu / đầu đã tạo phân số: hoàn tác rồi thay)
+    if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && mf.mode === 'math') {
+      if (Date.now() - lastSlash < 1200) { stop(); lastSlash = 0; mf.executeCommand('undo'); mf.insert('⫽'); syncTex(); return; }
+      lastSlash = Date.now();
+    } else if (e.key.length === 1) lastSlash = 0;
+    // chữ có dấu tiếng Việt gõ trong ô toán: tự chuyển sang gõ chữ (chữ đứng, có dấu cách) và nhắc cách làm
+    if (e.key.length === 1 && /[À-ỹđĐ]/.test(e.key) && !/[α-ωΑ-Ω]/.test(e.key) && mf.mode === 'math' && !e.ctrlKey && !e.metaKey) {
+      mf.executeCommand(['switchMode', 'text']); syncTM();
+      $('#fPfx').textContent = 'Đã chuyển sang gõ chữ (Abc Chữ). Bấm Ctrl+Shift+E hoặc nút ∑ Toán để gõ toán tiếp.';
+    }
     // Esc: đóng hộp soạn (không để MathLive chuyển cả công thức sang dạng mã LaTeX thô — dễ làm hỏng công thức)
     if (e.key === 'Escape' && mf.mode !== 'latex') { stop(); closeFx(false); return; }
     // Tab: sang ô trống kế tiếp; hết ô trống thì ra khỏi phân số, căn, mũ… sang bên phải (không chọn bao cả nhóm)
     if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && mf.mode !== 'latex') {
       stop();
       const p0 = mf.position;
-      mf.executeCommand(e.shiftKey ? 'moveToPreviousPlaceholder' : 'moveToNextPlaceholder');
-      if (mf.position === p0) mf.executeCommand(e.shiftKey ? 'moveBeforeParent' : 'moveAfterParent');
+      // chỉ nhảy tới ô trống khi thật sự còn ô trống phía trước / phía sau: hết ô trống thì lệnh này của MathLive
+      // chuyển focus sang phần tử khác trên trang (con trỏ "biến mất", gõ tiếp không vào công thức)
+      let rest = '';
+      try { rest = e.shiftKey ? mf.getValue(0, p0, 'latex') : mf.getValue(p0, mf.lastOffset, 'latex'); } catch (err) { rest = ''; }
+      if (/\\placeholder/.test(rest)) mf.executeCommand(e.shiftKey ? 'moveToPreviousPlaceholder' : 'moveToNextPlaceholder');
+      // hết ô trống: đi theo từng ô như MathType — cuối tử số → mẫu số, cuối mẫu số / số mũ / căn → ra ngoài bên phải
+      // (Shift+Tab: đầu mẫu số → cuối tử số, đầu tử số → ra ngoài bên trái)
+      if (mf.position === p0) { mf.executeCommand(e.shiftKey ? 'moveToGroupStart' : 'moveToGroupEnd'); mf.executeCommand(e.shiftKey ? 'moveToPreviousChar' : 'moveToNextChar'); }
       if (mf.position === p0) mf.executeCommand(e.shiftKey ? 'moveToPreviousChar' : 'moveToNextChar');
       return;
     }
@@ -439,6 +485,8 @@
     showTab(fTab);
     syncF();
     setFMode('v');
+    // mở hộp mới luôn ở chế độ gõ toán (lần trước có thể dừng ở chế độ chữ)
+    if (mf.mode !== 'math') { try { mf.executeCommand(['switchMode', 'math']); } catch (e) { /* bỏ qua */ } syncTM(); }
   }
   function closeFx(ok) {
     if (!dlg.open) return;
