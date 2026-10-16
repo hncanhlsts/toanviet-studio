@@ -326,7 +326,9 @@
     const col = o.color || '#111111', L = o.layout || 'hai';
     const need = L === 'mot' ? 1 : L === 'ba' ? 3 : 2;
     const names = String(o.names || '').split(/[,;]/).map((t) => t.trim()).filter(Boolean);
-    while (names.length < need) names.push('ABC'[names.length]);
+    while (names.length < 3) names.push('ABC'[names.length]);
+    // tập đã đặt tên nhưng kiểu biểu đồ hiện tại không vẽ (vd đổi từ 3 tập sang 2 tập): coi là tập rỗng, không báo lỗi
+    const hiddenNames = names.slice(need);
     names.length = need;
     const uni = !!o.unv, R = { x: 4, y: 4, w: w - 8, h: h - 8 };
     const top = uni ? 10 : 0;
@@ -364,6 +366,7 @@
           const cand = names.map((n, k) => [n, k]).sort((p, q) => q[0].length - p[0].length);
           for (const [n, k] of cand) if (s.startsWith(n, i)) { i += n.length; return (m) => !!(m & (1 << k)); }
           for (const u of UN) if (s.startsWith(u, i)) { i += u.length; return () => true; }
+          for (const n of hiddenNames.slice().sort((p, q) => q.length - p.length)) if (s.startsWith(n, i)) { i += n.length; return () => false; }
           throw new Error('Không hiểu: ' + s.slice(i));
         };
         shadeF = ex(); ws();
@@ -408,8 +411,10 @@
       toks.forEach((t) => {
         const j = names.indexOf(t);
         if (j >= 0) { m |= 1 << j; return; }
-        for (const ch of t) { const q = names.indexOf(ch); if (q < 0) throw new Error('Không có tập ' + t); m |= 1 << q; }
+        if (hiddenNames.includes(t)) { m = -1; return; }
+        for (const ch of t) { const q = names.indexOf(ch); if (q < 0) { if (hiddenNames.includes(ch)) { m = -1; return; } throw new Error('Không có tập ' + t); } if (m >= 0) m |= 1 << q; }
       });
+      if (m < 0) return -1; // dòng của tập đang ẩn: bỏ qua
       if (L === 'con' && m & 2) m |= 1; // B ⊂ A
       return m;
     };
@@ -420,7 +425,8 @@
         const ci = line.indexOf(':');
         if (ci < 0) throw new Error('Viết dạng  A: 1; 2; 3');
         const m = keyMask(line.slice(0, ci));
-        if (!best[m]) throw new Error('Vùng "' + line.slice(0, ci).trim() + '" không có trong kiểu biểu đồ này');
+        if (m < 0) return;
+        if (!best[m]) throw new Error(L === 'roi' ? 'hai tập rời nhau không có phần tử chung, vùng "' + line.slice(0, ci).trim() + '" không vẽ được' : 'Vùng "' + line.slice(0, ci).trim() + '" không có trong kiểu biểu đồ này');
         const body = line.slice(ci + 1);
         const items = body.split(body.includes(';') ? ';' : ',').map((t) => t.trim()).filter(Boolean);
         if (!items.length) return;

@@ -234,19 +234,19 @@
   // Cỡ chữ hiển thị theo point như Word (12 pt = 16 px trên trang)
   const toPt = (px) => Math.round(px * 0.75 * 2) / 2, toPx = (pt) => pt / 0.75;
   // Phím tắt kiểu MathType. Ctrl+G, Ctrl+T, Ctrl+K là phím mở đầu: bấm xong thả ra rồi gõ tiếp một phím.
-  const SC = { f: '\\frac{#@}{#?}', r: '\\sqrt{#?}', h: '#@^{#?}', l: '#@_{#?}', j: '#@_{#?}^{#?}', i: '\\int_{#?}^{#?}#?\\,\\mathrm{d}x', 9: '\\left(#?\\right)', 0: '\\left(#?\\right)', '[': '\\left[#?\\right]',
-    'shift+{': '\\left\\{#?\\right\\}', 'shift+i': '\\int#?\\,\\mathrm{d}x', 'shift+e': '\\text{#?}' };
+  const SC = { f: '\\frac{#@}{#?}', r: '\\sqrt{#?}', h: '#@^{#?}', l: '#@_{#?}', j: '#@_{#?}^{#?}', i: '\\int_{#?}^{#?}#?\\mathrm{d}x', 9: '\\left(#?\\right)', 0: '\\left(#?\\right)', '[': '\\left[#?\\right]',
+    'shift+{': '\\left\\{#?\\right\\}', 'shift+i': '\\int#?\\mathrm{d}x', 'shift+e': '\\text{#?}' };
   const GREEK = { a: 'alpha', b: 'beta', g: 'gamma', d: 'delta', e: 'varepsilon', z: 'zeta', h: 'eta', q: 'theta', i: 'iota', k: 'kappa', l: 'lambda', m: 'mu', n: 'nu', x: 'xi', p: 'pi', r: 'rho', s: 'sigma', t: 'tau', u: 'upsilon', f: 'varphi', c: 'chi', y: 'psi', w: 'omega',
     D: 'Delta', G: 'Gamma', L: 'Lambda', S: 'Sigma', W: 'Omega', F: 'Phi', P: 'Pi', Q: 'Theta', Y: 'Psi', X: 'Xi' };
   const TPL = { n: '\\sqrt[#?]{#?}', s: '\\sum_{#?}^{#?}#?', p: '\\prod_{#?}^{#?}#?', l: '\\lim_{#?\\to#?}', '|': '\\left|#?\\right|', a: '\\widehat{#?}', c: '\\overarc{#?}', v: '\\overrightarrow{#?}', o: '\\overline{#?}', u: '\\underbrace{#?}_{#?}',
     h: '\\begin{cases}#?\\\\#?\\end{cases}', m: '\\begin{pmatrix}#?&#?\\\\#?&#?\\end{pmatrix}' };
-  const SYM = { i: '\\infty', a: '\\to', e: '\\in', t: '\\times', d: '\\partial', p: '\\perp', '.': '\\cdot', '<': '\\le', ',': '\\le', '>': '\\ge', '=': '\\ne', '/': '\\parallel', '+': '\\pm', r: '\\Rightarrow', l: '\\Leftrightarrow', o: '^{\\circ}', s: '\\dongdang' };
+  const SYM = { i: '\\infty', a: '\\to', e: '\\in', t: '\\times', d: '\\partial', p: '\\perp', '.': '\\cdot', '<': '\\le', ',': '\\le', '>': '\\ge', '=': '\\ne', '/': '⫽', '+': '\\pm', r: '\\Rightarrow', l: '\\Leftrightarrow', o: '^{\\circ}', s: '\\dongdang' };
   const FKEYS = [['Ctrl+F', 'Phân số'], ['Ctrl+R', 'Căn bậc hai'], ['Ctrl+H', 'Số mũ'], ['Ctrl+L', 'Chỉ số dưới'], ['Ctrl+J', 'Chỉ số trên và dưới'], ['Ctrl+I', 'Tích phân có cận'], ['Ctrl+Shift+I', 'Tích phân không cận'],
     ['Ctrl+9', 'Ngoặc tròn'], ['Ctrl+[', 'Ngoặc vuông'], ['Ctrl+Shift+{', 'Ngoặc nhọn'], ['Ctrl+Shift+E', 'Đổi qua lại giữa gõ toán và gõ chữ'], ['Enter', 'Thêm dòng mới ở cuối công thức'], ['Shift+Enter', 'Thêm hàng cho hệ phương trình, ma trận đang đứng'], ['Ctrl+Shift+Backspace', 'Xoá dòng đang đứng'], ['Ctrl+Enter', 'Chèn công thức'],
     ['Ctrl+T rồi N', 'Căn bậc n'], ['Ctrl+T rồi S', 'Tổng ∑'], ['Ctrl+T rồi P', 'Tích ∏'], ['Ctrl+T rồi L', 'Giới hạn'], ['Ctrl+T rồi |', 'Giá trị tuyệt đối'], ['Ctrl+T rồi A', 'Góc (dấu mũ rộng)'], ['Ctrl+T rồi C', 'Cung'],
     ['Ctrl+T rồi V', 'Vectơ'], ['Ctrl+T rồi O', 'Gạch trên'], ['Ctrl+T rồi U', 'Ngoặc ôm bên dưới kèm chú thích'], ['Ctrl+T rồi H', 'Hệ phương trình'], ['Ctrl+T rồi M', 'Ma trận 2×2'],
     ['Ctrl+G rồi chữ cái', 'Chữ Hy Lạp: a→α, b→β, d→δ, D→Δ, p→π, q→θ, w→ω, f→φ, l→λ…'],
-    ['Ctrl+K rồi I', '∞'], ['Ctrl+K rồi A', '→'], ['Ctrl+K rồi E', '∈'], ['Ctrl+K rồi T', '×'], ['Ctrl+K rồi .', 'Dấu nhân chấm'], ['Ctrl+K rồi <  >  =', '≤  ≥  ≠'], ['Ctrl+K rồi P  /', '⊥  ∥'], ['Ctrl+K rồi R  L', '⇒  ⇔'], ['Ctrl+K rồi O', 'Độ °'], ['Ctrl+K rồi S', 'Đồng dạng ∽'],
+    ['Ctrl+K rồi I', '∞'], ['Ctrl+K rồi A', '→'], ['Ctrl+K rồi E', '∈'], ['Ctrl+K rồi T', '×'], ['Ctrl+K rồi .', 'Dấu nhân chấm'], ['Ctrl+K rồi <  >  =', '≤  ≥  ≠'], ['Ctrl+K rồi P  /', '⊥ (vuông góc)  ⫽ (song song, như sách)'], ['Ctrl+K rồi R  L', '⇒  ⇔'], ['Ctrl+K rồi O', 'Độ °'], ['Ctrl+K rồi S', 'Đồng dạng ∽'],
     ['/  ^  _', 'Gõ thẳng: phân số, mũ, chỉ số'], ['\\tên rồi Tab', 'Ký hiệu theo tên LaTeX, ví dụ \\omega'], ['Tab, phím mũi tên', 'Sang ô trống kế tiếp, ra khỏi ô con']];
   $('#fKeyList').innerHTML = FKEYS.map((k) => '<kbd>' + esc(k[0]) + '</kbd><span>' + esc(k[1]) + '</span>').join('');
   const SCREV = new Map();
@@ -593,9 +593,12 @@
       wrap.appendChild(mk('label', '', label));
       let i;
       if (kind === 'area') { i = mk('textarea'); i.rows = (opt && opt.rows) || 3; i.spellcheck = false; }
-      else if (kind === 'sel') { i = mk('select'); for (const key in opt) { const op = mk('option', '', opt[key]); op.value = key; i.appendChild(op); } }
+      // __on là hàm chạy khi đổi lựa chọn, không phải một lựa chọn
+      else if (kind === 'sel') { i = mk('select'); for (const key in opt) { if (key === '__on' || typeof opt[key] !== 'string') continue; const op = mk('option', '', opt[key]); op.value = key; i.appendChild(op); } }
       else { i = mk('input'); i.type = kind === 'num' ? 'number' : kind === 'color' ? 'color' : 'text'; i.spellcheck = false; if (kind === 'num' && opt) i.step = opt; }
       i.value = o[k] === undefined ? '' : o[k];
+      // ô chọn chưa có giá trị (thuộc tính mới, tài liệu cũ): hiện lựa chọn mặc định đầu tiên thay vì để trống
+      if (kind === 'sel' && i.selectedIndex < 0 && i.options.length) i.selectedIndex = 0;
       i.dataset.k = k;
       const read = () => (kind === 'num' ? (i.value === '' ? 0 : parseFloat(i.value)) : i.value);
       if (kind === 'sel') i.onchange = () => { if (opt.__on) opt.__on(i.value); onEdit(k, i.value, true); commit(); };
@@ -889,6 +892,7 @@
       for (const k in TieuHoc.DT_KINDS) kinds[k] = TieuHoc.DT_KINDS[k][0];
       add(field('kind', 'Mẫu', 'sel', kinds));
       add(field('expr', 'Phép tính')).querySelector('input').addEventListener('change', () => buildProps());
+      try { const nt = TieuHoc.renderDatTinh(o).note; if (nt) help('<b>' + esc(nt) + '</b> (số chia là số thập phân: chuyển dấu phẩy như sách lớp 5).'); } catch (e) { /* phép tính chưa đúng: lỗi hiện ở dưới */ }
       help('Gõ <code>356 + 278</code> · <code>732 - 458</code> · <code>236 x 47</code> · <code>4536 : 12</code> · số thập phân dùng dấu phẩy: <code>45,08 + 24,9</code>. Phép cộng được nhiều số hạng: <code>125 + 348 + 207</code>.');
       if (/:|÷/.test(o.expr)) {
         add(field('kieuchia', 'Cách viết phép chia', 'sel', { day: 'Đầy đủ: ghi tích và dấu trừ ở từng bước (lớp 3)', gon: 'Viết gọn: chỉ ghi số dư (lớp 4, 5)' }));
@@ -934,8 +938,8 @@
       const kinds = { __on: (k) => { Object.keys(o).forEach((key) => { if (!/^(id|type|x|y|grp)$/.test(key)) delete o[key]; }); Object.assign(o, { kind: k, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[k][1]))); } };
       for (const k in MinhHoa.KINDS) kinds[k] = MinhHoa.KINDS[k][0];
       add(field('kind', 'Mẫu (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
-      (MinhHoa.FIELDS[o.ve] || []).forEach((f) => {
-        const el = add(field(f[0], f[1], f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: 4 } : f[3]));
+      (MinhHoa.FIELDS[o.ve] || []).filter((f) => MinhHoa.fieldUse(o, f[0])).forEach((f) => {
+        const el = add(field(f[0], MinhHoa.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: 4 } : f[3]));
         if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
       });
       if (MinhHoa.HELP[o.ve]) help(MinhHoa.HELP[o.ve]);
@@ -1237,6 +1241,7 @@
   // Dùng khi chụp ảnh minh hoạ: thêm đối tượng bằng lệnh
   window.__clear = () => loadDoc([], null);
   window.__add = (type, kind, extra) => { const o = insert(type, kind, extra); renderObj(o); return o.id; };
+  window.__get = (id) => get(id);
   window.__unselect = () => select(null);
   window.__run = (c) => run(c);
 

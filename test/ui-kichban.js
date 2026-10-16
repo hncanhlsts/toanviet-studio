@@ -193,6 +193,7 @@
     ok('sửa số liệu ở khung Thuộc tính, biểu đồ vẽ lại', /9/.test(document.querySelector('#page .obj.minhhoa').textContent));
     __clear();
     window.__run('mau'); await w(250);
+    ok('hộp Mẫu theo bài hiện lên', document.getElementById('maudlg').open);
     document.querySelector('#maudlg [data-lop="2"]').click(); await w(150);
     const row = [...document.querySelectorAll('#maudlg .maubai')].find((x) => /Bài 60/.test(x.textContent));
     row.querySelector('button').click(); await w(400);

@@ -601,6 +601,13 @@ ipcMain.handle('test-click', async (e, p) => {
   e.sender.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
   return true;
 });
+// kiểm thử giao diện: chụp cửa sổ đúng lúc kịch bản cần (chỉ khi chạy ở chế độ kiểm thử)
+ipcMain.handle('test-shot', async (e, file) => {
+  if (!shotArg) return false;
+  const img = await e.sender.capturePage();
+  fs.writeFileSync(String(file), img.toPNG());
+  return true;
+});
 ipcMain.handle('renderBatch', async (e, ids) => {
   const scale = 4, wc = e.sender, dbg = wc.debugger;
   capture.keep = true;

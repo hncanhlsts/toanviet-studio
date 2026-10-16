@@ -211,7 +211,6 @@
     if (P.op === '+' || P.op === '-') L = layoutAddSub(P.op, P.nums);
     else if (P.op === '×') L = layoutMul(P.nums);
     else L = layoutDiv(P.nums, o);
-    if (L.note) errors.push(L.note);
     const stepMode = typeof o._buoc === 'number';
     const mode = stepMode ? 'none' : o.an || 'none';
     // phần bị giấu
@@ -287,7 +286,7 @@
       H = base((blankRows ? 2 : L.rows) - 1) + size * 0.35 + pad + (blankRows ? rh * Math.max(0, L.rows - 2) : 0);
     }
     const buoc = Math.max(0, ...all.map((it) => it.s || 0));
-    return { svg: svg.join(''), labels: [], errors, w: Math.ceil(W), h: Math.ceil(H), buoc };
+    return { svg: svg.join(''), labels: [], errors, w: Math.ceil(W), h: Math.ceil(H), buoc, note: L.note || '' };
   }
 
   // ---------- Tính giá trị biểu thức tiểu học (để tự điền đáp án) ----------

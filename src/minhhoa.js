@@ -713,5 +713,24 @@ const FONT = 'Arial, Helvetica, sans-serif';
     can: 'Đĩa cân: các vật cách nhau bằng <code>;</code>. Viết <code>1 kg</code>, <code>500 g</code> để vẽ quả cân.',
   };
 
-  root.MinhHoa = { render, GROUPS, KINDS, FIELDS, HELP };
+  // ô nhập không dùng tới với lựa chọn hiện tại thì ẩn khỏi khung Thuộc tính (và đổi nhãn cho đúng nghĩa)
+  const SODO_USE = { tongti: ['m', 'n', 'tong', 'hoi1', 'hoi2'], hieuti: ['m', 'n', 'hieu', 'hoi1', 'hoi2'], tonghieu: ['tong', 'hieu', 'hoi1', 'hoi2'], gaplan: ['n', 'tong', 'hoi2'], giamdi: ['n', 'tong', 'hoi2'] };
+  function fieldUse(o, key) {
+    if (o.ve === 'sodo') {
+      if (['dang', 'tomtat', 'ten1', 'ten2'].includes(key)) return true;
+      return (SODO_USE[o.dang || 'tongti'] || []).includes(key);
+    }
+    if (o.ve === 'can') return key === 'kieu' || (o.kieu === 'dongho' ? ['max', 'so', 'vat', 'khongkim'] : ['trai', 'phai', 'lech']).includes(key);
+    if (o.ve === 'khaitrien') return !((o.loai === 'lapphuong' && (key === 'rong' || key === 'cao')) || (o.loai === 'tru' && (key === 'dai' || key === 'ghimat' || key === 'motmau')));
+    if (o.ve === 'dongho') return !(key === 'khongkim' && o.kieu === 'so');
+    if (o.ve === 'chuyendong') return !(key === 'gap' && o.chieu === 'cung');
+    return true;
+  }
+  const SODO_LABEL = {
+    gaplan: { n: 'Gấp lên mấy lần', tong: 'Ghi ở ngoặc đoạn trên (vd 5 bông)', hoi2: 'Ghi ở ngoặc đoạn dưới (vd ? bông)' },
+    giamdi: { n: 'Giảm đi mấy lần', tong: 'Ghi ở ngoặc đoạn trên (vd 36 l)', hoi2: 'Ghi ở ngoặc đoạn dưới (vd ? l)' },
+    tonghieu: { tong: 'Ghi ở ngoặc tổng (bên phải)', hieu: 'Ghi ở ngoặc hiệu (phần hơn)' },
+  };
+  const fieldLabel = (o, key, label) => (o.ve === 'sodo' && SODO_LABEL[o.dang] && SODO_LABEL[o.dang][key]) || label;
+  root.MinhHoa = { render, GROUPS, KINDS, FIELDS, HELP, fieldUse, fieldLabel };
 })(typeof window !== 'undefined' ? window : globalThis);

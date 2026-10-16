@@ -144,6 +144,7 @@
         });
       };
       draw();
+      d.showModal();
     }
     return { startPresent, stopPresent, openMau, isPresenting: () => !!P };
   };
