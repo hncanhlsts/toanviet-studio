@@ -13,7 +13,7 @@ m = rep(m, '// Chụp một đối tượng', `function showAbout() {
     type: 'info', title: 'Giới thiệu', buttons: ['Đóng'],
     message: 'ToanViet Studio ' + app.getVersion(),
     detail: 'Soạn công thức Toán, đồ thị, bảng biến thiên, miền nghiệm và hình không gian cho chương trình Toán phổ thông Việt Nam.\\n\\n' +
-      'Thiết kế bởi: Thầy Hoàng Ngọc Cảnh\\nGiáo viên trường THCS - THPT Đinh Thiện Lý\\nEmail: canhld@gmail.com\\n\\n© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.',
+      'Thiết kế bởi: Thầy Hoàng Ngọc Cảnh\\nGiáo viên trường THCS - THPT Đinh Thiện Lý\\nEmail: canhld@gmail.com\\n\\n© 2026 Hoàng Ngọc Cảnh. Phát hành theo giấy phép MIT.',
   });
 }
 ipcMain.on('about', showAbout);
@@ -44,10 +44,10 @@ fs.appendFileSync('src/styles.css', `
 const pk = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 pk.version = '1.4.0';
 pk.author = { name: 'Hoàng Ngọc Cảnh', email: 'canhld@gmail.com' };
-pk.license = 'UNLICENSED';
+pk.license = 'MIT';
 pk.build.copyright = '© 2026 Hoàng Ngọc Cảnh - Giáo viên trường THCS - THPT Đinh Thiện Lý';
 pk.build.nsis.license = 'build/license.txt';
 fs.writeFileSync('package.json', JSON.stringify(pk, null, 2));
 
-fs.writeFileSync('build/license.txt', '﻿TOANVIET STUDIO\r\n\r\nThiết kế bởi: Thầy Hoàng Ngọc Cảnh\r\nGiáo viên trường THCS - THPT Đinh Thiện Lý\r\nEmail: canhld@gmail.com\r\n\r\n© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.\r\n\r\nPhần mềm được cung cấp để phục vụ việc dạy và học Toán. Không sao chép, sửa đổi hay phân phối lại khi chưa có sự đồng ý của tác giả.\r\n\r\nPhần mềm có dùng các thư viện mã nguồn mở MathLive và Electron (giấy phép MIT).\r\n');
+// build/license.txt (giấy phép MIT) giữ nguyên, không ghi đè
 console.log('about patched');

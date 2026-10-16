@@ -4,8 +4,10 @@ Thiết kế bởi: Thầy Hoàng Ngọc Cảnh
 Giáo viên trường THCS - THPT Đinh Thiện Lý
 Email: canhld@gmail.com
 
-© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.
+© 2026 Hoàng Ngọc Cảnh. Phát hành theo giấy phép MIT.
 
-Phần mềm được cung cấp để phục vụ việc dạy và học Toán. Không sao chép, sửa đổi hay phân phối lại khi chưa có sự đồng ý của tác giả.
+Phần mềm được cung cấp miễn phí để phục vụ việc dạy và học. Mọi người được tự do sử dụng, sao chép, sửa đổi, phân phối lại, với điều kiện giữ nguyên dòng bản quyền và nội dung giấy phép này. Phần mềm được cung cấp "nguyên trạng", không kèm bất kỳ bảo đảm nào; tác giả không chịu trách nhiệm về thiệt hại phát sinh khi sử dụng.
+
+Toàn văn giấy phép (tiếng Anh) nằm trong tệp LICENSE của mã nguồn: https://github.com/hncanhlsts/toanviet-studio
 
 Phần mềm có dùng các thư viện mã nguồn mở MathLive và Electron (giấy phép MIT).

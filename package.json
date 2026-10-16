@@ -10,7 +10,7 @@
     "dist": "electron-packager . \"ToanViet Studio\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/dist\" --ignore=\"^/test\"",
     "installer": "electron-builder --win nsis --x64"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "mathlive": "^0.111.1"
   },

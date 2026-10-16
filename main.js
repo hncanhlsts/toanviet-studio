@@ -114,7 +114,7 @@ function showAbout() {
     type: 'info', title: 'Giới thiệu', buttons: ['Đóng'],
     message: 'ToanViet Studio ' + app.getVersion(),
     detail: 'Soạn công thức Toán, đồ thị, bảng biến thiên, miền nghiệm và hình không gian cho chương trình Toán phổ thông Việt Nam.\n\n' +
-      'Thiết kế bởi: Thầy Hoàng Ngọc Cảnh\nGiáo viên trường THCS - THPT Đinh Thiện Lý\nEmail: canhld@gmail.com\n\n© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.',
+      'Thiết kế bởi: Thầy Hoàng Ngọc Cảnh\nGiáo viên trường THCS - THPT Đinh Thiện Lý\nEmail: canhld@gmail.com\n\n© 2026 Hoàng Ngọc Cảnh. Phát hành theo giấy phép MIT.',
   });
 }
 ipcMain.on('about', showAbout);

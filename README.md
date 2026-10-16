@@ -50,7 +50,7 @@ Ctrl+M công thức · Enter/nhấp đúp sửa · Delete xoá · Ctrl+D nhân b
 
 Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com
 
-© 2026 Hoàng Ngọc Cảnh. Bảo lưu mọi quyền.
+© 2026 Hoàng Ngọc Cảnh. Phát hành theo giấy phép MIT.
 
 ## Kiểm thử
 
@@ -74,3 +74,7 @@ Quy trình phát hành: `npm test` đạt hết → tăng `version` trong packag
     powershell -File build\sao-luu.ps1
 
 Tệp nén nằm trong `..\ToanVietStudio-luu-tru\ma-nguon`.
+
+## Giấy phép
+
+Phát hành theo giấy phép MIT — xem tệp [LICENSE](LICENSE). © 2026 Hoàng Ngọc Cảnh.
