@@ -29,9 +29,14 @@
   .cv-rule { width: 60mm; height: 0; border-top: 1.5pt solid #c0392b; margin: 12pt auto 12pt; }
   .cover .sub { font: 18pt/1.35 Cambria, "Times New Roman", serif; color: #1c2430; margin: 0; }
   .cover .sub span { font-size: 13pt; font-style: italic; color: #4a5868; }
-  .cv-art { width: 146mm; margin: 14pt auto 2pt; display: block; }
-  .cv-art.cv-th { width: 140mm; margin-top: 8pt; }
-  .cv-cap { font-size: 8.5pt; letter-spacing: 1pt; text-transform: uppercase; color: #6b7785; margin: 3pt 0 10pt; }
+  .cv-secs { width: 168mm; display: flex; flex-direction: column; gap: 7pt; margin: 14pt 0 12pt; }
+  .cv-sec { border: 1px solid #dde3ea; border-left: 4pt solid var(--c); border-radius: 3pt; padding: 5pt 10pt 4pt; text-align: left; background: linear-gradient(90deg, var(--bg), #fff 45%); }
+  .cv-a { --c: #1f5fbf; --bg: #eef4fc; } .cv-b { --c: #e67e22; --bg: #fdf3e8; } .cv-c { --c: #2e8b57; --bg: #edf7f0; }
+  .cv-h { display: flex; align-items: baseline; gap: 7pt; }
+  .cv-h .n { width: 15pt; height: 15pt; line-height: 15pt; border-radius: 50%; background: var(--c); color: #fff; font-weight: 700; font-size: 9pt; text-align: center; align-self: center; }
+  .cv-h b { font: 700 12.5pt Cambria, serif; color: var(--c); }
+  .cv-h em { font-size: 9pt; color: #6b7785; font-style: normal; margin-left: auto; }
+  .cv-art { width: 128mm; display: block; margin: 2pt auto 0; }
   .cv-desc { max-width: 145mm; font-size: 10.8pt; line-height: 1.6; color: #33445a; text-wrap: balance; }
   .cv-subj { display: grid; grid-template-columns: repeat(5, 1fr); width: 170mm; margin-top: 20pt; border-top: 1px solid #c9d1db; border-bottom: 1px solid #c9d1db; }
   .cv-subj div { padding: 7pt 4pt; border-right: 1px solid #dde3ea; }
@@ -72,6 +77,9 @@
     <div class="cv-kicker">Phần mềm soạn thảo Toán và Khoa học tự nhiên</div>
     <h1>ToanViet Studio</h1>
     <div class="cv-rule"></div>
+    <div class="cv-secs">
+    <section class="cv-sec cv-a">
+      <div class="cv-h"><span class="n">1</span><b>Toán THCS – THPT</b><em>Lớp 6 – 12: đại số, giải tích, hình học phẳng và không gian</em></div>
     <svg class="cv-art" viewBox="0 0 560 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs><marker id="cva" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#33445a"/></marker></defs>
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -96,8 +104,10 @@
         <text x="388" y="164">A</text><text x="514" y="44">C′</text>
       </g>
     </svg>
-    <div class="cv-cap">Trung học cơ sở và Trung học phổ thông</div>
-    <svg class="cv-art cv-th" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    </section>
+    <section class="cv-sec cv-b">
+      <div class="cv-h"><span class="n">2</span><b>Toán Tiểu học</b><em>Lớp 1 – 5: trình bày theo sách Kết nối tri thức</em></div>
+    <svg class="cv-art" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <g font-family="Segoe UI, sans-serif" fill="#1c2430">
         <!-- đặt tính cộng -->
         <g font-size="17" text-anchor="middle">
@@ -129,8 +139,10 @@
         <g font-size="10.5" fill="#6b7785" text-anchor="middle"><text x="62" y="112">Đặt tính</text><text x="210" y="112">Phân số</text><text x="350" y="112">Xem đồng hồ</text><text x="485" y="112">Tia số</text></g>
       </g>
     </svg>
-    <div class="cv-cap">Tiểu học, lớp 1 – 5 (trình bày theo sách Kết nối tri thức)</div>
-    <svg class="cv-art cv-th" viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    </section>
+    <section class="cv-sec cv-c">
+      <div class="cv-h"><span class="n">3</span><b>Khoa học tự nhiên</b><em>Vật lí · Hoá học · Sinh học · bản đồ, toán ứng dụng</em></div>
+    <svg class="cv-art" viewBox="0 0 560 118" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs><marker id="cvb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#c0392b"/></marker></defs>
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">
         <!-- Vật lí: mạch điện -->
@@ -173,7 +185,8 @@
         <g font-size="10.5" fill="#6b7785" text-anchor="middle"><text x="52" y="114">Vật lí</text><text x="150" y="114">Hoá học</text><text x="252" y="114">Sinh học</text><text x="375" y="114">Bản đồ</text><text x="506" y="114">Toán chuyển động</text></g>
       </g>
     </svg>
-    <div class="cv-cap">Khoa học tự nhiên và toán ứng dụng</div>
+    </section>
+    </div>
     <div class="cv-desc">Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí, Hoá học, Sinh học cho chương trình giáo dục phổ thông Việt Nam, từ lớp 1 đến lớp 12. Dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
     <div class="cv-subj">
       <div><b>Toán học</b><i><span class="up">Δ</span> = b<sup>2</sup> − 4ac</i></div>
