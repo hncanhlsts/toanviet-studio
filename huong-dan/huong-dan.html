@@ -27,7 +27,9 @@
   .cv-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .cv-kicker { font-size: 9.5pt; letter-spacing: 1.8pt; text-transform: uppercase; color: #1f5fbf; font-weight: 600; }
   .cv-rule { width: 60mm; border-top: 1.5pt solid #c0392b; margin: 8pt auto; }
-  .cv-desc { max-width: 150mm; font-size: 10.3pt; line-height: 1.5; color: #33445a; text-wrap: balance; }
+  .cv-intro { width: 172mm; display: grid; grid-template-columns: 1fr auto; gap: 12pt; align-items: center; text-align: left; }
+  .cv-desc { font-size: 10.3pt; line-height: 1.5; color: #33445a; }
+  .cv-intro .who { border-left: 2pt solid #c0392b; padding-left: 9pt; }
   .cv-secs { width: 172mm; display: flex; flex-direction: column; gap: 6pt; margin: 12pt 0 10pt; }
   .cv-sec { border: 1px solid #dde3ea; border-left: 4pt solid var(--c); border-radius: 3pt; padding: 4pt 8pt 3pt; text-align: left; background: linear-gradient(90deg, var(--bg), #fff 55%); }
   .cv-a { --c: #1f5fbf; --bg: #eef4fc; } .cv-b { --c: #e67e22; --bg: #fdf3e8; } .cv-c { --c: #2e8b57; --bg: #edf7f0; }
@@ -52,11 +54,9 @@
   .cv-plus figure { margin: 0; background: #fff; border: 1px solid #dde3ea; border-radius: 2pt; padding: 4pt; }
   .cv-plus svg { width: 100%; display: block; border: 0; }
   .cv-plus figcaption { font-size: 8.3pt; color: #33445a; margin-top: 2pt; }
-  .cv-foot { display: flex; justify-content: space-between; align-items: flex-end; text-align: left; border-top: 1px solid #dde3ea; padding-top: 7pt; }
   .cover .who { font-size: 9.8pt; line-height: 1.5; color: #33445a; margin: 0; }
   .cover .who span { display: block; font-size: 8pt; letter-spacing: 1.4pt; text-transform: uppercase; color: #6b7785; }
   .cover .who b { display: block; font: 700 12.5pt Cambria, serif; color: #14407f; }
-  .cover .ver { color: #6b7785; font-size: 9pt; margin: 0; }
   svg.dd { display: inline-block; width: .9em; height: .5em; margin: 0 .12em; vertical-align: .05em; border: 0; fill: none; stroke: currentColor; stroke-width: 44; stroke-linecap: round; }
   .note { background: #fff4e5; border-left: 4px solid #e67e22; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
   .tip { background: #eaf3ff; border-left: 4px solid #1f5fbf; padding: 5pt 9pt; margin: 6pt 0; page-break-inside: avoid; }
@@ -78,12 +78,15 @@
 <body>
 
 <div class="cover">
-  <div class="cv-top"><span>TÀI LIỆU HƯỚNG DẪN</span><span>Phiên bản 2.7.4</span></div>
+  <div class="cv-top"><span>TÀI LIỆU HƯỚNG DẪN</span><span>Phiên bản 2.7.5 · © 2026 Hoàng Ngọc Cảnh</span></div>
   <div class="cv-main">
     <div class="cv-kicker">Phần mềm soạn thảo Toán và Khoa học tự nhiên · Lớp 1 – 12</div>
     <h1>ToanViet Studio</h1>
     <div class="cv-rule"></div>
-    <div class="cv-desc">Soạn công thức, vẽ hình, đồ thị, bảng biến thiên cho đề kiểm tra, phiếu học tập và bài giảng — dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
+    <div class="cv-intro">
+      <div class="cv-desc">Soạn công thức, vẽ hình, đồ thị, bảng biến thiên cho đề kiểm tra, phiếu học tập và bài giảng — dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
+      <div class="who"><span>Tác giả</span><b>Thầy Hoàng Ngọc Cảnh</b>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>canhld@gmail.com</div>
+    </div>
     <div class="cv-secs">
 
     <section class="cv-sec cv-a">
@@ -271,10 +274,6 @@
       </div>
     </div>
   </div>
-  <div class="cv-foot">
-    <div class="who"><span>Tác giả</span><b>Thầy Hoàng Ngọc Cảnh</b>Giáo viên trường THCS - THPT Đinh Thiện Lý<br>canhld@gmail.com</div>
-    <div class="ver">© 2026 Hoàng Ngọc Cảnh</div>
-  </div>
 </div>
 
 <h2>Mục lục</h2>
@@ -298,7 +297,7 @@
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
   <li>Đóng hết Word và PowerPoint.</li>
-  <li>Chạy tệp <code>ToanVietStudio-Setup-2.7.4.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
+  <li>Chạy tệp <code>ToanVietStudio-Setup-2.7.5.exe</code>. Windows hỏi quyền quản trị thì chọn <b>Yes</b>.</li>
   <li>Nếu Windows SmartScreen cảnh báo (bộ cài chưa có chữ ký số), chọn <b>More info</b> rồi <b>Run anyway</b>. Chép bộ cài bằng USB hoặc thư mục mạng nội bộ thường không bị cảnh báo này.</li>
   <li>Chọn thư mục cài (mặc định <code>C:\Program Files\ToanViet Studio</code>) và bấm Install.</li>
 </ol>
