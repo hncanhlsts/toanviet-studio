@@ -29,9 +29,11 @@
   .cv-rule { width: 60mm; height: 0; border-top: 1.5pt solid #c0392b; margin: 12pt auto 12pt; }
   .cover .sub { font: 18pt/1.35 Cambria, "Times New Roman", serif; color: #1c2430; margin: 0; }
   .cover .sub span { font-size: 13pt; font-style: italic; color: #4a5868; }
-  .cv-art { width: 150mm; margin: 22pt auto 16pt; display: block; }
+  .cv-art { width: 150mm; margin: 20pt auto 2pt; display: block; }
+  .cv-art.cv-th { width: 140mm; margin-top: 8pt; }
+  .cv-cap { font-size: 8.5pt; letter-spacing: 1pt; text-transform: uppercase; color: #6b7785; margin: 3pt 0 10pt; }
   .cv-desc { max-width: 145mm; font-size: 10.8pt; line-height: 1.6; color: #33445a; text-wrap: balance; }
-  .cv-subj { display: grid; grid-template-columns: repeat(4, 1fr); width: 160mm; margin-top: 20pt; border-top: 1px solid #c9d1db; border-bottom: 1px solid #c9d1db; }
+  .cv-subj { display: grid; grid-template-columns: repeat(5, 1fr); width: 170mm; margin-top: 20pt; border-top: 1px solid #c9d1db; border-bottom: 1px solid #c9d1db; }
   .cv-subj div { padding: 7pt 4pt; border-right: 1px solid #dde3ea; }
   .cv-subj div:last-child { border-right: 0; }
   .cv-subj b { display: block; font-size: 8.5pt; letter-spacing: 1pt; text-transform: uppercase; color: #1f5fbf; margin-bottom: 3pt; }
@@ -95,12 +97,47 @@
         <text x="388" y="164">A</text><text x="514" y="44">C′</text>
       </g>
     </svg>
-    <div class="cv-desc">Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí, Hoá học, Sinh học cho chương trình giáo dục phổ thông Việt Nam. Dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
+    <div class="cv-cap">Trung học cơ sở và Trung học phổ thông</div>
+    <svg class="cv-art cv-th" viewBox="0 0 560 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g font-family="Segoe UI, sans-serif" fill="#1c2430">
+        <!-- đặt tính cộng -->
+        <g font-size="17" text-anchor="middle">
+          <text x="52" y="30">4</text><text x="68" y="30">5</text><text x="84" y="30">7</text>
+          <text x="52" y="54">2</text><text x="68" y="54">3</text><text x="84" y="54">8</text>
+          <text x="52" y="86" fill="#c0392b">6</text><text x="68" y="86" fill="#c0392b">9</text><text x="84" y="86" fill="#c0392b">5</text>
+          <text x="30" y="43">+</text>
+        </g>
+        <path d="M38 64H96" stroke="#1c2430" stroke-width="1.4"/>
+        <!-- phân số trên hình tròn -->
+        <circle cx="200" cy="52" r="38" fill="#fff" stroke="#14407f" stroke-width="1.6"/>
+        <path d="M200 52V14A38 38 0 1 1 162 52Z" fill="#f5b041" stroke="#14407f" stroke-width="1.6"/>
+        <path d="M200 52H238" stroke="#14407f" stroke-width="1.6"/>
+        <g font-family="Cambria Math, Cambria, serif" font-size="15" text-anchor="middle"><text x="258" y="44">3</text><text x="258" y="70">4</text></g>
+        <path d="M250 51H266" stroke="#1c2430" stroke-width="1.3"/>
+        <!-- đồng hồ -->
+        <circle cx="350" cy="52" r="38" fill="#fff" stroke="#e67e22" stroke-width="5"/>
+        <g font-size="10" text-anchor="middle" fill="#33445a"><text x="350" y="26">12</text><text x="377" y="56">3</text><text x="350" y="86">6</text><text x="323" y="56">9</text></g>
+        <path d="M350 52V24M350 52H372" stroke="#1c2430" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="350" cy="52" r="2.6" fill="#c0392b"/>
+        <!-- tia số -->
+        <path d="M420 60H548" stroke="#1c2430" stroke-width="1.4" fill="none"/>
+        <path d="M548 56L556 60L548 64Z" fill="#1c2430"/>
+        <g stroke="#1c2430" stroke-width="1.2"><path d="M426 55V65M450 55V65M474 55V65M498 55V65M522 55V65"/></g>
+        <g font-size="12" text-anchor="middle"><text x="426" y="80">0</text><text x="450" y="80">1</text><text x="474" y="80">2</text><text x="498" y="80">3</text><text x="522" y="80">4</text></g>
+        <path d="M426 50Q438 36 450 50M450 50Q462 36 474 50M474 50Q486 36 498 50" stroke="#8e44ad" stroke-width="1.4" fill="none"/>
+        <circle cx="498" cy="60" r="3.2" fill="#c0392b"/>
+        <!-- tên -->
+        <g font-size="10.5" fill="#6b7785" text-anchor="middle"><text x="62" y="112">Đặt tính</text><text x="210" y="112">Phân số</text><text x="350" y="112">Xem đồng hồ</text><text x="485" y="112">Tia số</text></g>
+      </g>
+    </svg>
+    <div class="cv-cap">Tiểu học, lớp 1 – 5 (trình bày theo sách Kết nối tri thức)</div>
+    <div class="cv-desc">Soạn công thức, đồ thị, bảng biến thiên, hình học phẳng và không gian, ký hiệu Vật lí, Hoá học, Sinh học cho chương trình giáo dục phổ thông Việt Nam, từ lớp 1 đến lớp 12. Dùng độc lập hoặc ngay trong Word và PowerPoint.</div>
     <div class="cv-subj">
       <div><b>Toán học</b><i><span class="up">Δ</span> = b<sup>2</sup> − 4ac</i></div>
       <div><b>Vật lí</b><i>F = ma</i></div>
       <div><b>Hoá học</b><i class="up">2H<sub>2</sub> + O<sub>2</sub> → 2H<sub>2</sub>O</i></div>
       <div><b>Sinh học</b><i>AaBb × aabb</i></div>
+      <div><b>Tiểu học</b><i class="up">457 + 238 = 695</i></div>
     </div>
   </div>
   <div class="cv-foot">
