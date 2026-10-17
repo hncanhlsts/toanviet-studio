@@ -31,7 +31,8 @@
       "preload.js",
       "src/**/*",
       "package.json",
-      "office-bridge.js"
+      "office-bridge.js",
+      "docx-writer.js"
     ],
     "directories": {
       "output": "cai-dat"

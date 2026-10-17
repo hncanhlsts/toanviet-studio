@@ -337,3 +337,37 @@ body.present .obj { cursor: pointer; outline: none !important; }
 .maucnt { color: #8090a0; font-size: 12px; }
 /* ô soạn công thức phải cho chọn được: MathLive bỏ qua nhấp chuột (không đặt được con trỏ) khi user-select là none */
 math-field { user-select: text; -webkit-user-select: text; }
+/* Bài giải AI → tài liệu Word */
+.tvdlg.bgdlg { width: min(1240px, 96vw); }
+.bghint { margin: 0 0 8px; color: #33445a; line-height: 1.5; }
+.bghint kbd { font: 11px Consolas, monospace; background: #eef2f6; border: 1px solid #c9d1db; border-radius: 3px; padding: 0 4px; }
+.bgrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bgcol { display: flex; flex-direction: column; min-width: 0; }
+.bglab { font-weight: 600; margin-bottom: 4px; }
+.bglab span { font-weight: 400; color: #6b7785; font-size: 11.5px; margin-left: 6px; }
+#bgsrc { height: 52vh; resize: vertical; font: 12.5px/1.5 Consolas, monospace; padding: 8px; border: 1px solid #c9d1db; border-radius: 6px; white-space: pre-wrap; }
+.bgview { height: 52vh; overflow: auto; border: 1px solid #c9d1db; border-radius: 6px; padding: 14px 18px; background: #fff; font: 15px/1.6 "Times New Roman", serif; color: #111; user-select: text; }
+.bgview .pv-t { text-align: center; font-weight: 700; font-size: 18px; color: #1f3f7a; margin-bottom: 6px; }
+.bgview .pv-s { text-align: center; font-style: italic; }
+.bgview .pv-h1, .bgview .pv-h2, .bgview .pv-d { font-weight: 700; color: #1f3f7a; margin: 10px 0 4px; }
+.bgview .pv-d { text-align: center; }
+.bgview .pv-c { font-weight: 700; margin-top: 10px; }
+.bgview .pv-g { font-weight: 700; color: #1f3f7a; }
+.bgview .pv-p { text-align: justify; margin: 2px 0; }
+.bgview .pv-li { margin: 2px 0 2px 18px; text-indent: -12px; }
+.bgview .pv-eq { text-align: center; margin: 6px 0; }
+.bgview .pv-tab { border-collapse: collapse; margin: 6px auto; }
+.bgview .pv-tab td { border: 1px solid #333; padding: 2px 10px; text-align: center; }
+.bgview .bgf .ML__latex { font-size: 15px; }
+.bgview .bgbad { outline: 2px solid #c0392b; outline-offset: 1px; }
+.bgempty { color: #8a96a3; font: 13px 'Segoe UI', sans-serif; }
+.bgnotes { margin: 8px 0 4px; font-size: 12px; line-height: 1.5; color: #33445a; min-height: 18px; }
+.bgnotes .bgerr { color: #b03a2e; }
+.bgnotes .bgfix { color: #1e6b41; }
+.bgfoot { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.bgfoot input { width: 260px; padding: 4px 6px; }
+.bgfoot .bgstat { flex: 1; color: #1f5fbf; }
+/* khi chụp ảnh công thức (Bài giải AI → Word, chuyển đổi…): ẩn mọi hộp thoại đang mở và lớp nền mờ của nó,
+   kẻo chúng bị chụp lẫn vào ảnh (nền xám, chữ của hộp thoại) */
+body.capturing dialog[open] { display: none !important; }
+body.capturing dialog::backdrop { display: none !important; background: transparent !important; }

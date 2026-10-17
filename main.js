@@ -59,6 +59,7 @@ function createWindow() {
       { label: 'Tài liệu mẫu', click: send('demo') },
       { label: 'Thư viện của tôi…', accelerator: 'Ctrl+L', click: send('lib') },
       { label: 'Soạn đề kiểm tra…', accelerator: 'Ctrl+Shift+D', click: send('exam') },
+      { label: 'Bài giải AI → tài liệu Word…', accelerator: 'Ctrl+Shift+B', click: send('baigiai') },
       { label: 'Mẫu theo bài (Toán 1 – 5, Kết nối tri thức)…', accelerator: 'Ctrl+Shift+M', click: send('mau') },
       { type: 'separator' },
       { label: 'Thoát', accelerator: 'Ctrl+Q', role: 'quit' },
@@ -476,6 +477,25 @@ ipcMain.handle('renderBatch', async (e, ids) => {
     }
   } finally { try { await wc.executeJavaScript('window.__endCapture()'); } catch (err) { /* bỏ qua */ } }
   return out;
+});
+// Bài giải AI → Word: ghép tệp .docx trực tiếp (không cần Word / PowerShell) từ nội dung chuẩn và ảnh công thức ToanViet,
+// lưu (hộp thoại chọn chỗ lưu, mặc định thư mục Tài liệu) rồi mở bằng Word
+ipcMain.handle('makeDocx', async (_e, o) => {
+  const { buildDocx } = require('./docx-writer');
+  const formulas = {};
+  for (const f of o.formulas || []) { try { formulas[f.latex] = { png: fs.readFileSync(f.file), w: f.w, h: f.h, depthPt: f.depthPt || 0, alt: f.alt }; } catch (err) { /* ảnh lỗi: ghi mã LaTeX */ } }
+  const r = buildDocx(o.markup, formulas, { pt: o.pt || 12 });
+  (o.formulas || []).forEach((f) => fs.unlink(f.file, () => {}));
+  const name = (String(o.name || 'Loi-giai').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Loi-giai') + '.docx';
+  let file = process.env.TVS_DOCX_OUT || '';
+  if (!file) {
+    const s = await dialog.showSaveDialog(win, { title: 'Lưu tài liệu Word', defaultPath: path.join(app.getPath('documents'), name), filters: [{ name: 'Tài liệu Word', extensions: ['docx'] }] });
+    if (s.canceled) return { ok: false, canceled: true };
+    file = s.filePath;
+  }
+  try { fs.writeFileSync(file, r.buf); } catch (err) { return { ok: false, error: 'Không ghi được tệp (tệp đang mở trong Word?): ' + err.message }; }
+  if (!process.env.TVS_DOCX_OUT) require('electron').shell.openPath(file);
+  return { ok: true, file, count: r.count, missing: r.missing };
 });
 // dựng ảnh PNG của một đối tượng ra tệp tạm (dùng khi chuyển đổi hàng loạt)
 ipcMain.handle('renderPng', async (e, target, withData, release) => {

@@ -1099,7 +1099,7 @@
   // ---------- Thư viện của tôi, báo lỗi / góp ý: src/mod/thuvien.js ----------
   let modal, libThumb, openLib, openReport;
   // ---------- Soạn đề kiểm tra theo cấu trúc 2025, xuất sang Word: src/mod/soande.js ----------
-  let openExam;
+  let openExam, openBaiGiai, makeBaiGiai;
   // ---------- Trình chiếu tương tác, mẫu theo bài sách Kết nối tri thức: src/mod/trinhchieu.js ----------
   let startPresent, stopPresent, openMau, isPresenting;
   function setFormulaFont(times) {
@@ -1222,6 +1222,7 @@
     demo: async () => { if (await confirmDiscard()) window.__demo(); },
     lib: () => openLib(),
     exam: () => openExam(),
+    baigiai: () => openBaiGiai(),
     'font-times': () => setFormulaFont(true),
     'font-tex': () => setFormulaFont(false),
     report: () => openReport(),
@@ -1414,6 +1415,8 @@
   ({ ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag } = TVM.keodiem({ $, S, msg, cur, commit, title, renderObj, buildProps }));
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
+  ({ openBaiGiai, makeBaiGiai } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx }));
+  window.__baigiai = { open: () => openBaiGiai(), make: (t) => makeBaiGiai(t) }; // kiểm thử
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));
 
   loadDoc([], null);
