@@ -254,5 +254,23 @@
     ok('Esc đóng hộp soạn, không vào chế độ mã LaTeX', !document.getElementById('fxdlg').open && mf.mode !== 'latex', mf.mode);
   });
 
+  // lỗi 2.7.5: chuyển hàng loạt (vd 213 công thức Equation) — công thức nằm quá đáy trang bị chụp trên nền xám → "vết mờ" trong Word
+  await step('Chụp hàng loạt: nền ảnh luôn trắng, kể cả công thức nằm ngoài trang', async () => {
+    __clear();
+    const a = __add('formula', null, { latex: '\\frac{3}{4}', x: 30, y: 200 });
+    const b = __add('formula', null, { latex: '\\frac{3}{4}', x: 30, y: 1500 }); // quá đáy trang A4 (1123px)
+    await w(200);
+    const rs = await window.api.renderBatch([a, b]);
+    const bg = async (file) => {
+      const img = new Image(); img.src = 'file:///' + file.replace(/\\/g, '/'); await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(1, 1, 1, 1).data; return Math.min(d[0], d[1], d[2]);
+    };
+    const v1 = await bg(rs[0].file), v2 = await bg(rs[1].file);
+    ok('ảnh công thức trong trang: nền trắng', v1 >= 250, v1);
+    ok('ảnh công thức nằm ngoài trang: nền trắng (không có vết mờ)', v2 >= 250, v2);
+    await window.api.renderPng(a, true, true); // trả cửa sổ về như cũ
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

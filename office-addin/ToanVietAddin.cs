@@ -165,10 +165,12 @@ namespace ToanViet
                 string exe = Path.GetFullPath(Path.Combine(dir, "..", "..", "ToanViet Studio.exe"));
                 if (!File.Exists(exe)) { System.Windows.Forms.MessageBox.Show("Không tìm thấy ToanViet Studio:\n" + exe, "ToanViet"); return; }
                 // cỡ chữ tại con trỏ trong Word để công thức mới khớp với dòng văn bản
-                string extra = "";
+                // mã tiến trình Word/PowerPoint đang chạy add-in: ToanViet chèn đúng vào phiên này
+                // (không lấy nhầm một phiên Word chạy ngầm, khiến công thức chèn vào tài liệu vô hình)
+                string extra = " --wpid=" + Process.GetCurrentProcess().Id.ToString(CultureInfo.InvariantCulture);
                 if (host == "word")
                 {
-                    try { float fs = ((Word.Application)appRef).Selection.Font.Size; if (fs >= 5 && fs <= 200) extra = " --size=" + fs.ToString(CultureInfo.InvariantCulture); } catch { }
+                    try { float fs = ((Word.Application)appRef).Selection.Font.Size; if (fs >= 5 && fs <= 200) extra += " --size=" + fs.ToString(CultureInfo.InvariantCulture); } catch { }
                     // báo ngay trên thanh trạng thái của Word: lần đầu mở máy, ToanViet có thể cần vài giây để khởi động
                     try { ((Word.Application)appRef).StatusBar = mode == "edit" ? "ToanViet Studio đang mở công thức để sửa…" : mode == "convert" ? "ToanViet Studio đang chuyển đổi công thức…" : "ToanViet Studio đang mở…"; } catch { }
                 }

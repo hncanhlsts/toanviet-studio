@@ -20,7 +20,7 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
   guardClose(win);
   // mở từ Word/PowerPoint: đưa cửa sổ lên trước để gõ được ngay
-  if (office) startBridge(); // khởi động sẵn để lần chèn đầu tiên không phải chờ
+  if (office) runOffice({ TVS_ACT: 'warm' }); // khởi động sẵn cầu nối để lần chèn đầu tiên không phải chờ
   if (office) win.webContents.once('did-finish-load', () => { win.show(); win.focus(); app.focus({ steal: true }); win.webContents.focus(); });
   // mở tệp .tvs khi nhấp đúp trong Explorer
   const fileArg = process.argv.slice(1).find((a) => /\.tvs$/i.test(a) && fs.existsSync(a));
@@ -278,6 +278,61 @@ ipcMain.handle('copyText', (_e, t) => { clipboard.writeText(String(t)); return t
 const OFFICE_PS = String.raw`
 $ErrorActionPreference = 'Stop'
 function GetApp($n) { try { [Runtime.InteropServices.Marshal]::GetActiveObject($n) } catch { $null } }
+# Tìm đúng Word / PowerPoint người dùng đang xem. GetActiveObject trả về phiên đăng kí ĐẦU TIÊN với Windows — có thể là
+# một phiên chạy ngầm, không có cửa sổ (Word đóng chưa hết, phần mềm khác mở Word để xử lí tệp…): công thức sẽ bị chèn
+# vào tài liệu vô hình đó. Vì vậy lấy đối tượng qua cửa sổ đang hiển thị: ưu tiên phiên đã mở ToanViet (TVS_WPID),
+# rồi đến cửa sổ Word nằm trên cùng; không bao giờ chèn vào phiên ẩn.
+$tvsWinCs = @'
+using System; using System.Runtime.InteropServices; using System.Text;
+public static class TvsWin {
+  delegate bool EnumProc(IntPtr h, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc f, IntPtr l);
+  [DllImport("user32.dll")] static extern bool EnumChildWindows(IntPtr p, EnumProc f, IntPtr l);
+  [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+  [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr h, StringBuilder s, int n);
+  [DllImport("oleacc.dll")] static extern int AccessibleObjectFromWindow(IntPtr h, uint id, ref Guid iid, [MarshalAs(UnmanagedType.IDispatch)] out object o);
+  static string Cls(IntPtr h) { StringBuilder s = new StringBuilder(256); GetClassName(h, s, 256); return s.ToString(); }
+  // cửa sổ khung (frame) hiển thị đầu tiên theo thứ tự trên-xuống, trong tiến trình pid (0: bất kì), lấy đối tượng Office của cửa sổ con
+  public static object Find(string frame, string child, int pid) {
+    object found = null;
+    EnumWindows(delegate (IntPtr h, IntPtr l) {
+      if (!IsWindowVisible(h) || Cls(h) != frame) return true;
+      uint p; GetWindowThreadProcessId(h, out p);
+      if (pid > 0 && p != (uint)pid) return true;
+      IntPtr c = IntPtr.Zero;
+      EnumChildWindows(h, delegate (IntPtr hc, IntPtr l2) { if (Cls(hc) == child) { c = hc; return false; } return true; }, IntPtr.Zero);
+      if (c == IntPtr.Zero) return true;
+      Guid g = new Guid("00020400-0000-0000-C000-000000000046"); object o;
+      if (AccessibleObjectFromWindow(c, 0xFFFFFFF0, ref g, out o) == 0 && o != null) { found = o; return false; }
+      return true;
+    }, IntPtr.Zero);
+    return found;
+  }
+}
+'@
+function WinApp($frame, $child) {
+  if (-not ('TvsWin' -as [type])) { try { Add-Type -TypeDefinition $tvsWinCs -ErrorAction Stop } catch { return $null } }
+  $pid0 = 0; [void][int]::TryParse("$env:TVS_WPID", [ref]$pid0)
+  foreach ($q in @($pid0, 0)) {
+    if ($q -lt 0) { continue }
+    try { $w = [TvsWin]::Find($frame, $child, $q); if ($w) { return $w.Application } } catch {}
+    if ($pid0 -eq 0) { break }
+  }
+  $null
+}
+# Word đang hiển thị (không có thì thử GetActiveObject; phiên tìm được mà không hiển thị thì báo lỗi, không chèn)
+function WordApp {
+  $a = WinApp 'OpusApp' '_WwG'
+  if (-not $a) { $a = GetApp 'Word.Application' }
+  if ($a) { $v = $true; try { $v = [bool]$a.Visible } catch {}; if (-not $v) { throw 'TVSHIDDEN' } }
+  $a
+}
+function PptApp {
+  $a = WinApp 'PPTFrameClass' 'mdiClass'
+  if (-not $a) { $a = GetApp 'PowerPoint.Application' }
+  $a
+}
 $pkgA = '<?xml version="1.0" standalone="yes"?><pkg:package xmlns:pkg="http://schemas.microsoft.com/office/2006/xmlPackage"><pkg:part pkg:name="/_rels/.rels" pkg:contentType="application/vnd.openxmlformats-package.relationships+xml"><pkg:xmlData><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships></pkg:xmlData></pkg:part><pkg:part pkg:name="/word/document.xml" pkg:contentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"><pkg:xmlData><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"><w:body><w:p>'
 $pkgB = '</w:p></w:body></w:document></pkg:xmlData></pkg:part></pkg:package>'
 # dữ liệu ToanViet ghi trong ảnh PNG (khối tEXt "ToanViet") của một hình trong dòng
@@ -305,9 +360,10 @@ function MmlToOmml($a, $mml) {
 }
 try {
   $act = $env:TVS_ACT; $appn = $env:TVS_APP; $png = $env:TVS_PNG; $alt = $env:TVS_ALT
+  if ($act -eq 'warm') { [void](WinApp 'TvsKhongCo' 'TvsKhongCo'); 'OK'; exit } # nạp sẵn bộ tìm cửa sổ
   if ($act -eq 'scan') {
     # liệt kê mọi công thức một loại trong tài liệu Word đang mở: ole = MathType, omath = Equation, tvs = ToanViet
-    $a = GetApp 'Word.Application'
+    $a = WordApp
     if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
     $doc = $a.ActiveDocument; $kind = $env:TVS_KIND; $sb = New-Object Text.StringBuilder; $n = 0
     if ($kind -eq 'latex') {
@@ -364,7 +420,7 @@ try {
     "OK:$n"
   } elseif ($act -eq 'apply') {
     # thực hiện chuyển đổi theo tệp việc (mỗi dòng một công thức, chỉ số giảm dần để không lệch thứ tự)
-    $a = GetApp 'Word.Application'
+    $a = WordApp
     if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
     $doc = $a.ActiveDocument; $op = $env:TVS_OP; $n = 0; $xsl = $null
     $ur = $null; try { $ur = $a.UndoRecord; $ur.StartCustomRecord('ToanViet') } catch {}
@@ -411,7 +467,7 @@ try {
     "OK:$n"
   } elseif ($act -eq 'buildexam') {
     # dựng đề kiểm tra thành một tài liệu Word mới: chữ thường + công thức Equation, hình chèn sau theo chỗ đánh dấu
-    $a = GetApp 'Word.Application'
+    $a = $null; try { $a = WordApp } catch {}
     if (-not $a) { $a = New-Object -ComObject Word.Application }
     $a.Visible = $true
     $job = [IO.File]::ReadAllText($env:TVS_JOB, [Text.Encoding]::UTF8) | ConvertFrom-Json
@@ -453,7 +509,7 @@ try {
     "OK:$np"
   } elseif ($act -eq 'inserteq') {
     # chèn công thức dạng Equation gốc của Word (OMML) tại con trỏ, hoặc thay cho công thức đang sửa
-    $a = GetApp 'Word.Application'
+    $a = WordApp
     if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
     $om = MmlToOmml $a ([IO.File]::ReadAllText($env:TVS_JOB, [Text.Encoding]::UTF8))
     $sel = $a.Selection; $rep = 0; $r = $null
@@ -477,7 +533,7 @@ try {
     "OK:$rep"
   } elseif ($act -eq 'insert') {    $w = [double]$env:TVS_W; $h = [double]$env:TVS_H
     if ($appn -eq 'word') {
-      $a = GetApp 'Word.Application'
+      $a = WordApp
       if (-not $a -or $a.Documents.Count -eq 0) { 'ERR:NOAPP'; exit }
       $sel = $a.Selection; $rep = 0
       $omOld = $null
@@ -504,7 +560,7 @@ try {
       try { $a.Activate() } catch {}
       "OK:$rep"
     } else {
-      $a = GetApp 'PowerPoint.Application'
+      $a = PptApp
       if (-not $a -or $a.Presentations.Count -eq 0) { 'ERR:NOAPP'; exit }
       $win = $a.ActiveWindow; $slide = $win.View.Slide; $left = $null; $rep = 0
       try { if ($win.Selection.Type -eq 2) { $s = $win.Selection.ShapeRange.Item(1); if ("$($s.AlternativeText)".StartsWith('TVS1:')) { $left = $s.Left; $top = $s.Top; $s.Delete(); $rep = 1 } } } catch {}
@@ -516,7 +572,7 @@ try {
     }
   } else {
     $r = ''; $from = 'Word'
-    $a = $null; if ($appn -ne 'ppt') { $a = GetApp 'Word.Application' }
+    $a = $null; if ($appn -eq 'word') { $a = WordApp } elseif ($appn -ne 'ppt') { try { $a = WordApp } catch { $a = $null } }
     $kind = ''; $payload = 'x'
     if ($a -and $a.Documents.Count -gt 0) {
       try {
@@ -545,7 +601,7 @@ try {
     if ($kind) { "OK:$kind" + ':' + $payload; exit }
     if (-not $r.StartsWith('TVS1:') -and $appn -ne 'word') {
       $from = 'PPT'
-      $a = GetApp 'PowerPoint.Application'
+      $a = PptApp
       if ($a -and $a.Presentations.Count -gt 0) { try { $w2 = $a.ActiveWindow; if ($w2.Selection.Type -eq 2) { $r = "$($w2.Selection.ShapeRange.Item(1).AlternativeText)" } } catch {} }
     }
     if ($r.StartsWith('TVS1:')) { "OK:$from" + ':' + $r.Substring(5) } else { 'ERR:NOSEL' }
@@ -554,7 +610,7 @@ try {
 `;
 // PowerShell được mở một lần và chờ lệnh qua stdin (mỗi lệnh là một dòng JSON mã hoá base64), trả kết quả "@@<base64>"
 const PS_LOOP = 'function Invoke-Bridge {\n' + OFFICE_PS.replace(/\bexit\b/g, 'return') + '\n}\n' + [
-  "$keys = 'TVS_ACT','TVS_APP','TVS_PNG','TVS_ALT','TVS_W','TVS_H','TVS_POS','TVS_SRC','TVS_KIND','TVS_OUT','TVS_OP','TVS_JOB'",
+  "$keys = 'TVS_ACT','TVS_APP','TVS_PNG','TVS_ALT','TVS_W','TVS_H','TVS_POS','TVS_SRC','TVS_KIND','TVS_OUT','TVS_OP','TVS_JOB','TVS_WPID'",
   'while ($true) {',
   '  $line = [Console]::In.ReadLine(); if ($null -eq $line) { break }; if (-not $line) { continue }',
   "  try { $j = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($line)) | ConvertFrom-Json; foreach ($k in $keys) { Set-Item ('env:' + $k) ([string]$j.$k) }; $r = @(Invoke-Bridge) | Select-Object -Last 1 } catch { $r = 'ERR:' + $_.Exception.Message }",
@@ -583,9 +639,14 @@ function startBridge() {
   const dead = () => { psProc = null; psWait.splice(0).forEach((cb) => cb('ERR:Cầu nối với Word/PowerPoint bị ngắt')); };
   psProc.on('exit', dead); psProc.on('error', dead);
 }
+// tiến trình Word đã mở ToanViet (add-in truyền vào): chèn đúng vào phiên đó
+const wordPid = /^d+$/.test(argVal('--wpid')) ? argVal('--wpid') : '';
+const HIDDEN_MSG = 'Máy đang có một phiên Word chạy ngầm (không có cửa sổ). ToanViet không chèn vào đó để công thức không bị mất. Hãy lưu và đóng Word, bấm Ctrl+Shift+Esc mở Task Manager, kết thúc mọi mục "Microsoft Word" còn lại, rồi mở lại tài liệu và chèn lại.';
 function runOffice(env) {
   startBridge();
-  return new Promise((resolve) => {
+  env = Object.assign({ TVS_WPID: wordPid }, env);
+  return new Promise((done) => {
+    const resolve = (out) => done(/TVSHIDDEN/.test(out) ? 'ERR:' + HIDDEN_MSG : out);
     psWait.push(resolve);
     try { psProc.stdin.write(Buffer.from(JSON.stringify(env), 'utf8').toString('base64') + '\n'); } catch (e) { psWait.pop(); resolve('ERR:' + e.message); }
   });

@@ -1430,7 +1430,8 @@
         b.o.y = y; S.objs.push(b.o); const el = renderObj(b.o);
         y += Math.ceil(el.offsetHeight) + 24;
         ready.push(b);
-        if (y > 1900) { await shoot(ready.splice(0)); S.objs = []; page.innerHTML = ''; y = 10; }
+        // chụp ngay khi sắp quá đáy trang giấy: công thức nằm ngoài trang sẽ bị chụp trên nền xám của vùng làm việc
+        if (y > page.clientHeight - 60) { await shoot(ready.splice(0)); S.objs = []; page.innerHTML = ''; y = 10; }
       }
       await shoot(ready);
       batch = [];
