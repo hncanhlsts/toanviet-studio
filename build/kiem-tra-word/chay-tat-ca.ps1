@@ -7,7 +7,7 @@ $all = @()
 foreach ($s in '1-phien-word-ngam.ps1', '2-chon-dung-phien.ps1') { & (Join-Path $PSScriptRoot $s); $all += $global:KQ }
 & (Join-Path $PSScriptRoot '3-chuyen-hang-loat.ps1') -Rep $Rep -Exe $Exe; $all += $global:KQ
 # add-in truyền mã phiên Word: chỉ thử được với bản đã cài (add-in nạp từ thư mục cài)
-if ($Exe) { & (Join-Path $PSScriptRoot '4-addin-truyen-ma-phien.ps1'); $all += $global:KQ }
+if ($Exe) { foreach ($s in '4-addin-truyen-ma-phien.ps1', '6-mo-tu-word.ps1') { & (Join-Path $PSScriptRoot $s); $all += $global:KQ } }
 $ok = ($all | Where-Object { $_ }).Count
 "Kiểm tra với Word: $ok / $($all.Count) đạt"
 if ($ok -ne $all.Count) { exit 1 }

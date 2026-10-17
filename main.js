@@ -10,7 +10,23 @@ const shotArg = process.argv.find((a) => a.startsWith('--shot='));
 const argVal = (name) => { const a = process.argv.find((t) => t.startsWith(name + '=')); return a ? a.slice(name.length + 1) : ''; };
 const office = /^(word|ppt)$/.test(argVal('--office')) ? { app: argVal('--office'), mode: /^(new|edit|full|convert)$/.test(argVal('--mode')) ? argVal('--mode') : 'new', op: /^(mt2tv|tv2mt|eq2tv|tv2eq|tex2tv|tv2tex)$/.test(argVal('--op')) ? argVal('--op') : '' } : null;
 
+// Nhật ký khởi động (thư mục dữ liệu: %APPDATA%\ToanViet Studio\khoi-dong.log): ghi lúc mở, lúc cửa sổ sẵn sàng và mọi lỗi
+// làm phần mềm thoát — để biết vì sao "bấm trong Word mà không thấy ToanViet mở" trên máy người dùng.
+const bootT0 = Date.now();
+function bootLog(msg) {
+  try {
+    const f = path.join(app.getPath('userData'), 'khoi-dong.log');
+    if (fs.existsSync(f) && fs.statSync(f).size > 200000) fs.renameSync(f, f + '.cu');
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.appendFileSync(f, new Date().toLocaleString('vi-VN') + '  [' + ((Date.now() - bootT0) / 1000).toFixed(1) + ' s]  ' + msg + '\r\n', 'utf8');
+  } catch (e) { /* không ghi được nhật ký: bỏ qua */ }
+}
+process.on('uncaughtException', (e) => { bootLog('LỖI: ' + (e && e.stack || e)); });
+app.on('render-process-gone', (_e, _wc, d) => bootLog('Trang giao diện dừng: ' + d.reason + ' (mã ' + d.exitCode + ')'));
+app.on('child-process-gone', (_e, d) => bootLog('Tiến trình con dừng: ' + d.type + ' ' + d.reason + ' (mã ' + d.exitCode + ')'));
+
 function createWindow() {
+  if (!shotArg) bootLog('Mở ToanViet Studio ' + app.getVersion() + ' ' + process.argv.slice(1).filter((a) => a.startsWith('--')).join(' '));
   win = new BrowserWindow({
     width: office && office.mode !== 'full' ? 1080 : 1400, height: office && office.mode !== 'full' ? 760 : 900, minWidth: 980, minHeight: 600,
     title: 'ToanViet Studio',
@@ -20,8 +36,14 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
   guardClose(win);
   // mở từ Word/PowerPoint: đưa cửa sổ lên trước để gõ được ngay
-  if (office) runOffice({ TVS_ACT: 'warm' }); // khởi động sẵn cầu nối để lần chèn đầu tiên không phải chờ
+  // khởi động sẵn cầu nối để lần chèn đầu tiên không phải chờ; khi cửa sổ đã hiện thì xoá dòng "đang mở…" trên Word
+  if (office) {
+    startBridge();
+    win.webContents.once('did-finish-load', () => runOffice({ TVS_ACT: 'warm', TVS_APP: office.app }).then((r) => { if (!/^OK/.test(r)) bootLog('Cầu nối Word/PowerPoint: ' + r); }));
+  }
   if (office) win.webContents.once('did-finish-load', () => { win.show(); win.focus(); app.focus({ steal: true }); win.webContents.focus(); });
+  if (!shotArg) win.webContents.once('did-finish-load', () => bootLog('Cửa sổ sẵn sàng'));
+  win.webContents.on('did-fail-load', (_e, code, desc) => bootLog('Không tải được giao diện: ' + desc + ' (' + code + ')'));
   // mở tệp .tvs khi nhấp đúp trong Explorer
   const fileArg = process.argv.slice(1).find((a) => /\.tvs$/i.test(a) && fs.existsSync(a));
   if (fileArg) win.webContents.once('did-finish-load', () => win.webContents.send('openfile', { file: fileArg, data: fs.readFileSync(fileArg, 'utf8') }));
@@ -385,7 +407,12 @@ function MmlToOmml($a, $mml) {
 }
 try {
   $act = $env:TVS_ACT; $appn = $env:TVS_APP; $png = $env:TVS_PNG; $alt = $env:TVS_ALT
-  if ($act -eq 'warm') { [void](WinApp 'TvsKhongCo' 'TvsKhongCo'); 'OK'; exit } # nạp sẵn bộ tìm cửa sổ
+  if ($act -eq 'warm') {
+    # nạp sẵn bộ tìm cửa sổ; mở từ Word thì xoá dòng "ToanViet Studio đang mở…" trên thanh trạng thái của Word
+    [void](WinApp 'TvsKhongCo' 'TvsKhongCo')
+    if ($appn -eq 'word' -and $env:TVS_WPID) { try { $a0 = WinApp 'OpusApp' '_WwG'; if ($a0) { $a0.StatusBar = $false } } catch {} }
+    'OK'; exit
+  }
   if ($act -eq 'scan') {
     # liệt kê mọi công thức một loại trong tài liệu Word đang mở: ole = MathType, omath = Equation, tvs = ToanViet
     $a = WordApp

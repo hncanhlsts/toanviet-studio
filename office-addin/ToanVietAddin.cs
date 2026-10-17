@@ -172,9 +172,24 @@ namespace ToanViet
                 {
                     try { float fs = ((Word.Application)appRef).Selection.Font.Size; if (fs >= 5 && fs <= 200) extra += " --size=" + fs.ToString(CultureInfo.InvariantCulture); } catch { }
                     // báo ngay trên thanh trạng thái của Word: lần đầu mở máy, ToanViet có thể cần vài giây để khởi động
-                    try { ((Word.Application)appRef).StatusBar = mode == "edit" ? "ToanViet Studio đang mở công thức để sửa…" : mode == "convert" ? "ToanViet Studio đang chuyển đổi công thức…" : "ToanViet Studio đang mở…"; } catch { }
+                    // (ToanViet tự xoá dòng này khi cửa sổ đã hiện)
+                    try { ((Word.Application)appRef).StatusBar = (mode == "edit" ? "ToanViet Studio đang mở công thức để sửa…" : mode == "convert" ? "ToanViet Studio đang chuyển đổi công thức…" : "ToanViet Studio đang mở…") + " (lần đầu sau khi cài có thể mất vài chục giây)"; } catch { }
                 }
-                Process.Start(new ProcessStartInfo(exe, "--office=" + host + " --mode=" + mode + extra + more) { UseShellExecute = false });
+                Process pr = Process.Start(new ProcessStartInfo(exe, "--office=" + host + " --mode=" + mode + extra + more) { UseShellExecute = false });
+                // ToanViet thoát vì lỗi ngay khi mở: báo rõ cho người dùng thay vì để Word im lặng
+                if (pr != null) System.Threading.ThreadPool.QueueUserWorkItem(delegate
+                {
+                    try
+                    {
+                        if (pr.WaitForExit(60000) && pr.ExitCode != 0)
+                        {
+                            if (host == "word") { try { ((Word.Application)appRef).StatusBar = ""; } catch { } }
+                            string log = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ToanViet Studio", "khoi-dong.log");
+                            System.Windows.Forms.MessageBox.Show("ToanViet Studio không mở được (mã lỗi " + pr.ExitCode + ").\n\nHãy thử lại. Nếu vẫn lỗi, gửi tệp nhật ký sau cho người hỗ trợ:\n" + log, "ToanViet");
+                        }
+                    }
+                    catch { }
+                });
             }
             catch (Exception ex) { System.Windows.Forms.MessageBox.Show(ex.Message, "ToanViet"); }
         }
