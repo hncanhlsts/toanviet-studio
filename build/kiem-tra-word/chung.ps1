@@ -5,7 +5,7 @@ if (-not (Test-Path $WW)) { $WW = 'C:\Program Files (x86)\Microsoft Office\root\
 $proj = Split-Path (Split-Path $PSScriptRoot)
 $dir = Join-Path $env:TEMP 'tvs-kiem-tra-word'; New-Item -ItemType Directory -Force $dir | Out-Null
 # mã cầu nối Office lấy thẳng từ main.js
-& node (Join-Path $PSScriptRoot 'tach-cau-noi.js') (Join-Path $proj 'main.js') (Join-Path $dir 'bridge.ps1')
+& node (Join-Path $PSScriptRoot 'tach-cau-noi.js') (Join-Path $proj 'office-bridge.js') (Join-Path $dir 'bridge.ps1')
 function NewDocx($file, $text) {
   Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
   if (Test-Path $file) { Remove-Item $file -Force }

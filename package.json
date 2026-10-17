@@ -6,9 +6,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "electron test/run.js && node test/ui.js",
+    "test": "node build/tao-cau-noi.js --kiem-tra && electron test/run.js && node test/ui.js",
     "dist": "electron-packager . \"ToanViet Studio\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/dist\" --ignore=\"^/test\"",
-    "installer": "electron-builder --win nsis --x64"
+    "installer": "node build/tao-cau-noi.js && electron-builder --win nsis --x64"
   },
   "license": "MIT",
   "dependencies": {
@@ -30,7 +30,8 @@
       "main.js",
       "preload.js",
       "src/**/*",
-      "package.json"
+      "package.json",
+      "office-bridge.js"
     ],
     "directories": {
       "output": "cai-dat"
@@ -74,6 +75,13 @@
         "to": "huong-dan",
         "filter": [
           "*.pdf"
+        ]
+      },
+      {
+        "from": "build/cau-noi",
+        "to": "cau-noi",
+        "filter": [
+          "*.ps1"
         ]
       }
     ],
