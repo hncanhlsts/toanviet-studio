@@ -272,5 +272,48 @@
     await window.api.renderPng(a, true, true); // trả cửa sổ về như cũ
   });
 
+  // lỗi 2.7.6: hệ / hệ "hoặc" viết bằng array bị MathLive treo xuống, ngoặc thừa khoảng trống phía trên
+  await step('Hệ viết bằng array: nội dung nằm giữa ngoặc như SGK', async () => {
+    const B = String.fromCharCode(92);
+    for (const [name, lt] of [['hệ "hoặc" 2 dòng', B + 'left[' + B + 'begin{array}{l}m+5<-4' + B + B + 'm-1' + B + 'ge 2' + B + 'end{array}' + B + 'right.'],
+      ['hệ "hoặc" 3 dòng', B + 'left[' + B + 'begin{array}{l}x=1' + B + B + 'x=2' + B + B + 'x=3' + B + 'end{array}' + B + 'right.'],
+      ['hệ ngoặc nhọn {ll}', B + 'left' + B + '{' + B + 'begin{array}{ll}x+y=3&(1)' + B + B + 'x-y=1&(2)' + B + 'end{array}' + B + 'right.']]) {
+      __clear();
+      const id = __add('formula', null, { latex: lt, x: 60, y: 60, size: 20 }); await w(150);
+      // đo trên ảnh chụp: nét ngoặc (vài cột đầu) so với nội dung (các cột sau ngoặc): hở trên ≈ hở dưới
+      const r = await window.api.renderPng(id, true, true);
+      const img = new Image(); img.src = 'data:image/png;base64,' + r.b64; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data, W = c.width, H = c.height;
+      const ink = (x, y) => { const i = (y * W + x) * 4; return d[i + 3] > 40 && d[i] < 200; };
+      let x0 = 0; while (x0 < W && ![...Array(H).keys()].some((y) => ink(x0, y))) x0++;
+      const ext = (xa, xb) => { let t = -1, b = -1; for (let y = 0; y < H; y++) for (let x = xa; x < xb; x++) if (ink(x, y)) { if (t < 0) t = y; b = y; break; } return [t, b]; };
+      const [bt, bb] = ext(x0, x0 + 8), [ct, cb] = ext(x0 + 60, W);
+      const gapT = (ct - bt) / 4, gapB = (bb - cb) / 4;
+      ok(name + ': nội dung nằm giữa ngoặc (hở trên ' + gapT.toFixed(1) + 'px, hở dưới ' + gapB.toFixed(1) + 'px)', Math.abs(gapT - gapB) < 5, 'hở trên ' + gapT + ', hở dưới ' + gapB);
+    }
+  });
+  await step('Khối chữ: $$…$$ là công thức đứng riêng dòng, không hiện mã LaTeX', async () => {
+    __clear();
+    const id = __add('text', null, { x: 40, y: 40, w: 600, text: 'Ta có:\n$$x^2+1>0$$ với mọi $x$.' }); await w(150);
+    const el = objEl(id);
+    ok('có công thức đứng riêng dòng', !!el.querySelector('.ifx.disp .ML__latex'));
+    ok('không còn dấu $ hay mã LaTeX thô', !/\$|\\|\^/.test(el.textContent), el.textContent);
+  });
+  await step('Ảnh công thức chèn Word cắt sát nét chữ (không thừa khoảng trắng phía trên)', async () => {
+    __clear();
+    for (const lt of ['x+1', '-', 'a_{n}', '\\frac{1}{2}']) {
+      const id = __add('formula', null, { latex: lt, x: 60, y: 60, size: 16 }); await w(100);
+      const r = await window.api.renderPng(id, true, true);
+      const img = new Image(); img.src = 'data:image/png;base64,' + r.b64; await img.decode();
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height; const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let top = -1;
+      for (let y = 0; y < c.height && top < 0; y++) for (let x = 0; x < c.width; x++) { const i = (y * c.width + x) * 4; if (d[i + 3] > 40 && d[i] < 200) { top = y; break; } }
+      ok('“' + lt + '”: trắng phía trên ≤ 2px', top >= 0 && top / 4 <= 2, (top / 4) + 'px');
+      __clear();
+    }
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

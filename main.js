@@ -119,6 +119,29 @@ function showAbout() {
 }
 ipcMain.on('about', showAbout);
 
+// Ảnh công thức: cắt sát nét chữ ở trên và dưới. Khung MathLive cao theo dòng chữ (chừa chỗ cho chữ cao nhất, mũ, chỉ số…),
+// nên ảnh cũ thừa khoảng trắng phía trên — chèn vào Word làm giãn dòng. Giữ đường chân chữ đúng chỗ: độ hạ dòng
+// (point, số nguyên) tính lại theo phần nét nằm dưới chân chữ.
+function trimFormula(buf, depthPt, scale) {
+  const img = nativeImage.createFromBuffer(buf);
+  const { width: W, height: H } = img.getSize();
+  const bmp = img.toBitmap(); // BGRA
+  const inkRow = (y) => { for (let x = 0; x < W; x++) { const i = (y * W + x) * 4; if (bmp[i + 3] > 30 && Math.min(bmp[i], bmp[i + 1], bmp[i + 2]) < 215) return true; } return false; };
+  let top = 0;
+  while (top < H && !inkRow(top)) top++;
+  if (top >= H) return { buf, depthPt };
+  let bot = H - 1;
+  while (bot > top && !inkRow(bot)) bot--;
+  const m = Math.round(1.5 * scale); // lề 1,5px quanh nét
+  const base = H - depthPt / 0.75 * scale; // hàng của đường chân chữ, tính từ trên
+  const y0 = Math.max(0, top - m);
+  let dPt = Math.ceil(Math.max(0, bot + m - base) / scale * 0.75);
+  if (dPt > depthPt) dPt = depthPt;
+  const y1 = Math.min(H, Math.round(base + dPt / 0.75 * scale));
+  if (y0 <= 0 && y1 >= H) return { buf, depthPt };
+  return { buf: img.crop({ x: 0, y: y0, width: W, height: y1 - y0 }).toPNG(), depthPt: dPt };
+}
+
 // Chụp một đối tượng (hoặc cả trang) thành PNG độ phân giải cao
 async function capture(wc, target, scale) {
   const dbg = wc.debugger;
@@ -130,7 +153,9 @@ async function capture(wc, target, scale) {
     if (!rect) throw new Error('Không có gì để xuất');
     capture.depthPt = rect.depthPt || 0;
     const res = await dbg.sendCommand('Page.captureScreenshot', { format: 'png', clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, scale } });
-    return Buffer.from(res.data, 'base64');
+    const raw = Buffer.from(res.data, 'base64');
+    if (!rect.depthPt) return raw;
+    const t = trimFormula(raw, rect.depthPt, scale); capture.depthPt = t.depthPt; return t.buf;
   } finally {
     try { await wc.executeJavaScript('window.__endCapture()'); } catch (e) { /* cửa sổ đã đóng */ }
     if (!capture.keep) {
@@ -703,7 +728,8 @@ ipcMain.handle('renderBatch', async (e, ids) => {
     for (const rect of rects) {
       if (!rect) { out.push(null); continue; }
       const res = await dbg.sendCommand('Page.captureScreenshot', { format: 'png', clip: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, scale } });
-      const buf = Buffer.from(res.data, 'base64'), size = nativeImage.createFromBuffer(buf).getSize();
+      const t = rect.depthPt ? trimFormula(Buffer.from(res.data, 'base64'), rect.depthPt, scale) : { buf: Buffer.from(res.data, 'base64'), depthPt: 0 };
+      const buf = t.buf, size = nativeImage.createFromBuffer(buf).getSize(); rect.depthPt = t.depthPt;
       const file = path.join(app.getPath('temp'), 'toanviet-' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.png');
       fs.writeFileSync(file, buf);
       out.push({ file, w: size.width * 0.75 / scale, h: size.height * 0.75 / scale, depthPt: rect.depthPt || 0 });

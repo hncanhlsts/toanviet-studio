@@ -93,6 +93,8 @@ body.capturing, body.capturing #stage { background: #fff !important; }
 #page.placing, #page.placing .obj { cursor: text; }
 .obj.text .ifx { border-radius: 3px; }
 .obj.text .ifx:hover { background: #e2ecfa; cursor: pointer; }
+/* $$…$$: công thức đứng riêng một dòng, canh giữa như SGK */
+.obj.text .ifx.disp { display: block; text-align: center; margin: 4px 0; }
 .obj.text:empty::before, .obj.text.editing:empty::before { content: "Gõ chữ…"; color: #9aa5b1; }
 #tabs { flex-wrap: wrap; }
 

@@ -113,8 +113,8 @@
     draw();
     d.showModal();
   }
-  // các đoạn chữ / công thức của một nội dung có $…$
-  const segsOf = (t) => String(t || '').split('$').map((s, i) => (i % 2 ? { m: MmlFix.convert(s.replace(/\\dongdang(?![a-zA-Z])/g, '\\backsim ')) } : { t: s })).filter((x) => x.m || x.t);
+  // các đoạn chữ / công thức của một nội dung có $…$ (hoặc $$…$$) — dùng chung cách tách của khối chữ
+  const segsOf = (t) => window.TextSegs(t).map((g) => (g.m !== undefined ? { m: g.m.trim() ? MmlFix.convert(g.m.replace(/\\dongdang(?![a-zA-Z])/g, '\\backsim ')) : '' } : { t: g.t })).filter((x) => x.m || x.t);
   async function exportExam(withKey) {
     const E = S.exam, h = E.header, blocks = [], images = [];
     const dlg = document.getElementById('examdlg'), wasOpen = dlg && dlg.open;

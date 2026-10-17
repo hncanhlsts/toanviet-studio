@@ -44,12 +44,75 @@
     return '\\begin{aligned}' + rows.map((r) => '&' + r).join('\\\\') + '\\end{aligned}';
   }
   const texOf = (o) => { const t = multiline(o.latex); return o.bold ? '\\boldsymbol{' + t + '}' : t; };
+  // MathLive gióng DÒNG ĐẦU của môi trường array vào đường chân chữ (LaTeX gióng giữa cả khối), nên hệ, hệ "hoặc"
+  // viết bằng \left[\begin{array}{l}…\end{array}\right. bị treo xuống dưới, ngoặc thừa một khoảng trống phía trên
+  // (càng nhiều dòng càng lệch). Khi VẼ, đổi array sang aligned / gathered tương đương — gióng giữa đúng, khoảng cách
+  // dòng như hệ trong SGK. Mã LaTeX lưu trữ và mọi phép chuyển đổi (Equation, MathType, MathML) vẫn dùng array gốc.
+  function splitTop(s, kind) { // tách theo \\ (kind 'row') hoặc & (kind 'col') ở mức ngoài cùng
+    const out = [];
+    let d = 0, env = 0, cur = '';
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (ch === '\\') {
+        if (kind === 'row' && s[i + 1] === '\\' && !d && !env) {
+          out.push(cur); cur = ''; i++;
+          if (s[i + 1] === '[') { const j = s.indexOf(']', i + 1); if (j > 0) i = j; } // \\[3pt]
+          continue;
+        }
+        if (s.startsWith('\\begin{', i)) env++; else if (s.startsWith('\\end{', i)) env--;
+        cur += ch + (s[i + 1] || ''); i++; // lệnh hoặc kí tự thoát (\{ \& …): giữ nguyên, không tính
+        continue;
+      }
+      if (ch === '{') d++; else if (ch === '}') d--;
+      if (kind === 'col' && ch === '&' && !d && !env) { out.push(cur); cur = ''; continue; }
+      cur += ch;
+    }
+    out.push(cur);
+    return out;
+  }
+  const ARR_RX = /\\begin\{array\}(?:\[[tcb]\])?\{([^{}]*)\}((?:(?!\\begin\{array\})[\s\S])*?)\\end\{array\}/;
+  function arrayFix(t) {
+    // hệ cases / dcases: MathLive chừa sẵn cột điều kiện nên dư khoảng trống sau hệ — vẽ như \left\{ array{ll} \right.
+    if (/\\begin\{d?cases\}/.test(t)) t = t.replace(/\\begin\{d?cases\}/g, '\\left\\{\\begin{array}{ll}').replace(/\\end\{d?cases\}/g, '\\end{array}\\right.');
+    if (t.indexOf('\\begin{array}') < 0) return t;
+    for (let n = 0; n < 60; n++) {
+      const m = ARR_RX.exec(t);
+      if (!m) break;
+      const spec = m[1].replace(/\s/g, ''), body = m[2];
+      let rep;
+      if (!/^[lcr]+$/.test(spec) || /\\[hc]line/.test(body)) {
+        rep = m[0].replace('\\begin{array}', '\\begin{TVSARR}').replace(/\\end\{array\}$/, '\\end{TVSARR}'); // bảng có kẻ (GT/KL…): giữ nguyên
+      } else {
+        const rows = splitTop(body, 'row');
+        if (rows.length > 1 && !rows[rows.length - 1].trim()) rows.pop(); // \\ thừa ở cuối
+        if (spec === 'c') rep = '\\begin{gathered}' + rows.join('\\\\') + '\\end{gathered}';
+        else {
+          // aligned có các cột xen kẽ phải, trái (cặp "phải–trái" nằm sát nhau như x+y&=3): đặt mỗi cột array vào
+          // cột aligned cùng kiểu gióng gần nhất, chèn ô trống khi cần
+          rep = '\\begin{aligned}' + rows.map((r) => {
+            const cells = splitTop(r, 'col');
+            while (cells.length > 1 && !cells[cells.length - 1].trim()) cells.pop(); // cột trống cuối: không chừa chỗ
+            let s = '', pos = 0;
+            [...spec].slice(0, cells.length).forEach((a, j) => {
+              const want = a === 'r' ? 0 : 1;
+              if (j > 0) { s += '&'; pos++; }
+              while (pos % 2 !== want) { s += '&'; pos++; }
+              s += cells[j] || '';
+            });
+            return s;
+          }).join('\\\\') + '\\end{aligned}';
+        }
+      }
+      t = t.slice(0, m.index) + rep + t.slice(m.index + m[0].length);
+    }
+    return t.replace(/\{TVSARR\}/g, '{array}');
+  }
   const mkCache = new Map();
   function tex(latex, inline) {
     const key = (inline ? 'i' : 'd') + latex;
     if (!mkCache.has(key)) {
       let html;
-      try { html = MathLive.convertLatexToMarkup(expandSim(latex), { defaultMode: inline ? 'inline-math' : 'math' }); } catch (e) { html = esc(latex); }
+      try { html = MathLive.convertLatexToMarkup(expandSim(arrayFix(latex)), { defaultMode: inline ? 'inline-math' : 'math' }); } catch (e) { html = esc(latex); }
       mkCache.set(key, html);
     }
     return mkCache.get(key);
@@ -118,8 +181,23 @@
     const mk = o.kind === 'arrow' ? `<defs><marker id="sa${o.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${o.color || '#111'}"/></marker></defs>` : '';
     return `${mk}<line x1="0" y1="${y1}" x2="${w}" y2="${y2}" ${st}${mk ? ` marker-end="url(#sa${o.id})"` : ''}/><line x1="0" y1="${y1}" x2="${w}" y2="${y2}" stroke="transparent" stroke-width="12"/>`;
   }
+  // Tách khối chữ thành đoạn chữ và công thức: $…$ trong dòng, $$…$$ đứng riêng một dòng (canh giữa như SGK).
+  // Trước đây chỉ tách theo từng dấu $ nên $$A$$ hiện nguyên mã LaTeX. s, e: vị trí trong chuỗi gốc (để sửa đúng chỗ).
+  function textSegs(text) {
+    const t = String(text || ''), out = [], rx = /\$\$([\s\S]+?)\$\$|\$([^$]*)\$/g;
+    let last = 0, m;
+    while ((m = rx.exec(t))) {
+      if (m.index > last) out.push({ t: t.slice(last, m.index) });
+      out.push(m[1] !== undefined ? { m: m[1], disp: true, s: m.index, e: m.index + m[0].length } : { m: m[2], s: m.index, e: m.index + m[0].length });
+      last = m.index + m[0].length;
+    }
+    if (last < t.length) out.push({ t: t.slice(last) });
+    return out;
+  }
+  window.TextSegs = textSegs;
   function textHtml(o) {
-    return String(o.text || '').split('$').map((seg, i) => (i % 2 ? '<span class="ifx" data-i="' + i + '" title="Nhấp đúp để sửa công thức">' + tex(seg, true) + '</span>' : esc(seg))).join('');
+    return textSegs(o.text).map((g, i) => (g.m === undefined ? esc(g.t)
+      : '<span class="ifx' + (g.disp ? ' disp' : '') + '" data-i="' + i + '" title="Nhấp đúp để sửa công thức">' + tex(g.m, !g.disp) + '</span>')).join('');
   }
   // ---------- Kéo điểm (toạ độ, thông số), chọn điểm / mặt phẳng, xoay hình không gian: src/mod/keodiem.js ----------
   let ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag;
@@ -613,8 +691,9 @@
     else if (o.type === 'text') {
       const fx = e.target.closest('.ifx');
       if (!fx) return editText(o);
-      const segs = o.text.split('$'), i = +fx.dataset.i;
-      openFx(segs[i], (v) => { if (v === null) return; segs[i] = v; o.text = segs.join('$'); renderObj(o); buildProps(); commit(); });
+      const g = textSegs(o.text)[+fx.dataset.i];
+      if (!g || g.m === undefined) return editText(o);
+      openFx(g.m, (v) => { if (v === null) return; const q = g.disp ? '$$' : '$'; o.text = o.text.slice(0, g.s) + q + v + q + o.text.slice(g.e); renderObj(o); buildProps(); commit(); });
     }
   });
   stage.addEventListener('pointerdown', (e) => { if (e.target === stage) select(null); });
