@@ -61,6 +61,20 @@
     ok('xem trước có 2 hình, không báo lỗi', document.querySelectorAll('#bgview .pv-fig svg').length === 2 && !document.querySelector('#bgview .pv-fig .bgerr'), document.getElementById('bgview').querySelectorAll('.pv-fig').length);
     const r3 = await window.__baigiai.make(src.value);
     ok('tạo tệp Word có trục số, đồ thị', r3 && r3.ok && r3.missing.length === 0, JSON.stringify(r3));
+    // hình không gian: đọc từ đề, vẽ ngay đầu lời giải
+    document.getElementById('bgclear').click(); await w(100);
+    const txt4 = await (await fetch('../test/baigiai-khong-gian.txt')).text();
+    const dt4 = new DataTransfer(); dt4.setData('text/plain', txt4);
+    src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt4, bubbles: true, cancelable: true })); await w(800);
+    const v4 = src.value;
+    console.log('BG-NOIDUNG\n' + v4 + '\nBG-HET');
+    const sp4 = (/^#FIG \S+ (\{.*"type":"space".*\})$/m.exec(v4) || [])[1];
+    const s4 = sp4 ? JSON.parse(sp4) : null;
+    ok('hình không gian: đọc đúng đề (chóp, SA ⊥ đáy, M, N, O)', s4 && /chop S ABCD/.test(s4.script) && /M = trungdiem\(S, B\)/.test(s4.script) && /O = giao\(A, C, B, D\)/.test(s4.script), s4 && s4.script);
+    ok('hình không gian đặt ngay đầu lời giải', /^#G\n\[FIG h\d+\|Hình \d+\]/m.test(v4), v4.slice(0, 300));
+    ok('xem trước có hình không gian, không lỗi', !!document.querySelector('#bgview .pv-fig svg') && !document.querySelector('#bgview .pv-fig .bgerr'));
+    const r4 = await window.__baigiai.make(src.value);
+    ok('tạo tệp Word có hình không gian', r4 && r4.ok && r4.missing.length === 0, JSON.stringify(r4));
   } catch (e) { console.log('BG: ✘ lỗi ' + e.message + ' ' + e.stack); }
   console.log('BG-XONG');
 })();

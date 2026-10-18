@@ -97,6 +97,9 @@
         rest = rest.replace(/\s+(#[0-9a-fA-F]{6}|do|xanh|xanhla|den|xam|cam|tim)\b/g, (m, c) => { color = COLORS[c] || c; return ''; });
         rest = rest.replace(/\s+keo\s+(-?[\d.]+)(?:\s+(-?[\d.]+))?/, (m, a, b) => { keo = [parseFloat(a), parseFloat(b === undefined ? a : b)]; return ''; });
         if (kw === 'mp') {
+          // mp P: A B C an  — mặt phẳng phụ để dựng điểm (hình chiếu, giao điểm), không vẽ
+          let anMp = false;
+          rest = rest.replace(/\s+an\s*$/, () => { anMp = true; return ''; });
           const m = rest.match(/^([^\s:]+)\s*:?\s*(.*)$/);
           if (!m) throw new Error('viết: mp P: A B C D  hoặc  mp P ngang O 6 4');
           const nm = m[1], body = m[2].trim(), tk = body.split(/[\s,]+/).filter(Boolean);
@@ -107,7 +110,7 @@
           else pts = names(body).map(pt);
           PL[nm] = makePlane(nm, pts);
           PL[nm].color = color; PL[nm].corner = -1; PL[nm].solid = solid;
-          cmds.push({ k: 'plane', p: nm });
+          if (!anMp) cmds.push({ k: 'plane', p: nm });
           return;
         }
         const eq = rest.indexOf('=');

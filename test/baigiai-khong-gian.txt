@@ -1,0 +1,7 @@
+**Câu 3.** Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình vuông cạnh $a$, $SA \perp (ABCD)$ và $SA = a\sqrt{2}$. Gọi $M, N$ lần lượt là trung điểm của $SB, SD$. Chứng minh $MN \parallel (ABCD)$ và $BD \perp (SAC)$.
+
+**Lời giải:**
+
+Gọi $O$ là giao điểm của $AC$ và $BD$.
+Vì $M, N$ lần lượt là trung điểm của $SB, SD$ nên $MN$ là đường trung bình của tam giác $SBD$, suy ra $MN \parallel BD$. Mà $BD \subset (ABCD)$ nên $MN \parallel (ABCD)$.
+Ta có $BD \perp AC$ (hai đường chéo của hình vuông) và $BD \perp SA$ (vì $SA \perp (ABCD)$). Do đó $BD \perp (SAC)$.

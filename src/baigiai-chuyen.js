@@ -349,6 +349,19 @@
         addFig(blk, at >= 0 ? at : blk.length - 1, type, type === 'bbt' ? { expr, w: 520, h: 170 } : { expr, w: 480, h: 76 }, '', type === 'bbt' ? 0.8 : 0.8);
         notes['thêm ' + kind] = (notes['thêm ' + kind] || 0) + 1;
       }
+      // --- hình không gian: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải như SGK ---
+      const DH = root.DeHinh || (typeof require === 'function' ? require('./dedehinh.js') : null);
+      if (DH && /hình chóp|lăng trụ|hình hộp|lập phương|tứ diện/i.test(blk.join('\n'))) {
+        let sp = null;
+        try { sp = DH.space(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { sp = null; }
+        if (sp && sp.script) {
+          const gi = blk.findIndex((l) => /^#G/.test(l));
+          const at = gi >= 0 ? gi : Math.min(1, blk.length - 1);
+          addFig(blk, at, 'space', { kind: sp.kind, script: sp.script, w: 360, h: 320 }, '', 0.75);
+          notes['thêm hình không gian (đọc từ đề)'] = (notes['thêm hình không gian (đọc từ đề)'] || 0) + 1;
+          sp.unknown.forEach((u) => { notes['hình không gian — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
+        }
+      }
       // --- tập hợp trên trục số: khoảng, đoạn có đầu mút là số và các phép ∪, ∩, \, phần bù ---
       {
         const txt = blk.join('\n'), named = [], ops = [];
