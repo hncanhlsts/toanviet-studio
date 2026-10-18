@@ -1,0 +1,65 @@
+# Tự đóng gói bộ cài ToanViet Studio và đăng lên GitHub Releases.
+# Đặt tệp này tại: .github/workflows/release.yml
+#
+# Cách dùng: tăng "version" trong package.json -> commit -> tạo tag trùng số phiên bản rồi đẩy lên:
+#   git tag -a v2.7.6 -m "ToanViet Studio 2.7.6"
+#   git push origin main --tags
+# GitHub sẽ tự chạy kiểm thử, tạo ToanVietStudio-Setup-2.7.6.exe và đăng vào Releases.
+
+name: Phat hanh bo cai
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch: # cho phép bấm chạy tay ở tab Actions (chỉ tạo file, không đăng Release)
+
+permissions:
+  contents: write # cần để tạo Release và đính kèm tệp
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Lay ma nguon
+        uses: actions/checkout@v4
+
+      - name: Cai Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cai thu vien
+        run: npm ci
+
+      - name: Kiem tra tag khop voi version trong package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $v = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ("v$v" -ne "${{ github.ref_name }}") {
+            Write-Error "Tag ${{ github.ref_name }} khong khop version $v trong package.json"
+            exit 1
+          }
+
+      - name: Kiem thu
+        run: npm test
+
+      - name: Dong goi bo cai (electron-builder)
+        run: npx electron-builder --win nsis --x64 --publish never
+
+      - name: Luu file cai dat (xem o tab Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ToanVietStudio-Setup
+          path: cai-dat/*.exe
+
+      - name: Dang len GitHub Releases
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ToanViet Studio ${{ github.ref_name }}
+          files: cai-dat/ToanVietStudio-Setup-*.exe
+          generate_release_notes: true
