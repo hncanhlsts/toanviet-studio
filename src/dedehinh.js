@@ -752,6 +752,18 @@
     const markOk = (s) => { const g = s.replace(/=.*$/, '').trim().split(/\s+/).slice(1); return g.every((x) => namesIn(x).every((n) => made.has(n))); };
     const vs = marks.filter((s) => /^vuong/.test(s) && markOk(s)).map((s) => s.slice(6).trim()).filter((v, i, a) => a.indexOf(v) === i);
     if (vs.length) lines.push('vuong ' + vs.join(' '));
+    // ký hiệu góc: các góc bằng nhau cùng ký hiệu, các góc khác nhau khác ký hiệu (1, 2, 3… cung).
+    // Nhóm góc bằng nhau không ghi số đo (cặp góc của tia phân giác) dùng cung đơn trước; góc ghi số đo: cùng số đo cùng ký hiệu.
+    {
+      const gs = marks.filter((s) => /^goc /.test(s) && markOk(s));
+      const keyOf = (s) => { const lb = (/=\s*(.+)$/.exec(s) || [])[1]; return lb ? 'v:' + lb.trim() : 'm:' + s; };
+      const keys = [...new Set(gs.filter((s) => !/=/.test(s)).map(keyOf).concat(gs.filter((s) => /=/.test(s)).map(keyOf)))];
+      marks.forEach((s, i) => {
+        if (!/^goc /.test(s) || !markOk(s)) return;
+        const n = Math.min(4, keys.indexOf(keyOf(s)) + 1), m2 = /^goc\s+([^=]+?)\s*(=.*)?$/.exec(s);
+        if (n > 1 && m2) marks[i] = 'goc ' + m2[1] + ' x' + n + (m2[2] ? ' ' + m2[2] : '');
+      });
+    }
     marks.filter((s) => !/^(vuong|diem)/.test(s) && markOk(s)).forEach((s) => { if (!lines.includes(s)) lines.push(s); });
     marks.filter((s) => /^diem/.test(s)).forEach((s) => namesIn(s.slice(5)).forEach((n) => dots.add(n)));
     const dd = [...dots].filter((n) => made.has(n));

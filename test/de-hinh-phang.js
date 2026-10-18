@@ -11,7 +11,7 @@ const DE_HINH_PHANG = [
     { has: ['D = chan(A, B, C)', 'E = chan(B, A, C)', 'F = chan(C, A, B)', 'doan AD', 'doan BE', 'doan CF', 'vuong ADB BEA CFA', 'H = giao(A, D, B, E)'] }],
   ['tam giác thường cho góc, phân giác, song song',
     'Cho tam giác $ABC$ có $\\widehat{B} = 70^\\circ$, $\\widehat{C} = 50^\\circ$. Tia phân giác của góc $BAC$ cắt $BC$ tại $D$. Qua $D$ kẻ đường thẳng song song với $AB$, cắt $AC$ tại $E$. Tính $\\widehat{ADE}$.',
-    { has: ['D = phangiacgoc(B, A, C, B, C)', 'E = giao(D, Z1, A, C)', 'doan AD', 'doan DE', 'goc ABC = 70^{\\circ}', 'goc BCA = 50^{\\circ}', 'an Z1'] }],
+    { has: ['D = phangiacgoc(B, A, C, B, C)', 'E = giao(D, Z1, A, C)', 'doan AD', 'doan DE', 'goc ABC x2 = 70^{\\circ}', 'goc BCA x3 = 50^{\\circ}', 'goc BAD DAC', 'an Z1'] }],
   ['hình bình hành, giao hai đường chéo, trung điểm',
     'Cho hình bình hành $ABCD$. Gọi $O$ là giao điểm của hai đường chéo $AC$ và $BD$. Gọi $M, N$ lần lượt là trung điểm của $AB, CD$. Chứng minh $M, O, N$ thẳng hàng.',
     { has: ['O = giao(A, C, B, D)', 'M = trungdiem(A, B)', 'N = trungdiem(C, D)', 'doan AC BD', 'bang AM MB = 1'] }],

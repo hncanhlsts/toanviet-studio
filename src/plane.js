@@ -186,12 +186,17 @@
       } else if (c.k === 'angle') {
         const a = S[c.a], t1 = Math.atan2(S[c.b][1] - a[1], S[c.b][0] - a[0]), t2 = Math.atan2(S[c.c][1] - a[1], S[c.c][0] - a[0]);
         let df = t2 - t1; while (df > Math.PI) df -= 2 * Math.PI; while (df < -Math.PI) df += 2 * Math.PI;
-        const R0 = Math.abs(df) < 0.6 ? 26 : 17;
+        const R0 = Math.abs(df) < 0.6 ? 26 : 17, sg = df > 0 ? 1 : -1;
+        // hai góc kề nhau cùng đỉnh (vd hai góc tạo bởi tia phân giác): cung hở một chút ở tia chung
+        // để thấy rõ là hai góc, không nhầm thành một góc lớn (như hình SGK)
+        const shared = (t) => cmds.some((d) => d !== c && d.k === 'angle' && d.a === c.a && [d.b, d.c].some((p) => { const u = Math.atan2(S[p][1] - a[1], S[p][0] - a[0]); return Math.abs(Math.atan2(Math.sin(u - t), Math.cos(u - t))) < 1e-3; }));
+        const g1 = shared(t1), g2 = shared(t2);
         for (let k = 0; k < c.n; k++) {
-          const R = R0 + k * 4;
-          marks.push(`<path d="M${r1(a[0] + R * Math.cos(t1))},${r1(a[1] + R * Math.sin(t1))}A${R},${R} 0 0 ${df > 0 ? 1 : 0} ${r1(a[0] + R * Math.cos(t2))},${r1(a[1] + R * Math.sin(t2))}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
+          const R = R0 + k * 3.5, gap = Math.min(4.5 / R, Math.abs(df) / 4), s1 = t1 + (g1 ? sg * gap : 0), s2 = t2 - (g2 ? sg * gap : 0);
+          marks.push(`<path d="M${r1(a[0] + R * Math.cos(s1))},${r1(a[1] + R * Math.sin(s1))}A${R},${R} 0 0 ${df > 0 ? 1 : 0} ${r1(a[0] + R * Math.cos(s2))},${r1(a[1] + R * Math.sin(s2))}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
         }
-        if (c.label) { const tm = t1 + df / 2, R = R0 + c.n * 4 + 11; labels.push({ x: a[0] + R * Math.cos(tm), y: a[1] + R * Math.sin(tm), tex: c.label, size: 13 }); }
+        // nhãn số đo: góc hẹp thì đặt xa đỉnh hơn để nhãn nằm gọn trong góc, không chồng nhãn góc bên cạnh
+        if (c.label) { const tm = t1 + df / 2, tw = c.label.replace(/\\[a-zA-Z]+|[{}^_]/g, '').length * 4.2, R = Math.min(90, Math.max(R0 + c.n * 3.5 + 11, tw / Math.max(0.05, Math.sin(Math.abs(df) / 2)) * 0.95)); labels.push({ x: a[0] + R * Math.cos(tm), y: a[1] + R * Math.sin(tm), tex: c.label, size: 13 }); }
       } else if (c.k === 'right') {
         const a = S[c.a], u = mul(unit(a, S[c.b]), 9), v = mul(unit(a, S[c.c]), 9), p1 = add(a, u), p2 = add(add(a, u), v), p3 = add(a, v);
         marks.push(`<path d="M${r1(p1[0])},${r1(p1[1])}L${r1(p2[0])},${r1(p2[1])}L${r1(p3[0])},${r1(p3[1])}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
@@ -287,7 +292,7 @@ nhan A = x
 nhan B = y
 nhan C = z
 goc AOC = ?
-goc COB = ?
+goc COB x2 = ?
 diem O`],
       doidinh: ['Hai góc đối đỉnh', S`
 so_do = 50   # Số đo góc xOy (độ)
@@ -356,8 +361,8 @@ A = giao(B, X, C, Y)
 an X Y
 dagiac ABC
 goc CBA = ?
-goc ACB = ?
-goc BAC = ?`],
+goc ACB x2 = ?
+goc BAC x3 = ?`],
       can: ['Tam giác cân', S`
 day = 5     # Cạnh đáy BC
 ben = 5.5   # Cạnh bên AB = AC
@@ -661,7 +666,7 @@ C = tron(O, r, vi_tri)
 duongtron O A
 doan OA OB CA CB
 goc AOB = ?
-goc ACB = ?
+goc ACB x2 = ?
 diem O`],
       tgnoitiep: ['Tứ giác nội tiếp', S`
 r = 3   # Bán kính
@@ -673,7 +678,7 @@ D = tron(O, r, 205)
 duongtron O A
 dagiac ABCD
 goc DAB = ?
-goc BCD = ?
+goc BCD x2 = ?
 diem O`],
       quat: ['Hình quạt tròn', S`
 r = 3        # Bán kính
