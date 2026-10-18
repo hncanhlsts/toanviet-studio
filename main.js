@@ -480,12 +480,15 @@ ipcMain.handle('renderBatch', async (e, ids) => {
 });
 // Bài giải AI → Word: ghép tệp .docx trực tiếp (không cần Word / PowerShell) từ nội dung chuẩn và ảnh công thức ToanViet,
 // lưu (hộp thoại chọn chỗ lưu, mặc định thư mục Tài liệu) rồi mở bằng Word
-ipcMain.handle('makeDocx', async (_e, o) => {
+ipcMain.handle('makeDocx', async (e, o) => {
+  // chụp hàng loạt xong: trả cửa sổ về kích thước thật (như sau khi chuyển đổi)
+  if (capture.keep) { capture.keep = false; try { if (e.sender.debugger.isAttached()) { await e.sender.debugger.sendCommand('Emulation.clearDeviceMetricsOverride'); e.sender.debugger.detach(); } } catch (err) { /* bỏ qua */ } }
   const { buildDocx } = require('./docx-writer');
-  const formulas = {};
+  const formulas = {}, figures = {};
   for (const f of o.formulas || []) { try { formulas[f.latex] = { png: fs.readFileSync(f.file), w: f.w, h: f.h, depthPt: f.depthPt || 0, alt: f.alt }; } catch (err) { /* ảnh lỗi: ghi mã LaTeX */ } }
-  const r = buildDocx(o.markup, formulas, { pt: o.pt || 12 });
-  (o.formulas || []).forEach((f) => fs.unlink(f.file, () => {}));
+  for (const f of o.figures || []) { try { figures[f.key] = { png: fs.readFileSync(f.file), w: f.w, h: f.h, alt: f.alt, scale: f.scale || 0.8 }; } catch (err) { /* hình lỗi: ghi [THIẾU HÌNH] */ } }
+  const r = buildDocx(o.markup, formulas, { pt: o.pt || 12, figures });
+  (o.formulas || []).concat(o.figures || []).forEach((f) => fs.unlink(f.file, () => {}));
   const name = (String(o.name || 'Loi-giai').replace(/[\\/:*?"<>|]+/g, ' ').trim() || 'Loi-giai') + '.docx';
   let file = process.env.TVS_DOCX_OUT || '';
   if (!file) {

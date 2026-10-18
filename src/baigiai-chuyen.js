@@ -187,14 +187,165 @@
     return walk(body).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
   }
 
-  // các công thức (khác nhau) có trong nội dung chuẩn
+  // các công thức (khác nhau) có trong nội dung chuẩn (bỏ qua dòng khai báo hình #FIG)
   function formulas(markup) {
     const set = new Set();
-    String(markup).split('\n').forEach((ln) => { const re = /\$\$([^$]+)\$\$|\$([^$]+)\$/g; let m; while ((m = re.exec(ln))) set.add((m[1] || m[2]).trim()); });
+    String(markup).split('\n').forEach((ln) => { if (/^#FIG /.test(ln)) return; const re = /\$\$([^$]+)\$\$|\$([^$]+)\$/g; let m; while ((m = re.exec(ln))) set.add((m[1] || m[2]).trim()); });
     return [...set];
   }
 
-  const api = { fromText, fromHtml, cleanTex, formulas, TEX_RULES };
+  // ---------- Tự thêm hình ở chỗ SGK có hình (bước 3 của skill) ----------
+  // Hình khai báo bằng một dòng "#FIG <khoá> <JSON đối tượng ToanViet>" (không in) và đặt bằng dòng "[FIG <khoá>|Hình n]".
+  // LaTeX → biểu thức kiểu ToanViet (x^2 - 3x, (2x+1)/(x-1), sqrt(x)…)
+  function texToExpr(t) {
+    // giữ dấu xuống dòng \\ của hệ (thành ⏎) trước khi bỏ các khoảng trắng \, \; \  …
+    let s = String(t).replace(/\\\\/g, ' ⏎ ').replace(/\\left|\\right/g, '').replace(/\\[,;:! ]|\\q?quad/g, ' ').replace(/\{,\}/g, '.').replace(/−/g, '-')
+      .replace(/\\(cdot|times)(?![a-z])/g, '*').replace(/\\(le|leq|leqslant)(?![a-z])|≤/g, '<=').replace(/\\(ge|geq|geqslant)(?![a-z])|≥/g, '>=')
+      .replace(/\\[dt]frac/g, '\\frac').replace(/\\pi(?![a-z])/g, 'pi').replace(/\\infty/g, 'oo').replace(/\\(sin|cos|tan|cot|ln|log)(?![a-z])/g, '$1 ');
+    for (let i = 0; i < 30; i++) {
+      const s2 = s.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, '(($1)/($2))').replace(/\\sqrt\s*\{([^{}]*)\}/g, 'sqrt($1)')
+        .replace(/\^\{([^{}]*)\}/g, '^($1)').replace(/\\frac\s*(\d)(\d)/g, '($1/$2)').replace(/\\sqrt\s*(\w)/g, 'sqrt($1)');
+      if (s2 === s) break;
+      s = s2;
+    }
+    return s.replace(/[{}]/g, '').replace(/\s+/g, ' ').trim();
+  }
+  // biểu thức bậc nhất theo x, y → { a, b, c } (a·x + b·y + c); không phải bậc nhất thì null
+  function linear(expr) {
+    const e = String(expr).replace(/\s+/g, '').replace(/(\d|\))(?=[xy(])/g, '$1*').replace(/([xy])(?=[xy(\d])/g, '$1*').replace(/\)(?=\()/g, ')*').replace(/\^/g, '**');
+    if (!/^[0-9xy+\-*/().]+$/.test(e) || !/[xy]/.test(e)) return null;
+    let f;
+    try { f = new Function('x', 'y', 'return ' + e); f(0, 0); } catch (err) { return null; }
+    const c = f(0, 0), a = f(1, 0) - c, b = f(0, 1) - c;
+    if (![a, b, c].every(isFinite) || Math.abs(f(2, 3) - (2 * a + 3 * b + c)) > 1e-9 || Math.abs(f(-1.5, 4.25) - (-1.5 * a + 4.25 * b + c)) > 1e-9) return null;
+    return { a, b, c };
+  }
+  const NUM = (v) => { const r = Math.round(v * 1e6) / 1e6; return String(r); };
+  // a x + b y (op) k → chuỗi kiểu ToanViet "2x - y <= 6"
+  function lineStr(a, b, op, k) {
+    const term = (co, v, first) => { if (Math.abs(co) < 1e-12) return ''; const sg = co < 0 ? '-' : '+', m = Math.abs(co), t = (Math.abs(m - 1) < 1e-12 ? '' : NUM(m)) + v; return first ? (co < 0 ? '-' : '') + t : ' ' + sg + ' ' + t; };
+    let s = term(a, 'x', true); s += term(b, 'y', !s);
+    return s + ' ' + op + ' ' + NUM(k);
+  }
+  function figures(markup) {
+    const notes = {};
+    const lines = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l));
+    const out = [], specs = [];
+    let fig = 0;
+    // chia theo câu / đề mục: mỗi khối xét riêng
+    const blocks = [];
+    let cur = [];
+    lines.forEach((l) => { if (/^#(C|D|H1|H2) /.test(l) && cur.length) { blocks.push(cur); cur = []; } cur.push(l); });
+    if (cur.length) blocks.push(cur);
+    const mathOf = (l) => { const r = []; const re = /\$\$([^$]+)\$\$|\$([^$]+)\$/g; let m; while ((m = re.exec(l))) r.push((m[1] || m[2]).trim()); return r; };
+    const addFig = (blk, at, type, props, caption, scale) => {
+      fig++;
+      const key = 'h' + fig, cap = 'Hình ' + fig;
+      specs.push('#FIG ' + key + ' ' + JSON.stringify(Object.assign({ type }, props, { scale })));
+      // nhắc tới hình trong đoạn: "… (Hình n)."
+      if (at >= 0 && !/\[FIG|^#|^\$\$/.test(blk[at])) blk[at] = blk[at].replace(/([.:;]?)\s*$/, (m, p) => ' (' + cap + ')' + (p || '.'));
+      blk.splice(at + 1, 0, '[FIG ' + key + '|' + (caption || cap) + ']');
+    };
+    for (const blk of blocks) {
+      const text = blk.join('\n');
+      // --- miền nghiệm hệ bất phương trình bậc nhất hai ẩn ---
+      if (/miền nghiệm/i.test(text)) {
+        const lns = [], ineqs = [], pts = [];
+        const fnLetters = new Set((text.match(/([A-Z])\s*\(\s*x\s*[;,]\s*y\s*\)/g) || []).map((s) => s[0]));
+        blk.forEach((l) => {
+          mathOf(l).forEach((m) => {
+            const plain = texToExpr(m);
+            // điểm có toạ độ: A(0; 3)
+            const pr = /([A-Z])\s*\(\s*(-?[\d.]+)\s*;\s*(-?[\d.]+)\s*\)/g; let pm;
+            while ((pm = pr.exec(plain))) if (!fnLetters.has(pm[1])) pts.push([pm[1], +pm[2], +pm[3]]);
+            // hệ / các bất phương trình (kể cả trong \begin{cases})
+            plain.replace(/\\begin\w*|\\end\w*|cases|array|aligned/g, ' ').split(/⏎|&|,(?![^(]*\))/).forEach((row) => {
+              const q = /^([^<>=]+)(<=|>=|<|>)([^<>=]+)$/.exec(row.trim());
+              if (!q) return;
+              const L = linear(q[1]), R = linear(q[3]) || (isFinite(+q[3]) ? { a: 0, b: 0, c: +q[3] } : null);
+              if (L && R && (L.a - R.a || L.b - R.b)) ineqs.push({ a: L.a - R.a, b: L.b - R.b, k: R.c - L.c, op: q[2] });
+            });
+            // đường thẳng: "d_1: x + y = 3" hoặc phương trình bậc nhất x, y nằm trong câu nói về đường thẳng / trục
+            const nm = /^\s*(d_?\{?\d+\}?|d'+|\\Delta(?:_\{?\d+\}?)?)\s*:\s*(.+)$/.exec(plain);
+            const eqs = nm ? nm[2] : plain;
+            const e = /^([^<>=]+)=([^<>=]+)$/.exec(eqs.trim());
+            if (e && (nm || /đường thẳng|trục|bờ|biên/i.test(l))) {
+              const L = linear(e[1]), R = linear(e[2]) || (isFinite(+e[2]) ? { a: 0, b: 0, c: +e[2] } : null);
+              if (L && R && (L.a - R.a || L.b - R.b)) {
+                const name = nm ? nm[1].replace(/^d_?\{?(\d+)\}?$/, 'd_{$1}') : '';
+                const ln = { a: L.a - R.a, b: L.b - R.b, k: R.c - L.c, name };
+                if (!lns.some((o) => Math.abs(o.a * ln.b - o.b * ln.a) < 1e-9 && Math.abs(o.a * ln.k - o.k * ln.a) < 1e-9 && Math.abs(o.b * ln.k - o.k * ln.b) < 1e-9)) lns.push(ln);
+              }
+            }
+          });
+        });
+        // đỉnh: điểm nằm trên ít nhất hai đường biên
+        const onL = (p, l) => Math.abs(l.a * p[1] + l.b * p[2] - l.k) < 1e-6;
+        const verts = pts.filter((p, i) => lns.filter((l) => onL(p, l)).length >= 2 && !pts.slice(0, i).some((q) => q[1] === p[1] && q[2] === p[2]));
+        let rows = null, lnames = null;
+        if (ineqs.length >= 2) {
+          rows = ineqs.map((q) => lineStr(q.a, q.b, q.op, q.k));
+          // tên đường thẳng theo lời giải; không có thì d₁, d₂… cho các đường không trùng trục toạ độ
+          let nd = 0;
+          lnames = ineqs.map((q) => { const l = lns.find((o) => Math.abs(o.a * q.b - o.b * q.a) < 1e-9 && Math.abs(o.a * q.k - o.k * q.a) < 1e-9 && Math.abs(o.b * q.k - o.k * q.b) < 1e-9); return l && l.name ? l.name : ''; });
+          if (lnames.every((n) => !n)) lnames = ineqs.map((q) => ((Math.abs(q.a) < 1e-12 || Math.abs(q.b) < 1e-12) && Math.abs(q.k) < 1e-12 ? '' : 'd_{' + (++nd) + '}'));
+        } else if (lns.length >= 2 && verts.length >= 2) {
+          // chưa có hệ: suy ra chiều mỗi bất phương trình từ các đỉnh của miền (trọng tâm các đỉnh nằm trong miền)
+          const cx = verts.reduce((s, p) => s + p[1], 0) / verts.length, cy = verts.reduce((s, p) => s + p[2], 0) / verts.length;
+          const strict = /không kể (cả )?bờ/i.test(text);
+          rows = lns.map((l) => lineStr(l.a, l.b, (l.a * cx + l.b * cy - l.k >= 0 ? (strict ? '>' : '>=') : (strict ? '<' : '<=')), l.k));
+          lnames = lns.map((l) => l.name);
+          notes['miền nghiệm: suy ra hệ bất phương trình từ các đường biên và đỉnh trong lời giải'] = 1;
+        }
+        if (rows) {
+          // khung hình bao các đỉnh và giao điểm với trục, có gốc toạ độ
+          const xs = [0], ys = [0];
+          verts.forEach((p) => { xs.push(p[1]); ys.push(p[2]); });
+          // chưa đủ đỉnh (miền không bị chặn, hệ cho sẵn): thêm giao điểm của các đường biên với hai trục
+          if (verts.length < 2) lns.concat(ineqs).forEach((l) => { if (Math.abs(l.a) > 1e-9) xs.push(l.k / l.a); if (Math.abs(l.b) > 1e-9) ys.push(l.k / l.b); });
+          // bước chia "đẹp" (1, 2, 5, 10, 20, 50…) để trục có khoảng 6–10 vạch
+          const nice = (x) => { const p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
+          const span = (v) => { const lo = Math.min(...v), hi = Math.max(...v), r = Math.max(hi - lo, 1); const st = r <= 12 ? 1 : nice(r / 6); return { lo: Math.floor(Math.min(lo - r * 0.12, -r * 0.06)), hi: Math.ceil(hi + r * 0.3), st }; };
+          const X = span(xs), Y = span(ys);
+          const at = blk.findIndex((l) => /miền nghiệm/i.test(l) && !/^#/.test(l));
+          addFig(blk, at >= 0 ? at : blk.length - 1, 'region', {
+            ineqs: rows.join('\n'), lnames: lnames.join('\n'), vnames: verts.map((p) => p[0] + '(' + NUM(p[1]) + '; ' + NUM(p[2]) + ')').join('\n'),
+            style: 'hatch', vertices: true, lineNames: true, grid: false, ticks: true, w: 380, h: 380,
+            xmin: String(X.lo), xmax: String(X.hi), ymin: String(Y.lo), ymax: String(Y.hi), xstep: String(X.st), ystep: String(Y.st),
+          }, '', 0.82);
+          notes['thêm hình miền nghiệm'] = (notes['thêm hình miền nghiệm'] || 0) + 1;
+        }
+      }
+      // --- bảng biến thiên / bảng xét dấu: hàm số trong khối + thay bảng Markdown của AI ---
+      for (const [kind, re, type] of [['bảng biến thiên', /bảng biến thiên|lập bảng biến thiên|khảo sát/i, 'bbt'], ['bảng xét dấu', /xét dấu|bảng xét dấu/i, 'sign']]) {
+        if (!re.test(blk.join('\n'))) continue;
+        let expr = null;
+        for (const l of blk) {
+          for (const m of mathOf(l)) {
+            const f = /^\s*(?:y|f\s*\(\s*x\s*\)|g\s*\(\s*x\s*\))\s*=\s*(.+)$/.exec(m);
+            if (f && !/[<>]|\\[lg]e/.test(f[1])) { const ex = texToExpr(f[1]); if (/x/.test(ex) && /^[0-9x+\-*/^(). a-z]+$/.test(ex) && !/[a-wyz]{2,}/.test(ex.replace(/sqrt|sin|cos|tan|cot|ln|log|pi|e/g, ''))) { expr = ex; break; } }
+          }
+          if (expr) break;
+        }
+        if (!expr) continue;
+        // bảng AI tự kẻ (cột đầu có x, rồi y'/f'(x) hoặc f(x)): thay bằng hình
+        let at = -1;
+        for (let i = 0; i < blk.length; i++) {
+          if (blk[i] !== '#TAB') continue;
+          let j = i; while (j < blk.length && blk[j] !== '#ENDTAB') j++;
+          const firstCol = blk.slice(i + 1, j).map((r) => (r.replace(/^\|/, '').split('|')[0] || '').replace(/\$/g, '').trim());
+          if (firstCol[0] === 'x' && (type === 'bbt' ? firstCol.some((c) => /'|f'|y′/.test(c)) : firstCol.some((c) => /f\s*\(x\)|^y$/.test(c)))) { blk.splice(i, j - i + 1); at = i - 1; notes['thay bảng AI tự kẻ bằng ' + kind + ' ToanViet'] = 1; break; }
+        }
+        if (at < 0) at = blk.findIndex((l) => re.test(l) && !/^#/.test(l));
+        addFig(blk, at >= 0 ? at : blk.length - 1, type, type === 'bbt' ? { expr, w: 520, h: 170 } : { expr, w: 480, h: 76 }, '', type === 'bbt' ? 0.8 : 0.8);
+        notes['thêm ' + kind] = (notes['thêm ' + kind] || 0) + 1;
+      }
+      out.push(...blk);
+    }
+    return { markup: (specs.length ? specs.join('\n') + '\n' : '') + out.join('\n'), notes, count: fig };
+  }
+
+  const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BaiGiai = api;
 })(this);

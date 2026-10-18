@@ -201,6 +201,10 @@
     } else if (feas.length > 2 && ineqs.length) {
       parts.push(`<polygon points="${toPts(feas)}" fill="#5dade2" fill-opacity="0.38" stroke="none"/>`);
     }
+    // chỗ đã có chữ (đỉnh và nhãn toạ độ đỉnh, tên các đường thẳng đã đặt): tên đường thẳng tránh đè lên
+    const busy = [];
+    if (o.vertices && feas.length > 2) feas.forEach((p) => { const vx = fr.X(p[0]), vy = fr.Y(p[1]); busy.push([vx - 6, vy - 24, vx + 100, vy + 6]); });
+    const free = (x, y) => !busy.some((b) => x + 12 > b[0] && x - 12 < b[2] && y + 10 > b[1] && y - 10 < b[3]) && x > PAD && x < w - PAD && y > PAD && y < h - PAD;
     ineqs.forEach((q, i) => {
       const col = hatchMode ? '#d63031' : COLORS[i % COLORS.length]; // SGK: bờ miền nghiệm màu đỏ
       let p1, p2;
@@ -210,25 +214,36 @@
         p1 = [-(q.b * fr.ymin + q.c) / q.a, fr.ymin]; p2 = [-(q.b * fr.ymax + q.c) / q.a, fr.ymax];
       }
       parts.push(`<line x1="${r2(fr.X(p1[0]))}" y1="${r2(fr.Y(p1[1]))}" x2="${r2(fr.X(p2[0]))}" y2="${r2(fr.Y(p2[1]))}" stroke="${col}" stroke-width="1.6"${q.strict ? ' stroke-dasharray="7 4"' : ''} clip-path="url(#${fr.clip})"/>`);
-      if (o.lineNames !== false) {
+      // tên đường thẳng: theo o.lnames (mỗi dòng một tên, bỏ trống = không ghi, vd trục toạ độ) hoặc d1, d2…
+      const lname = o.lnames ? (String(o.lnames).split('\n')[i] || '').trim() : 'd_{' + (i + 1) + '}';
+      if (o.lineNames !== false && lname) {
         // đặt tên đường thẳng tại đoạn nằm trong khung
         const seg = clipSeg(p1, p2, fr);
         if (seg) {
-          const t = 0.88;
-          const lx = seg[0][0] + t * (seg[1][0] - seg[0][0]), ly = seg[0][1] + t * (seg[1][1] - seg[0][1]);
-          labels.push({ x: fr.X(lx) + 10, y: fr.Y(ly) - 10, tex: 'd_{' + (i + 1) + '}', size: 14, color: col, bg: true });
+          // thử vài vị trí dọc theo đường thẳng, lấy chỗ đầu tiên không đè lên chữ khác
+          const at = (t) => [fr.X(seg[0][0] + t * (seg[1][0] - seg[0][0])) + 10, fr.Y(seg[0][1] + t * (seg[1][1] - seg[0][1])) - 10];
+          const tt = [0.88, 0.72, 0.94, 0.6, 0.8, 0.45, 0.3, 0.15];
+          const pos = tt.map(at).find((p) => free(p[0], p[1])) || at(0.88);
+          busy.push([pos[0] - 14, pos[1] - 12, pos[0] + 14, pos[1] + 12]);
+          labels.push({ x: pos[0], y: pos[1], tex: lname, size: 14, color: col, bg: true });
         }
       }
     });
     if (o.vertices && feas.length > 2 && ineqs.length) {
       const onEdge = (p) => Math.abs(p[0] - fr.xmin) < 1e-9 || Math.abs(p[0] - fr.xmax) < 1e-9 || Math.abs(p[1] - fr.ymin) < 1e-9 || Math.abs(p[1] - fr.ymax) < 1e-9;
       const seen = [];
+      // tên đỉnh theo lời giải (o.vnames: mỗi dòng "A(0; 3)"); đỉnh không có trong đó dùng chữ cái còn trống
+      const given = [];
+      String(o.vnames || '').split('\n').forEach((s) => { const m = /^\s*([A-Za-z][A-Za-z0-9_']*)\s*\(\s*([^;]+);([^)]+)\)/.exec(s); if (m) { const x = parseFloat(m[2].replace(',', '.')), y = parseFloat(m[3].replace(',', '.')); if (isFinite(x) && isFinite(y)) given.push([m[1], x, y]); } });
+      const used = new Set(given.map((g) => g[0]));
       let k = 0;
       feas.forEach((p) => {
         if (onEdge(p) || seen.some((s) => Math.hypot(s[0] - p[0], s[1] - p[1]) < 1e-7)) return;
         seen.push(p);
         parts.push(`<circle cx="${r2(fr.X(p[0]))}" cy="${r2(fr.Y(p[1]))}" r="3" fill="#111"/>`);
-        const name = 'ABCDEFGH'[k++ % 8];
+        const g = given.find((q) => Math.hypot(q[1] - p[0], q[2] - p[1]) < 1e-6);
+        let name = g ? g[0] : '';
+        while (!name) { const c = 'ABCDEFGHIJKLMNPQ'[k++ % 16]; if (!used.has(c) || k > 32) { name = c; used.add(c); } }
         labels.push({ x: fr.X(p[0]) + 8, y: fr.Y(p[1]) - 11, tex: name + '\\left(' + NumFmt.toTex(p[0]).replace(/dfrac/g, 'frac') + ';' + NumFmt.toTex(p[1]).replace(/dfrac/g, 'frac') + '\\right)', size: 13, ax: 'l', bg: true });
       });
     }

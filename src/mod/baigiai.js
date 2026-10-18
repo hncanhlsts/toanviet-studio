@@ -1,16 +1,38 @@
-// Bài giải AI → tài liệu Word (giai đoạn 1): dán bài giải từ ChatGPT, Gemini, Copilot… → bỏ phần thừa, dựng bố cục,
-// chuẩn hoá ký hiệu theo SGK (src/baigiai-chuyen.js) → xem trước, sửa → tạo tệp Word mới: chữ Times New Roman,
-// mọi công thức là đối tượng ToanViet (nhấp đúp trong Word để sửa bằng add-in). Không cần tài khoản AI.
+// Bài giải AI → tài liệu Word: dán bài giải từ ChatGPT, Gemini, Copilot… → bỏ phần thừa, dựng bố cục, chuẩn hoá ký hiệu
+// theo SGK, tự thêm hình ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu — src/baigiai-chuyen.js) → xem
+// trước, sửa → tạo tệp Word mới: chữ Times New Roman, mọi công thức và hình là đối tượng ToanViet (nhấp đúp trong Word
+// để sửa bằng add-in). Không cần tài khoản AI.
 (function (root) {
   'use strict';
   root.TVM = root.TVM || {};
   root.TVM.baigiai = function (C) {
-    const { $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx } = C;
+    const { $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults } = C;
     let notes = {};
     const mergeNotes = (n) => { for (const k in n) notes[k] = (notes[k] || 0) + n[k]; };
     // dữ liệu ToanViet ghi kèm ảnh (giống lúc chèn công thức vào Word)
     const objToB64 = (o) => { const bytes = new TextEncoder().encode(JSON.stringify(o, (k, v) => (k[0] === '_' || k === 'id' ? undefined : v))); let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); }); return btoa(bin); };
     const bad = (latex) => /ML__error/.test(tex(latex, false));
+
+    // ---------- Hình: dòng "#FIG <khoá> <JSON>" khai báo, dòng "[FIG <khoá>|Hình n]" đặt hình ----------
+    const figSpecs = (markup) => {
+      const o = {};
+      String(markup).split('\n').forEach((l) => { const m = /^#FIG (\S+) (\{.*\})\s*$/.exec(l); if (m) { try { o[m[1]] = JSON.parse(m[2]); } catch (err) { o[m[1]] = null; } } });
+      return o;
+    };
+    const figObj = (key, spec) => { const o = Object.assign({}, defaults(spec.type, spec.kind), spec, { id: 'bgfig_' + key, x: 20, y: 20 }); delete o.scale; return o; };
+    // xem trước: dựng hình bằng chính bộ máy ToanViet rồi chép sang khung xem trước
+    const figCache = new Map();
+    function figHtml(key, spec) {
+      if (!spec) return '<div class="pv-fig bgbad">Khai báo hình ' + esc(key) + ' bị lỗi (dòng #FIG)</div>';
+      const ck = JSON.stringify(spec);
+      if (!figCache.has(ck)) {
+        const o = figObj(key, spec), el = renderObj(o);
+        const err = o._err ? '<div class="bgerr">' + esc(o._err.split('\n')[0]) + '</div>' : '';
+        figCache.set(ck, err + el.outerHTML.replace(/ style="[^"]*"/, ' style="position:relative;left:0;top:0;display:inline-block"'));
+        el.remove();
+      }
+      return '<div class="pv-fig">' + figCache.get(ck) + '</div>';
+    }
 
     // ---------- Xem trước ----------
     function fillHtml(text) {
@@ -27,10 +49,12 @@
       return s + txt(text.slice(pos));
     }
     function previewHtml(markup) {
-      const L = String(markup).split('\n'), out = [];
+      const L = String(markup).split('\n'), out = [], specs = figSpecs(markup);
       for (let i = 0; i < L.length; i++) {
         const ln = L[i].trim();
-        if (!ln || ln.startsWith('%%')) continue;
+        if (!ln || ln.startsWith('%%') || ln.startsWith('#FIG ')) continue;
+        const fg = /^\[FIG ([^|\]]+)(?:\|([^\]]*))?\]$/.exec(ln);
+        if (fg) { out.push(figHtml(fg[1].trim(), specs[fg[1].trim()]) + (fg[2] ? '<div class="pv-cap">' + fillHtml(fg[2]) + '</div>' : '')); continue; }
         const tag = /^#(T|S|H1|H2|D|C) (.*)$/.exec(ln);
         if (tag) { out.push('<div class="pv-' + tag[1].toLowerCase() + '">' + fillHtml(tag[2]) + '</div>'); continue; }
         if (/^#G/.test(ln)) { out.push('<div class="pv-g">' + fillHtml(ln.slice(2).trim() || 'Lời giải') + '</div>'); continue; }
@@ -49,6 +73,22 @@
       return out.join('') || '<div class="bgempty">Phần xem trước hiện ở đây sau khi dán bài giải.</div>';
     }
 
+    // chuẩn hoá nội dung dán vào rồi tự thêm hình
+    function convert(raw) {
+      const r = BaiGiai.fromText(raw);
+      mergeNotes(r.notes);
+      const f = BaiGiai.figures(r.markup);
+      mergeNotes(f.notes);
+      return f.markup;
+    }
+    // dựng lại hình sau khi sửa nội dung: bỏ các hình cũ và chữ "(Hình n)" đã thêm, nhận diện lại
+    function rebuildFigures(markup) {
+      const clean = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l)).map((l) => l.replace(/ \(Hình \d+\)(?=[.:;]?\s*$)/, '')).join('\n');
+      const f = BaiGiai.figures(clean);
+      mergeNotes(f.notes);
+      return f;
+    }
+
     function openBaiGiai() {
       notes = {};
       const d = modal('bgdlg', 'Bài giải AI → tài liệu Word');
@@ -56,23 +96,23 @@
       const body = d.querySelector('.tvbody');
       body.innerHTML =
         '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
-        'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải và đổi ký hiệu theo SGK. Không cần tài khoản AI nào.</p>' +
-        '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · - gạch đầu dòng</span></div>' +
+        'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào.</p>' +
+        '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
         '<div id="bgnotes" class="bgnotes"></div>' +
         '<div class="bgfoot"><label>Tiêu đề <input id="bgtitle" placeholder="(không bắt buộc)"></label>' +
         '<label>Cỡ chữ <select id="bgpt"><option>12</option><option>13</option><option>14</option></select></label>' +
-        '<span id="bgstat" class="bgstat"></span><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
+        '<span id="bgstat" class="bgstat"></span><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
       const src = $('#bgsrc'), view = $('#bgview');
       let tmr = 0;
       const refresh = () => {
         view.innerHTML = previewHtml(src.value);
-        const list = BaiGiai.formulas(src.value), errs = list.filter(bad);
+        const list = BaiGiai.formulas(src.value), errs = list.filter(bad), nfig = Object.keys(figSpecs(src.value)).length;
         const fixed = Object.keys(notes).map((k) => k + (notes[k] > 1 ? ' (' + notes[k] + ')' : ''));
-        $('#bgnotes').innerHTML = (list.length ? '<b>' + list.length + ' công thức.</b> ' : '') +
+        $('#bgnotes').innerHTML = (list.length ? '<b>' + list.length + ' công thức' + (nfig ? ', ' + nfig + ' hình' : '') + '.</b> ' : '') +
           (errs.length ? '<span class="bgerr">' + errs.length + ' công thức có mã LaTeX lỗi (tô đỏ ở phần xem trước) — sửa trong ô bên trái: ' + errs.slice(0, 3).map((x) => '<code>' + esc(x.slice(0, 40)) + '</code>').join(', ') + '</span> ' : '') +
-          (fixed.length ? '<span class="bgfix">Đã chuẩn hoá: ' + esc(fixed.join(' · ')) + '</span>' : '');
+          (fixed.length ? '<span class="bgfix">Đã làm: ' + esc(fixed.join(' · ')) + '</span>' : '');
       };
       // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường
       src.addEventListener('paste', (e) => {
@@ -81,12 +121,12 @@
         e.preventDefault();
         let raw = text;
         try { if (html && /<(p|div|span|h\d|li|math|annotation|table)\b/i.test(html)) raw = BaiGiai.fromHtml(html); } catch (err) { raw = text; }
-        const r = BaiGiai.fromText(raw);
-        mergeNotes(r.notes);
-        src.setRangeText(r.markup, src.selectionStart, src.selectionEnd, 'end');
+        if (!src.value.trim()) src.value = convert(raw);
+        else { const r = BaiGiai.fromText(raw); mergeNotes(r.notes); src.setRangeText(r.markup, src.selectionStart, src.selectionEnd, 'end'); }
         refresh();
       });
       src.addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(refresh, 300); });
+      $('#bgfig').onclick = () => { const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg(f.count ? 'Đã dựng ' + f.count + ' hình' : 'Không nhận ra chỗ nào cần hình (miền nghiệm, bảng biến thiên, bảng xét dấu)'); };
       $('#bgclear').onclick = () => { src.value = ''; notes = {}; refresh(); src.focus(); };
       $('#bgmake').onclick = () => make(src.value);
       refresh();
@@ -98,18 +138,20 @@
     async function make(text) {
       let markup = String(text || '').trim();
       if (!markup) { msg('Hãy dán bài giải vào ô bên trái', true); return null; }
-      const title = ($('#bgtitle') || {}).value ? $('#bgtitle').value.trim() : '';
+      const title = $('#bgtitle') && $('#bgtitle').value ? $('#bgtitle').value.trim() : '';
       if (title && !/^#T /m.test(markup)) markup = '#T ' + title + '\n' + markup;
       const pt = +($('#bgpt') || {}).value || 12;
-      const all = BaiGiai.formulas(markup), list = all.filter((l) => !bad(l));
+      const list = BaiGiai.formulas(markup).filter((l) => !bad(l));
+      const specs = figSpecs(markup);
       const btn = $('#bgmake'), stat = $('#bgstat');
       const say = (t) => { if (stat) stat.textContent = t; };
       if (btn) btn.disabled = true;
-      const out = [];
-      // dựng ảnh: tạm thay trang bằng các công thức xếp dọc trong phạm vi trang giấy, chụp từng đợt, rồi trả trang về như cũ
+      const out = [], figs = [];
+      // dựng ảnh: tạm thay trang bằng các đối tượng cần chụp, rồi trả trang về như cũ
       const saved = S.objs, savedSel = S.sel;
       try {
         S.objs = []; S.sel = null; page.innerHTML = '';
+        // công thức: xếp dọc trong phạm vi trang giấy, chụp từng đợt
         let y = 10, batch = [];
         const shoot = async () => {
           if (!batch.length) return;
@@ -127,11 +169,20 @@
           if (y > page.clientHeight - 60) await shoot();
         }
         await shoot();
+        // hình: từng hình một
+        for (const key of Object.keys(specs)) {
+          if (!specs[key]) continue;
+          say('Đang vẽ ' + key.replace(/^h/, 'Hình ') + '…');
+          const o = figObj(key, specs[key]);
+          S.objs = [o]; page.innerHTML = ''; renderObj(o);
+          const r = await api.renderPng(o.id, false, false);
+          if (r) figs.push({ key, file: r.file, w: r.w, h: r.h, alt: 'TVS1:' + objToB64(o), scale: specs[key].scale || 0.8 });
+        }
       } finally { S.objs = saved; S.sel = savedSel; renderAll(); if (btn) btn.disabled = false; }
       say('Đang ghép tệp Word…');
-      const r = await api.makeDocx({ markup, formulas: out, pt, name: title || 'Loi-giai' });
+      const r = await api.makeDocx({ markup, formulas: out, figures: figs, pt, name: title || 'Loi-giai' });
       say('');
-      if (r.ok) msg('Đã tạo ' + r.file + ' — ' + r.count + ' công thức ToanViet' + (r.missing.length ? '; ' + r.missing.length + ' công thức lỗi giữ dạng mã LaTeX' : '') + '. Nhấp đúp công thức trong Word để sửa bằng ToanViet.');
+      if (r.ok) msg('Đã tạo ' + r.file + ' — ' + r.count + ' công thức, hình ToanViet' + (r.missing.length ? '; ' + r.missing.length + ' mục lỗi giữ dạng chữ' : '') + '. Nhấp đúp trong Word để sửa bằng ToanViet.');
       else if (!r.canceled) msg(r.error || 'Không tạo được tài liệu Word', true);
       return r;
     }

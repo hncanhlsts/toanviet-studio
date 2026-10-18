@@ -5,6 +5,7 @@ const os = require('os');
 const path = require('path');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tvs-bg-'));
 const out = process.argv[2] || path.join(tmp, 'bai-giai.docx');
+// lần tạo thứ hai (bài miền nghiệm) ghi đè cùng tệp: giữ tệp đó để xem
 const env = Object.assign({}, process.env, { TVS_USERDATA: path.join(tmp, 'ud'), TVS_AUTO: path.join(tmp, 'auto.log'), TVS_NO_DEMO: '1', TVS_DOCX_OUT: out });
 const r = spawnSync(require('electron'), ['.', '--shot=' + path.join(tmp, 'bg.png'), '--evalfile=' + path.join(__dirname, 'baigiai-kichban.js')], { cwd: path.join(__dirname, '..'), env, encoding: 'utf8', timeout: 300000 });
 const txt = (r.stdout || '') + (r.stderr || '');

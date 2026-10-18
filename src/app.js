@@ -875,6 +875,8 @@
       add(field('style', 'Cách thể hiện', 'sel', { hatch: 'Gạch bỏ phần không là nghiệm (kiểu SGK)', fill: 'Tô màu miền nghiệm' }));
       add(field('vertices', 'Ghi toạ độ các đỉnh của miền nghiệm', 'chk'));
       add(field('lineNames', 'Đặt tên đường thẳng d₁, d₂, …', 'chk'));
+      add(field('vnames', 'Tên đỉnh theo lời giải (mỗi dòng một điểm, vd A(0; 3); bỏ trống: tự đặt A, B, C…)', 'area', { rows: 3 }));
+      add(field('lnames', 'Tên đường thẳng theo thứ tự các BPT (mỗi dòng một tên, dòng trống: không ghi; bỏ trống cả ô: d₁, d₂…)', 'area', { rows: 3 }));
       help('Dùng <code>&lt;=</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&gt;</code>. Bất phương trình ngặt được vẽ bằng nét đứt.');
       range();
     } else if (o.type === 'solid') {
@@ -1415,7 +1417,7 @@
   ({ ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag } = TVM.keodiem({ $, S, msg, cur, commit, title, renderObj, buildProps }));
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
-  ({ openBaiGiai, makeBaiGiai } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx }));
+  ({ openBaiGiai, makeBaiGiai } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults }));
   window.__baigiai = { open: () => openBaiGiai(), make: (t) => makeBaiGiai(t) }; // kiểm thử
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));
 

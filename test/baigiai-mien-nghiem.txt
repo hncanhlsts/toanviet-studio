@@ -1,0 +1,18 @@
+**Câu 2.**
+a) Trong mặt phẳng tọa độ $Oxy$:
+Đường thẳng $d_1: x + y = 3$ đi qua $(3; 0)$ và $(0; 3)$.
+Đường thẳng $d_2: 2x - y = 6$ đi qua $(3; 0)$ và $(0; -6)$.
+Đường thẳng $d_3: y = 4$ là đường thẳng song song với trục hoành, cắt trục tung tại $(0; 4)$.
+Đường thẳng $x = 0$ là trục tung $Oy$.
+Xác định tọa độ giao điểm giữa các đường biên:
+Điểm $A(0; 3)$ là giao điểm của $d_1$ với trục tung $Oy$.
+Điểm $B(0; 4)$ là giao điểm của $d_3$ với trục tung $Oy$.
+Điểm $C(5; 4)$ là giao điểm của $d_2$ và $d_3$ (thay $y = 4$ vào $2x - 4 = 6 \implies x = 5$).
+Điểm $D(3; 0)$ là giao điểm của $d_1$ và $d_2$ (giải hệ $\begin{cases} x + y = 3 \\ 2x - y = 6 \end{cases} \implies x = 3, y = 0$).
+Miền nghiệm của hệ là miền tứ giác $ABCD$ kể cả bờ.
+b) Tính giá trị của biểu thức $F(x; y) = 3x - 2y$ tại các đỉnh:
+Tại $A(0; 3)$ ta có $F(0; 3) = 3(0) - 2(3) = -6$.
+Tại $B(0; 4)$ ta có $F(0; 4) = 3(0) - 2(4) = -8$.
+Tại $C(5; 4)$ ta có $F(5; 4) = 3(5) - 2(4) = 7$.
+Tại $D(3; 0)$ ta có $F(3; 0) = 3(3) - 2(0) = 9$.
+Giá trị nhỏ nhất của biểu thức là $F_{\min} = -8$, đạt được khi $x = 0$ và $y = 4$.

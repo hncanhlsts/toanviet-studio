@@ -773,6 +773,12 @@ vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74
 <ol>
   <li>Trên trang trợ lí AI, bấm nút <b>Sao chép</b> của câu trả lời (hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>).</li>
   <li>Trong ToanViet, bấm <b>🤖 Bài giải AI</b> (nhóm Soạn thảo) hoặc <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>, bấm vào ô bên trái rồi <kbd>Ctrl</kbd>+<kbd>V</kbd>. ToanViet lấy đúng mã LaTeX của công thức trên trang, bỏ câu chào, câu kết, dấu trích dẫn <code>[cite]</code>, biểu tượng cảm xúc; dựng nhãn <b>Câu 1.</b>, <b>Lời giải</b>; đổi ký hiệu theo SGK: khoảng, toạ độ dùng dấu chấm phẩy <code>[−4; 2)</code>, số thập phân dấu phẩy, ∅, ⇔, ΔABC, dấu đồng dạng, song song ⫽, góc mũ rộng. Dòng dưới cùng ghi rõ đã đổi những gì; công thức có mã lỗi được tô đỏ ở phần xem trước.</li>
+  <li><b>Tự vẽ hình ở chỗ SGK có hình</b> (hình dựng bằng chính ToanViet, đặt ngay sau đoạn nhắc tới, có chú thích "Hình n"):
+    <ul>
+      <li><b>Miền nghiệm</b>: lấy hệ bất phương trình trong lời giải; nếu lời giải chỉ nêu các đường thẳng (<code>d_1: x + y = 3</code>, "x = 0 là trục tung"…) và các đỉnh (<code>A(0; 3)</code>…), phần mềm tự suy ra chiều từng bất phương trình. Hình gạch bỏ phần không thuộc miền nghiệm, bờ màu đỏ, tên đỉnh và tên đường thẳng đúng như trong lời giải.</li>
+      <li><b>Bảng biến thiên</b>, <b>bảng xét dấu</b>: lấy hàm số trong câu (<code>y = …</code>, <code>f(x) = …</code>); bảng AI tự kẻ bằng ký tự được thay bằng bảng ToanViet.</li>
+    </ul>
+    Sửa nội dung xong, bấm <b>Dựng lại hình</b> để vẽ lại. Mỗi hình khai báo bằng một dòng <code>#FIG</code> (sửa được thông số) và đặt bằng dòng <code>[FIG h1|Hình 1]</code>.</li>
   <li>Sửa nội dung ở ô bên trái nếu cần (<code>#C</code> nhãn câu, <code>#G</code> lời giải, <code>$…$</code> công thức trong dòng, <code>$$…$$</code> công thức riêng dòng, <code>**đậm**</code>, <code>- </code> gạch đầu dòng); xem kết quả ở bên phải.</li>
   <li>Ghi tiêu đề (không bắt buộc), chọn cỡ chữ, bấm <b>Tạo tài liệu Word</b>, chọn chỗ lưu. Tài liệu mới mở ra trong Word: chữ Times New Roman, A4, lề 2 cm, mọi công thức là công thức ToanViet — nhấp đúp để sửa bằng ToanViet như thường.</li>
 </ol>

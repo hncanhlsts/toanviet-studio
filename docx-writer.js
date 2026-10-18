@@ -45,6 +45,7 @@ const BLUE = '1F3F7A';
  */
 function buildDocx(markup, formulas, opts) {
   const PT = (opts && opts.pt) || 12;
+  const figures = (opts && opts.figures) || {}; // { [khoá]: { png, w, h, alt, scale } } cho các dòng [FIG khoá|chú thích]
   const media = []; // { name, data }
   const mediaOf = new Map(); // latex -> rId
   const missing = [];
@@ -65,12 +66,13 @@ function buildDocx(markup, formulas, opts) {
     return s ? '<w:rPr>' + s + '</w:rPr>' : '';
   };
   const textRuns = (text, o) => text.split('**').map((seg, k) => (seg ? '<w:r>' + rPr(Object.assign({}, o, { bold: o.bold || k % 2 === 1 })) + '<w:t xml:space="preserve">' + X(seg) + '</w:t></w:r>' : '')).join('');
-  const picRun = (latex) => {
-    const f = formulas[latex];
-    if (!f) { missing.push(latex); return '<w:r><w:t xml:space="preserve">' + X('$' + latex + '$') + '</w:t></w:r>'; }
-    let { w, h, depthPt } = f;
+  const picRun = (latex, fig) => {
+    const f = fig || formulas[latex];
+    if (!f) { missing.push(latex); return '<w:r><w:t xml:space="preserve">' + X(fig === null ? '[THIẾU HÌNH ' + latex + ']' : '$' + latex + '$') + '</w:t></w:r>'; }
+    let { w, h } = f, depthPt = f.depthPt || 0;
+    if (f.scale) { w *= f.scale; h *= f.scale; }
     if (w > TEXT_W) { const k = TEXT_W / w; w *= k; h *= k; depthPt *= k; } // quá rộng: thu cho vừa trang
-    const id = rel(latex, f.png), n = docPrId++;
+    const id = rel((fig ? 'FIG:' : '') + latex, f.png), n = docPrId++;
     count++;
     const cx = Math.round(w * EMU), cy = Math.round(h * EMU);
     const pos = depthPt ? '<w:rPr><w:position w:val="' + -Math.round(depthPt * 2) + '"/></w:rPr>' : '';
@@ -109,7 +111,14 @@ function buildDocx(markup, formulas, opts) {
   let firstD = true;
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i].replace(/\s+$/, '');
-    if (!ln || ln.startsWith('%%')) continue;
+    if (!ln || ln.startsWith('%%') || ln.startsWith('#FIG ')) continue; // #FIG: khai báo hình, không in
+    const fg = /^\[FIG ([^|\]]+)(?:\|([^\]]*))?\]$/.exec(ln);
+    if (fg) { // hình ToanViet căn giữa, chú thích nghiêng bên dưới
+      const key = fg[1].trim(), cap = (fg[2] || '').trim();
+      body.push(para(picRun(key, figures[key] || null), { align: 'center', before: 4, after: cap ? 0 : 6, keep: !!cap }));
+      if (cap) body.push(para(fill(cap, { italic: true, size: PT - 1 }), { align: 'center', after: 6 }));
+      continue;
+    }
     if (ln.startsWith('#T ')) body.push(para(fill(ln.slice(3), { bold: true, size: PT + 3, color: BLUE }), { align: 'center', after: 2 }));
     else if (ln.startsWith('#S ')) body.push(para(fill(ln.slice(3), { italic: true }), { align: 'center', after: 10 }));
     else if (ln.startsWith('#H1 ')) body.push(para(fill(ln.slice(4), { bold: true, size: PT + 1, color: BLUE }), { align: 'left', before: 10, after: 6, keep: true, outline: 0 }));

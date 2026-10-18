@@ -23,13 +23,30 @@
     ok('công thức riêng dòng', /^\$\$.*\\Leftrightarrow.*\$\$$/m.test(v));
     ok('bảng', /^#TAB$/m.test(v) && /\|y'\|/.test(v));
     ok('ký hiệu SGK: [−4; 2), ∅, ⇔, Δ, đồng dạng, ⫽, góc, 1,5', v.includes('[-4;2)') && v.includes('\\varnothing') && v.includes('\\Leftrightarrow') && v.includes('\\Delta ABC\\dongdang') && v.includes('⫽') && v.includes('\\widehat{ABC}') && v.includes('1{,}5'));
-    ok('ghi chú những gì đã chuẩn hoá', /Đã chuẩn hoá/.test(document.getElementById('bgnotes').textContent));
+    ok('ghi chú những gì đã chuẩn hoá', /Đã làm/.test(document.getElementById('bgnotes').textContent));
     ok('xem trước có công thức', document.querySelectorAll('#bgview .bgf .ML__latex').length > 5);
     document.getElementById('bgtitle').value = 'Lời giải thử';
     const r = await window.__baigiai.make(src.value);
     ok('tạo tệp Word', r && r.ok, JSON.stringify(r));
     console.log('BG-KQ ' + JSON.stringify(r));
     ok('trang soạn thảo của người dùng được trả lại nguyên vẹn', document.querySelectorAll('#page .obj').length === before, document.querySelectorAll('#page .obj').length);
+    // bài miền nghiệm (chữ thường, có $…$): tự vẽ hình miền nghiệm khớp tên đỉnh, đường thẳng trong lời giải
+    document.getElementById('bgclear').click(); await w(100);
+    const txt = await (await fetch('../test/baigiai-mien-nghiem.txt')).text();
+    const dt2 = new DataTransfer(); dt2.setData('text/plain', txt);
+    src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt2, bubbles: true, cancelable: true })); await w(800);
+    const v2 = src.value;
+    console.log('BG-NOIDUNG\n' + v2 + '\nBG-HET');
+    const spec = JSON.parse((/^#FIG h1 (\{.*\})$/m.exec(v2) || [0, 'null'])[1]);
+    ok('miền nghiệm: thêm hình', spec && spec.type === 'region', v2.slice(0, 200));
+    ok('miền nghiệm: suy ra đúng hệ x + y ≥ 3, 2x − y ≤ 6, y ≤ 4, x ≥ 0', spec && spec.ineqs === 'x + y >= 3\n2x - y <= 6\ny <= 4\nx >= 0', spec && spec.ineqs);
+    ok('miền nghiệm: tên đỉnh, đường thẳng theo lời giải', spec && /A\(0; 3\)/.test(spec.vnames) && /D\(3; 0\)/.test(spec.vnames) && spec.lnames.startsWith('d_{1}'));
+    ok('hình đặt sau câu "Miền nghiệm…", có nhắc "(Hình 1)"', /kể cả bờ \(Hình 1\)\.\n\[FIG h1\|Hình 1\]/.test(v2));
+    const pvFig = document.querySelector('#bgview .pv-fig svg');
+    ok('xem trước có hình miền nghiệm', !!pvFig);
+    const r2 = await window.__baigiai.make(src.value);
+    ok('tạo tệp Word có hình', r2 && r2.ok && r2.missing.length === 0, JSON.stringify(r2));
+    console.log('BG-KQ2 ' + JSON.stringify(r2));
   } catch (e) { console.log('BG: ✘ lỗi ' + e.message + ' ' + e.stack); }
   console.log('BG-XONG');
 })();

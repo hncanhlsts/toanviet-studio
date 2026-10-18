@@ -371,3 +371,6 @@ math-field { user-select: text; -webkit-user-select: text; }
    kẻo chúng bị chụp lẫn vào ảnh (nền xám, chữ của hộp thoại) */
 body.capturing dialog[open] { display: none !important; }
 body.capturing dialog::backdrop { display: none !important; background: transparent !important; }
+.bgview .pv-fig { text-align: center; margin: 8px 0 2px; font: 13px 'Segoe UI', sans-serif; }
+.bgview .pv-fig .obj { outline: none !important; cursor: default; }
+.bgview .pv-cap { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 8px; }
