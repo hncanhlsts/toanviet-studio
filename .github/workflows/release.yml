@@ -2,9 +2,9 @@
 # Đặt tệp này tại: .github/workflows/release.yml
 #
 # Cách dùng: tăng "version" trong package.json -> commit -> tạo tag trùng số phiên bản rồi đẩy lên:
-#   git tag -a v2.7.6 -m "ToanViet Studio 2.7.6"
+#   git tag -a v2.7.7 -m "ToanViet Studio 2.7.7"
 #   git push origin main --tags
-# GitHub sẽ tự chạy kiểm thử, tạo ToanVietStudio-Setup-2.7.6.exe và đăng vào Releases.
+# GitHub sẽ tự chạy kiểm thử, tạo ToanVietStudio-Setup-2.7.7.exe và đăng vào Releases.
 
 name: Phat hanh bo cai
 
@@ -61,5 +61,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: ToanViet Studio ${{ github.ref_name }}
-          files: cai-dat/ToanVietStudio-Setup-*.exe
+          files: |
+            cai-dat/ToanVietStudio-Setup-*.exe
+            huong-dan/Huong-dan-su-dung-ToanViet-Studio.pdf
           generate_release_notes: true
