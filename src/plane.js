@@ -47,6 +47,11 @@
     // phangiacgoc(X, A, Y): một điểm trên tia phân giác của góc XAY (đỉnh A ở giữa, giống lệnh goc);
     // phangiacgoc(X, A, Y, P, Q): giao điểm của tia phân giác góc XAY với đường thẳng PQ
     phangiacgoc: (x, a, y, p, q) => { const u = sub(x, a), v = sub(y, a), lu = len(u), lv = len(v); if (!lu || !lv) throw new Error('góc suy biến'); let d = add(mul(u, 1 / lu), mul(v, 1 / lv)); if (len(d) < 1e-9) d = [-u[1] / lu, u[0] / lu]; const t = add(a, mul(d, lu / len(d))); if (p === undefined) return t; if (q === undefined) throw new Error('viết: phangiacgoc(X, A, Y, P, Q)'); return inter(a, t, p, q); },
+    // giaotron(P, Q, O, R, k): giao của đường thẳng PQ với đường tròn tâm O bán kính |OR| (hoặc số R);
+    //   k = 1: giao thứ nhất theo hướng P → Q, k = 2: giao thứ hai
+    giaotron: (p, q, o, rr, k) => { const r = typeof rr === 'number' ? rr : dist(o, rr), d = sub(q, p), f = sub(p, o), a = dot(d, d), b = 2 * dot(f, d), c = dot(f, f) - r * r, D = b * b - 4 * a * c; if (D < -1e-9) throw new Error('đường thẳng không cắt đường tròn'); const s = Math.sqrt(Math.max(0, D)), t = k === 1 ? (-b - s) / (2 * a) : (-b + s) / (2 * a); return add(p, mul(d, t)); },
+    // giaotronkhac(P, Q, O, R, X): giao của đường thẳng PQ với đường tròn, lấy giao xa điểm X (giao "khác X")
+    giaotronkhac: (p, q, o, rr, x) => { const r = typeof rr === 'number' ? rr : dist(o, rr), d = sub(q, p), f = sub(p, o), a = dot(d, d), b = 2 * dot(f, d), c = dot(f, f) - r * r, D = b * b - 4 * a * c; if (D < -1e-9) throw new Error('đường thẳng không cắt đường tròn'); const s = Math.sqrt(Math.max(0, D)), p1 = add(p, mul(d, (-b - s) / (2 * a))), p2 = add(p, mul(d, (-b + s) / (2 * a))); return dist(p1, x) >= dist(p2, x) ? p1 : p2; },
     // tohop(w1, P1, w2, P2, …) = w1·P1 + w2·P2 + … (tổng trọng số bằng 1): điểm cho bằng đẳng thức vectơ
     tohop: (...a) => { let x = 0, y = 0; for (let i = 0; i + 1 < a.length; i += 2) { x += a[i] * a[i + 1][0]; y += a[i] * a[i + 1][1]; } return [x, y]; },
     // dat(P, Q, X, Y): điểm trên tia PQ cách P một đoạn bằng XY;  dat(P, Q, d): cách P một đoạn d
@@ -85,6 +90,14 @@
         const pairs = (closed) => { const out = []; groups().forEach((g) => { for (let i = 0; i + 1 < g.length; i++) out.push([g[i], g[i + 1]]); if (closed && g.length > 2) out.push([g[g.length - 1], g[0]]); }); return out; };
         switch (kw) {
           case 'doan': pairs().forEach((s) => cmds.push({ k: 'seg', a: s[0], b: s[1], color, label })); break;
+          // thanghang D E F: các điểm thẳng hàng thì vẽ đoạn nối hai điểm xa nhau nhất; không thẳng hàng thì không vẽ gì
+          case 'thanghang': {
+            const n = names(rest); if (n.length < 3) throw new Error('viết: thanghang A B C');
+            let best = null;
+            n.forEach((a, i) => n.slice(i + 1).forEach((b) => { const d = dist(P[a], P[b]); if (!best || d > best[2]) best = [a, b, d]; }));
+            if (best[2] > 1e-9 && n.every((c) => Math.abs(cross(sub(P[best[1]], P[best[0]]), sub(P[c], P[best[0]]))) / best[2] < 1e-3 * best[2] + 1e-6)) cmds.push({ k: 'seg', a: best[0], b: best[1], color, label: '' });
+            break;
+          }
           case 'netdut': pairs().forEach((s) => cmds.push({ k: 'seg', a: s[0], b: s[1], dash: true, color, label })); break;
           case 'dagiac': pairs(true).forEach((s) => cmds.push({ k: 'seg', a: s[0], b: s[1] })); break;
           case 'duongthang': pairs().forEach((s) => cmds.push({ k: 'line', a: s[0], b: s[1], color, label })); break;

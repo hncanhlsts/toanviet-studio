@@ -1,0 +1,61 @@
+Dưới đây là 10 bài hình học 9 về đường tròn (tiếp tuyến, cát tuyến, tứ giác nội tiếp):
+
+**Bài 1. Mô hình trực tâm và tam giác trực tâm**
+Cho tam giác nhọn $ABC$ ($AB < AC$) nội tiếp đường tròn $(O)$. Ba đường cao $AD, BE, CF$ cắt nhau tại trực tâm $H$.
+a) Chứng minh các tứ giác $BFHD$ và $BCEF$ nội tiếp.
+b) Chứng minh $DA$ là tia phân giác của $\widehat{EDF}$.
+c) Gọi $K$ là giao điểm của đường thẳng $EF$ và đường tròn $(O)$ (với $F$ nằm giữa $K$ và $E$). Chứng minh $AK^2 = AE \cdot AC$ và tam giác $AKD$ cân tại $A$.
+
+**Bài 2. Mô hình hai tiếp tuyến cắt nhau và cát tuyến**
+Từ điểm $M$ nằm ngoài đường tròn $(O; R)$, kẻ hai tiếp tuyến $MA, MB$ với đường tròn ($A, B$ là các tiếp điểm). Kẻ cát tuyến $MCD$ không đi qua tâm $O$ ($C$ nằm giữa $M$ và $D$; tia $MD$ nằm giữa hai tia $MO$ và $MB$). Gọi $H$ là giao điểm của $OM$ và $AB$.
+a) Chứng minh tứ giác $MAOB$ nội tiếp và $OM \perp AB$ tại $H$.
+b) Chứng minh $MC \cdot MD = MH \cdot MO = MA^2$.
+c) Chứng minh tứ giác $CHOD$ nội tiếp và $HA$ là tia phân giác của $\widehat{CHD}$.
+
+**Bài 3. Mô hình nửa đường tròn và tiếp tuyến tại hai đầu đường kính**
+Cho nửa đường tròn $(O)$ đường kính $AB$. Lấy điểm $C$ trên nửa đường tròn ($C$ khác $A$ và $B$). Tiếp tuyến tại $C$ cắt hai tiếp tuyến tại $A$ và $B$ của nửa đường tròn lần lượt tại $M$ và $N$.
+a) Chứng minh tứ giác $AMCO$ nội tiếp và $\widehat{MON} = 90^\circ$.
+b) Chứng minh $MN = AM + BN$ và tích $AM \cdot BN$ không phụ thuộc vào vị trí của điểm $C$.
+c) Kẻ $CH \perp AB$ tại $H$. Đoạn thẳng $BM$ cắt $CH$ tại $I$ và cắt $AN$ tại $K$. Chứng minh tứ giác $ACKI$ nội tiếp và $I$ là trung điểm của $CH$.
+
+**Bài 4. Mô hình phân giác trong và điểm chính giữa cung**
+Cho tam giác nhọn $ABC$ nội tiếp đường tròn $(O)$. Tia phân giác của $\widehat{BAC}$ cắt cạnh $BC$ tại $D$ và cắt đường tròn $(O)$ tại điểm $M$ ($M$ khác $A$). Kẻ đường kính $MN$ của $(O)$.
+a) Chứng minh $\Delta MBD\dongdang \Delta MAB$ và $MB^2 = MD \cdot MA$.
+b) Kẻ $DH \perp AB$ tại $H$ và $DK \perp AC$ tại $K$. Chứng minh tứ giác $AHDK$ nội tiếp và $AK \cdot AB = AH \cdot AC$.
+c) Tia $MN$ cắt $BC$ tại $I$. Kẻ $DE \perp MN$ tại $E$. Chứng minh tứ giác $CDEN$ nội tiếp và $MC$ là tiếp tuyến của đường tròn ngoại tiếp tam giác $CDE$.
+
+**Bài 5. Mô hình đường kính xuất phát từ đỉnh và tính chất trực tâm**
+Cho tam giác nhọn $ABC$ ($AB < AC$) nội tiếp đường tròn $(O; R)$. Hai đường cao $BE, CF$ cắt nhau tại trực tâm $H$. Kẻ đường kính $AK$ của đường tròn $(O)$.
+a) Chứng minh tứ giác $BFEC$ nội tiếp và tứ giác $BHCK$ là hình bình hành.
+b) Gọi $M$ là trung điểm của cạnh $BC$. Chứng minh ba điểm $H, M, K$ thẳng hàng và $AH = 2OM$.
+c) Kẻ tiếp tuyến $Ax$ với đường tròn $(O)$. Chứng minh $Ax ⫽ EF$, từ đó suy ra $OA \perp EF$.
+
+**Bài 6. Mô hình tam giác vuông và đường tròn đường kính đường cao**
+Cho tam giác $ABC$ vuông tại $A$ ($AB < AC$), đường cao $AH$. Vẽ đường tròn tâm $O$ đường kính $AH$. Đường tròn này cắt các cạnh $AB$ và $AC$ lần lượt tại $D$ và $E$ ($D, E$ khác $A$).
+a) Chứng minh ba điểm $D, O, E$ thẳng hàng và tứ giác $ADHE$ là hình chữ nhật.
+b) Chứng minh tứ giác $BDEC$ nội tiếp đường tròn.
+c) Gọi $M$ là trung điểm của $BC$. Chứng minh $AM \perp DE$. Tiếp tuyến tại $D$ của đường tròn $(O)$ cắt $BC$ tại điểm $K$. Chứng minh $KD^2 = KB \cdot KC$.
+
+**Bài 7. Mô hình tiếp tuyến và dây song song**
+Cho đường tròn $(O; R)$ và điểm $A$ nằm ngoài đường tròn. Từ $A$ kẻ hai tiếp tuyến $AB, AC$ với đường tròn ($B, C$ là các tiếp điểm). Qua $B$ kẻ đường thẳng song song với $AC$, cắt đường tròn $(O)$ tại điểm thứ hai là $D$. Đường thẳng $AD$ cắt đường tròn $(O)$ tại điểm $E$ ($E$ khác $D$).
+a) Chứng minh tứ giác $ABOC$ nội tiếp và $AB^2 = AE \cdot AD$.
+b) Tia $BE$ cắt đoạn thẳng $AC$ tại $K$. Chứng minh $\Delta AKE\dongdang \Delta DKA$ và suy ra $K$ là trung điểm của $AC$.
+c) Tia đối của tia $EC$ cắt tiếp tuyến tại $B$ của $(O)$ tại điểm $S$. Chứng minh ba điểm $S, D, A$ thẳng hàng.
+
+**Bài 8. Mô hình giao điểm cát tuyến và tứ giác nội tiếp**
+Cho đường tròn $(O)$ và dây cung $BC$ cố định ($BC$ không đi qua $O$). Lấy điểm $A$ di động trên cung lớn $BC$ sao cho tam giác $ABC$ nhọn ($AB < AC$). Hai đường cao $BE, CF$ cắt nhau tại trực tâm $H$. Đường thẳng $EF$ cắt đường thẳng $BC$ tại điểm $K$.
+a) Chứng minh các tứ giác $BCEF$ và $AFHE$ nội tiếp.
+b) Chứng minh $KE \cdot KF = KB \cdot KC$.
+c) Đoạn thẳng $AK$ cắt đường tròn $(O)$ tại điểm $M$ ($M$ khác $A$). Chứng minh tứ giác $AMFE$ nội tiếp và ba điểm $M, H, D$ thẳng hàng (với $AD$ là đường kính của $(O)$).
+
+**Bài 9. Mô hình đường thẳng Simson**
+Cho tam giác nhọn $ABC$ nội tiếp đường tròn $(O)$. Điểm $M$ di động trên cung nhỏ $BC$ ($M$ không trùng với $B$ và $C$). Kẻ $MD \perp BC$ tại $D$, $ME \perp AC$ tại $E$, và $MF \perp AB$ tại $F$.
+a) Chứng minh các tứ giác $MDBF$ và $MDEC$ nội tiếp.
+b) Chứng minh $\widehat{MFE} = \widehat{MDE}$ và ba điểm $D, E, F$ thẳng hàng.
+c) Gọi $H$ là trực tâm của tam giác $ABC$. Chứng minh đường thẳng đi qua ba điểm $D, E, F$ luôn đi qua trung điểm của đoạn thẳng $MH$.
+
+**Bài 10. Mô hình 5 điểm cùng thuộc một đường tròn và điều hòa**
+Cho đường tròn $(O; R)$ và điểm $S$ nằm ngoài đường tròn. Kẻ hai tiếp tuyến $SA, SB$ tới $(O)$ ($A, B$ là các tiếp điểm) và cát tuyến $SCD$ ($C$ nằm giữa $S$ và $D$; tia $SD$ nằm giữa hai tia $SO$ và $SB$). Gọi $I$ là trung điểm của dây cung $CD$.
+a) Chứng minh năm điểm $S, A, I, O, B$ cùng thuộc một đường tròn.
+b) Đường thẳng qua $C$ song song với $SB$ cắt $AB$ tại $H$ và cắt $AD$ tại $K$. Chứng minh tứ giác $AIHK$ nội tiếp và $H$ là trung điểm của đoạn thẳng $CK$.
+c) Gọi $E$ là giao điểm của $AB$ và $SO$. Chứng minh $SC \cdot SD = SE \cdot SO$ và khi cát tuyến $SCD$ quay quanh $S$ thì trọng tâm $G$ của tam giác $ACD$ luôn chạy trên một đường tròn cố định.
