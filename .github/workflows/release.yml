@@ -22,6 +22,10 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # máy chủ Windows mặc định đổi xuống dòng LF -> CRLF khi tải mã: tệp cầu nối, dữ liệu thử sẽ khác bản trên máy soạn
+      - name: Giu nguyen ky tu xuong dong
+        run: git config --global core.autocrlf false
+
       - name: Lay ma nguon
         uses: actions/checkout@v4
 
