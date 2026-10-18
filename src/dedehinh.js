@@ -697,6 +697,11 @@
         while ((q = rta.exec(snt))) {
           const at = namesIn(q[1]), hs = at.map((A) => { const h1 = helper(), h2 = helper(); hidden.push(h1, h2); cons.push({ name: h1, need: [A, O], line: h1 + ' = quay(' + O + ', ' + A + ', 90)\n' + h2 + ' = quay(' + O + ', ' + A + ', -90)', src: '', more: ['duongthang ' + h1 + h2, 'vuong ' + O + A + h1] }); return [h1, h2, A]; });
           let w;
+          // tiếp tuyến có giao điểm N: vẽ tia từ N qua tiếp điểm (vượt quá tiếp điểm một chút) thay cho đường thẳng tự do
+          const toN = (N) => hs.forEach((h) => { const c = cons.find((x) => x.name === h[0]); if (c) c.more[0] = 'tia ' + N + h[2]; });
+          if (hs.length === 2 && (w = re('cắt nhau\\s+tại\\s+(?:điểm\\s+)?(PN)').exec(q[2]))) toN(w[1]);
+          else if (hs.length === 1 && (w = re('cắt\\s+(?:đường thẳng\\s+|tia\\s+)?(PN)(PN)\\s+tại\\s+(?:điểm\\s+)?(PN)').exec(q[2]))) toN(w[3]);
+          w = null;
           if (hs.length === 2 && (w = re('cắt nhau\\s+tại\\s+(?:điểm\\s+)?(PN)').exec(q[2]))) add(w[1], [hs[0][0], hs[1][0]], w[1] + ' = giao(' + hs[0][0] + ', ' + hs[0][1] + ', ' + hs[1][0] + ', ' + hs[1][1] + ')', 'giao hai tiếp tuyến');
           else if (hs.length === 1 && (w = re('cắt\\s+(?:đường thẳng\\s+|tia\\s+)?(PN)(PN)\\s+tại\\s+(?:điểm\\s+)?(PN)').exec(q[2]))) add(w[3], [hs[0][0], w[1], w[2]], w[3] + ' = giao(' + hs[0][0] + ', ' + hs[0][1] + ', ' + w[1] + ', ' + w[2] + ')', 'giao của tiếp tuyến', ['doan ' + w[1] + w[2] + ' ' + w[3] + w[1] + ' ' + w[3] + w[2]]);
           hit = true;
@@ -725,7 +730,7 @@
     // ---------- 4. Đoạn, đa giác được nhắc tới ----------
     const out = [], seen = new Set();
     const push = (s) => { if (!seen.has(s)) { seen.add(s); out.push(s); } };
-    after.filter((s) => /^(doan|duongthang|duongtron|ngoaitiep|noitiep)/.test(s)).forEach((s) => { push(s); if (/^doan/.test(s)) s.slice(5).trim().split(/\s+/).forEach((sg) => { const ns = namesIn(sg); if (ns.length === 2) edge(ns[0], ns[1]); }); });
+    after.filter((s) => /^(doan|duongthang|tia|duongtron|ngoaitiep|noitiep)/.test(s)).forEach((s) => { push(s); if (/^doan/.test(s)) s.slice(5).trim().split(/\s+/).forEach((sg) => { const ns = namesIn(sg); if (ns.length === 2) edge(ns[0], ns[1]); }); });
     (t.match(/(?:tam giác|tứ giác|hình bình hành|hình chữ nhật|hình thoi|hình vuông|hình thang)\s+(?:\S+\s+)?([A-Z]{3,4})(?![A-Za-z'])/g) || []).forEach((x) => {
       const ns = namesIn(/([A-Z]{3,4})$/.exec(x)[1]);
       if (ns.every((n) => made.has(n)) && ns.join('') !== baseNames.join('')) { const sg = ns.map((n, i) => [n, ns[(i + 1) % ns.length]]).filter((p) => !edges.has(key(p[0], p[1]))); if (sg.length) push('doan ' + sg.map((p) => p.join('')).join(' ')); cyc(ns); }

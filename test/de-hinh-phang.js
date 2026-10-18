@@ -29,7 +29,7 @@ const DE_HINH_PHANG = [
     { has: ['M = tron(O, 6.9, 0)', 'A = tiepdiem(M, O, r, 1)', 'B = tiepdiem(M, O, r, 2)', 'H = giao(O, M, A, B)', 'doan MA OA', 'vuong OAM OBM'] }],
   ['tam giác nội tiếp đường tròn, trực tâm, tiếp tuyến tại một điểm',
     'Cho tam giác $ABC$ nội tiếp đường tròn $(O)$. Gọi $H$ là trực tâm của tam giác $ABC$. Tiếp tuyến tại $A$ của $(O)$ cắt đường thẳng $BC$ tại $M$.',
-    { has: ['O = tamngoai(A, B, C)', 'duongtron O A', 'H = tructam(A, B, C)', 'M = giao(Z1, Z2, B, C)', 'duongthang Z1Z2', 'an Z1 Z2'] }],
+    { has: ['O = tamngoai(A, B, C)', 'duongtron O A', 'H = tructam(A, B, C)', 'M = giao(Z1, Z2, B, C)', 'tia MA', 'an Z1 Z2'] }],
   ['mặt phẳng toạ độ: tam giác, trọng tâm, đỉnh thứ tư của hình bình hành',
     'Trong mặt phẳng toạ độ $Oxy$, cho tam giác $ABC$ có $A(1; 3)$, $B(-2; -1)$, $C(4; 0)$. Gọi $G$ là trọng tâm tam giác $ABC$. Tìm toạ độ điểm $D$ sao cho $ABCD$ là hình bình hành.',
     { has: ['truc -3 ', 'A = (1, 3)', 'B = (-2, -1)', 'G = trongtam(A, B, C)', 'D = hbh(A, B, C)', 'doan AB BC CA', 'doan CD DA'] }],
