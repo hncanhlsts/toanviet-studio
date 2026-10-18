@@ -36,6 +36,24 @@ thu('đồ thị: hàm số, khung gọn, điểm có tên nằm trên đồ th�
   dung(f && f.funcs === 'x^2-4x+3' && /I\(2; -1\)/.test(f.points) && !/K\(/.test(f.points) && +f.ymin >= -3 && +f.ymax <= 6, f && JSON.stringify(f));
 });
 
+thu('đề cương: hệ hai ẩn hỏi GTLN (không có chữ "miền nghiệm") vẫn vẽ miền nghiệm; "x, y ≥ 0" tách hai bất phương trình', () => {
+  const f = figOf('#C Câu 2.\nTìm GTLN của $F = 4x + 3y$ biết $(x;y)$ thỏa mãn $\\begin{cases} x + 2y \\le 6 \\\\ 2x + y \\le 6 \\\\ x, y \\ge 0 \\end{cases}$.', 'region');
+  bang(f && f.ineqs, 'x + 2y <= 6\n2x + y <= 6\nx >= 0\ny >= 0');
+  dung(f && +f.xmax <= 5 && +f.ymax <= 5, f && JSON.stringify(f));
+});
+thu('đề cương: tập viết bằng điều kiện thành khoảng; biểu thức có ngoặc và phần bù trong ℝ', () => {
+  const a = figOf('#C Câu 1.\nCho $A = \\{x \\in \\mathbb{R} \\mid x < 2\\}$ và $B = [-1; 5]$. Tìm $A \\cap B$ và $B \\setminus A$.', 'numline');
+  dung(a && /A=\(-\\infty;2\)/.test(a.sets) && /B \\setminus A/.test(a.sets), a && a.sets);
+  const b = figOf('#C Câu 1.\nCho $A = (1; 4), B = [2; 6], C = (3; 8]$. Xác định tập hợp $(A \\cup B) \\cap C$.', 'numline');
+  dung(b && /\(A \\cup B\) \\cap C/.test(b.sets), b && b.sets);
+  const c = figOf('#C Câu 1.\nCho $A = (-\\infty; 1]$ và $B = (-2; +\\infty)$. Tìm phần bù của tập $(A \\cap B)$ trong $\\mathbb{R}$.', 'numline');
+  dung(c && /\\mathbb\{R\}\\setminus \(A \\cap B\)/.test(c.sets), c && c.sets);
+});
+thu('đề cương: tập hữu hạn → biểu đồ Ven có phần tử, tô phần bù trong E', () => {
+  const v = figOf('#C Câu 1.\nCho $E = \\{1; 2; 3; 4; 5; 6\\}$, $A = \\{1; 3; 5\\}$, $B = \\{2; 3; 4\\}$. Tìm phần bù của tập hợp $A \\cup B$ trong $E$.', 'venn');
+  dung(v && v.unv && v.uname === 'E' && /AB: 3/.test(v.elements) && /ngoài: 6/.test(v.elements) && v.shade === 'E ∖ (A ∪ B)', v && JSON.stringify(v));
+});
+
 nhom('Đọc đề hình không gian (src/dedehinh.js)');
 DE_KHONG_GIAN.forEach(([ten, de, exp]) => thu(ten, () => {
   const r = DeHinh.space(de);

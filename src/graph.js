@@ -243,6 +243,8 @@
         parts.push(`<circle cx="${r2(fr.X(p[0]))}" cy="${r2(fr.Y(p[1]))}" r="3" fill="#111"/>`);
         const g = given.find((q) => Math.hypot(q[1] - p[0], q[2] - p[1]) < 1e-6);
         let name = g ? g[0] : '';
+        // đỉnh ở gốc toạ độ: gọi là O như SGK (khi lời giải chưa đặt tên khác)
+        if (!name && Math.hypot(p[0], p[1]) < 1e-9 && !used.has('O')) { name = 'O'; used.add('O'); }
         while (!name) { const c = 'ABCDEFGHIJKLMNPQ'[k++ % 16]; if (!used.has(c) || k > 32) { name = c; used.add(c); } }
         labels.push({ x: fr.X(p[0]) + 8, y: fr.Y(p[1]) - 11, tex: name + '\\left(' + NumFmt.toTex(p[0]).replace(/dfrac/g, 'frac') + ';' + NumFmt.toTex(p[1]).replace(/dfrac/g, 'frac') + '\\right)', size: 13, ax: 'l', bg: true });
       });

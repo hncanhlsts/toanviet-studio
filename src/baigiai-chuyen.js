@@ -261,7 +261,9 @@
       const text = blk.join('\n');
       const f0 = fig;
       // --- miền nghiệm hệ bất phương trình bậc nhất hai ẩn ---
-      if (/miền nghiệm/i.test(text)) {
+      // (cả khi đề không nói "miền nghiệm" mà cho hệ hai ẩn x, y rồi hỏi GTLN, GTNN… như bài toán tối ưu SGK)
+      const sysXY = /\\begin\{cases\}/.test(text) && /x/.test(text) && /y/.test(text) && /GTLN|GTNN|giá trị (?:lớn|nhỏ) nhất|tối ưu|thoả mãn|thỏa mãn|hệ bất phương trình/i.test(text);
+      if (/miền nghiệm/i.test(text) || sysXY) {
         const lns = [], ineqs = [], pts = [];
         const fnLetters = new Set((text.match(/([A-Z])\s*\(\s*x\s*[;,]\s*y\s*\)/g) || []).map((s) => s[0]));
         blk.forEach((l) => {
@@ -271,7 +273,8 @@
             const pr = /([A-Z])\s*\(\s*(-?[\d.]+)\s*;\s*(-?[\d.]+)\s*\)/g; let pm;
             while ((pm = pr.exec(plain))) if (!fnLetters.has(pm[1])) pts.push([pm[1], +pm[2], +pm[3]]);
             // hệ / các bất phương trình (kể cả trong \begin{cases})
-            plain.replace(/\\begin\w*|\\end\w*|cases|array|aligned/g, ' ').split(/⏎|&|,(?![^(]*\))/).forEach((row) => {
+            // "x, y >= 0" → hai bất phương trình x >= 0, y >= 0
+            plain.replace(/\\begin\w*|\\end\w*|cases|array|aligned/g, ' ').replace(/(^|⏎|&)\s*x\s*[,;]\s*y\s*(<=|>=|<|>)\s*(-?[\d.]+)/g, '$1 x$2$3 ⏎ y$2$3').split(/⏎|&|,(?![^(]*\))/).forEach((row) => {
               const q = /^([^<>=]+)(<=|>=|<|>)([^<>=]+)$/.exec(row.trim());
               if (!q) return;
               const L = linear(q[1]), R = linear(q[3]) || (isFinite(+q[3]) ? { a: 0, b: 0, c: +q[3] } : null);
@@ -314,7 +317,20 @@
           const xs = [0], ys = [0];
           verts.forEach((p) => { xs.push(p[1]); ys.push(p[2]); });
           // chưa đủ đỉnh (miền không bị chặn, hệ cho sẵn): thêm giao điểm của các đường biên với hai trục
-          if (verts.length < 2) lns.concat(ineqs).forEach((l) => { if (Math.abs(l.a) > 1e-9) xs.push(l.k / l.a); if (Math.abs(l.b) > 1e-9) ys.push(l.k / l.b); });
+          if (verts.length < 2) {
+            // tự tìm đỉnh của miền (giao từng cặp đường biên, thoả mọi bất phương trình): miền bị chặn thì khung gọn quanh các đỉnh
+            const bd = ineqs.length ? ineqs : lns, ok = (x, y) => ineqs.every((q) => { const v = q.a * x + q.b * y - q.k; return q.op[0] === '<' ? v <= 1e-7 : v >= -1e-7; });
+            const cs = [];
+            for (let i = 0; i < bd.length; i++) for (let j = i + 1; j < bd.length; j++) {
+              const p = bd[i], r = bd[j], det = p.a * r.b - p.b * r.a;
+              if (Math.abs(det) < 1e-12) continue;
+              const x = (p.k * r.b - p.b * r.k) / det, y = (p.a * r.k - p.k * r.a) / det;
+              if (ok(x, y)) cs.push([x, y]);
+            }
+            const bounded = cs.length >= 3 && ineqs.length >= 3 && [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => ineqs.some((q) => (q.op[0] === '<' ? 1 : -1) * (q.a * dx + q.b * dy) > 1e-9));
+            if (bounded) cs.forEach((p) => { xs.push(p[0]); ys.push(p[1]); });
+            else lns.concat(ineqs).forEach((l) => { if (Math.abs(l.a) > 1e-9) xs.push(l.k / l.a); if (Math.abs(l.b) > 1e-9) ys.push(l.k / l.b); });
+          }
           // bước chia "đẹp" (1, 2, 5, 10, 20, 50…) để trục có khoảng 6–10 vạch
           const nice = (x) => { const p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
           const span = (v) => { const lo = Math.min(...v), hi = Math.max(...v), r = Math.max(hi - lo, 1); const st = r <= 12 ? 1 : nice(r / 6); return { lo: Math.floor(Math.min(lo - r * 0.12, -r * 0.06)), hi: Math.ceil(hi + r * 0.3), st }; };
@@ -368,16 +384,44 @@
       }
       // --- tập hợp trên trục số: khoảng, đoạn có đầu mút là số và các phép ∪, ∩, \, phần bù ---
       {
+        // điều kiện một ẩn → kí hiệu khoảng như SGK: "x < 2" → (-\infty;2), "-1 <= x < 3" → [-1;3); không đổi được thì giữ điều kiện
+        const toIv = (c) => {
+          const s = c.replace(/\s+/g, ''), N = '(-?\\d+(?:[.,]\\d+)?)';
+          let m;
+          if ((m = new RegExp('^x(<=|<|>=|>)' + N + '$').exec(s))) { const a = m[2].replace(',', '.'); return m[1][0] === '<' ? '(-\\infty;' + a + (m[1] === '<=' ? ']' : ')') : (m[1] === '>=' ? '[' : '(') + a + ';+\\infty)'; }
+          if ((m = new RegExp('^' + N + '(<=|<)x(<=|<)' + N + '$').exec(s))) return (m[2] === '<=' ? '[' : '(') + m[1].replace(',', '.') + ';' + m[4].replace(',', '.') + (m[3] === '<=' ? ']' : ')');
+          return c;
+        };
         const txt = blk.join('\n'), named = [], ops = [];
         blk.forEach((l) => mathOf(l).forEach((m) => {
           let q;
           const re = /([A-Z])\s*=\s*((?:\\left)?[[(][^;[\]()]*;[^;[\]()]*(?:\\right)?[\])])/g;
           while ((q = re.exec(m))) if (!/[a-zA-Z]/.test(q[2].replace(/\\(infty|left|right|d?frac|sqrt)/g, '')) && !named.some((n) => n[0] === q[1])) named.push([q[1], q[1] + '=' + q[2].replace(/\s+/g, '')]);
-          const ro = /([A-Z])\s*\\(cup|cap|setminus)\s*([A-Z])(?![a-zA-Z(])/g;
-          while ((q = ro.exec(m))) { const s = q[1] + '\\' + q[2] + ' ' + q[3]; if (!ops.includes(s)) ops.push(s); }
-          const rc = /C_\{?\s*\\mathbb\{?R\}?\s*\}?\s*([A-Z])/g;
-          while ((q = rc.exec(m))) { const s = '\\mathbb{R}\\setminus ' + q[1]; if (!ops.includes(s)) ops.push(s); }
+          // tập viết bằng điều kiện trên ℝ: A = {x ∈ ℝ | x < 2}, {x ∈ ℝ | -1 ≤ x < 3} → dòng "A = x < 2" của trục số
+          const rb = /([A-Z])\s*=\s*\\\{\s*x\s*\\in\s*\\mathbb\s*\{?R\}?\s*(?:\\mid|\||:)\s*([^{}]+?)\s*\\\}/g;
+          while ((q = rb.exec(m))) { const c = q[2].replace(/\\(?:le|leq|leqslant)(?![a-z])/g, '<=').replace(/\\(?:ge|geq|geqslant)(?![a-z])/g, '>=').replace(/\\ne(?![a-z])/g, '<>').replace(/\s+/g, ' ').trim(); if (/^[-\dx<>=., ]+$/.test(c) && /x/.test(c) && !named.some((n) => n[0] === q[1])) named.push([q[1], q[1] + '=' + toIv(c)]); }
+          // biểu thức tập hợp (kể cả có ngoặc): A \cup B, (A \cup B) \cap C, \mathbb{R} \setminus (A \cap B)
+          const tk = m.replace(/\\left|\\right/g, '').replace(/\\mathbb\s*\{?R\}?/g, 'ℝ').replace(/\\cup/g, '∪').replace(/\\cap/g, '∩').replace(/\\setminus/g, '∖');
+          (tk.match(/[()A-Zℝ∪∩∖\s]+/g) || []).forEach((run) => {
+            let s = run.trim().replace(/^[)\s]+|[(\s]+$/g, '');
+            while (/^\(/.test(s) && (s.match(/\(/g) || []).length > (s.match(/\)/g) || []).length) s = s.slice(1).trim();
+            while (/\)$/.test(s) && (s.match(/\)/g) || []).length > (s.match(/\(/g) || []).length) s = s.slice(0, -1).trim();
+            // phải là biểu thức giữa các tập có tên: có phép toán, ít nhất hai tên, không mở đầu / kết thúc bằng phép toán
+            const cmp = s.replace(/\s+/g, '');
+            if (!/[∪∩∖]/.test(cmp) || /[A-Z]{2}/.test(cmp) || (cmp.match(/[A-Zℝ]/g) || []).length < 2 || /^[(]*[∪∩∖]|[∪∩∖][)]*$/.test(cmp) || /[∪∩∖][)]|[(][∪∩∖]/.test(cmp)) return;
+            const toLx = (x) => x.replace(/ℝ/g, '\\mathbb{R}').replace(/∪/g, '\\cup ').replace(/∩/g, '\\cap ').replace(/∖/g, '\\setminus ').replace(/\s+/g, ' ').trim();
+            // biểu thức lồng nhau: dòng trung gian trong ngoặc trước, vd (A ∪ B) ∩ C → thêm dòng A ∪ B
+            // "(A ∩ B)" đứng riêng: bỏ cặp ngoặc bao ngoài (cùng dòng với A ∩ B)
+            if (/^\(/.test(s) && /\)$/.test(s)) { let d = 0, wrap = true; for (let i2 = 0; i2 < s.length; i2++) { if (s[i2] === '(') d++; else if (s[i2] === ')') d--; if (d === 0 && i2 < s.length - 1) { wrap = false; break; } } if (wrap) s = s.slice(1, -1).trim(); }
+            const lx = toLx(s);
+            (s.match(/\(([^()]*[∪∩∖][^()]*)\)/g) || []).forEach((g2) => { const inner = toLx(g2.slice(1, -1)); if (inner !== lx && !ops.includes(inner) && !ops.includes('(' + inner + ')')) ops.push(inner); });
+            if (!ops.includes(lx)) ops.push(lx);
+          });
+          const rc = /C_\{?\s*\\mathbb\{?R\}?\s*\}?\s*(\([^()]*\)|[A-Z])/g;
+          while ((q = rc.exec(m))) { const s = '\\mathbb{R}\\setminus ' + q[1].replace(/\s+/g, ' '); if (!ops.includes(s)) ops.push(s); }
         }));
+        // "phần bù của (tập) $X$ trong $\mathbb{R}$"
+        { const rp = /phần bù của\s+(?:tập\s+(?:hợp\s+)?)?\$([^$]+)\$\s+trong\s+\$\\mathbb\s*\{?R\}?\$/g; let q; while ((q = rp.exec(txt))) { const x = q[1].trim(), s = '\\mathbb{R}\\setminus ' + (/^[A-Z]$/.test(x) || /^\(.*\)$/.test(x) ? x : '(' + x + ')'); if (!ops.includes(s)) ops.push(s); } }
         const has = (n) => named.some((x) => x[0] === n);
         const okOps = ops.filter((s) => { const v = s.match(/(?:^|[^a-zA-Z\\{])([A-Z])(?![a-zA-Z])/g) || []; return v.map((x) => x.slice(-1)).every((n) => n === 'R' || has(n)); });
         if (named.length && (okOps.length || /trục số/i.test(txt))) {
@@ -386,6 +430,40 @@
           if (at < 0) at = blk.findIndex((l) => !/^#/.test(l) && okOps.length && /\\(cup|cap|setminus)|C_/.test(l));
           addFig(blk, at >= 0 ? at : blk.length - 1, 'numline', { kind: okOps.length ? 'hop' : 'khoang', sets: sets.join('\n'), rowLabels: true, zero: false, colorful: okOps.length > 0, ticks: false, nums: true, style: 'hatch', w: 560, h: sets.length * 62 + 8 }, '', 0.8);
           notes['thêm hình tập hợp trên trục số'] = (notes['thêm hình tập hợp trên trục số'] || 0) + 1;
+        }
+      }
+      // --- tập hợp hữu hạn (liệt kê phần tử): biểu đồ Ven có ghi phần tử, tô phần được hỏi ---
+      if (fig === f0) {
+        const fin = [];
+        blk.forEach((l) => mathOf(l).forEach((m) => {
+          const re = /([A-Z])\s*=\s*\\\{([^{}|]*?)\\\}/g; let q;
+          while ((q = re.exec(m))) { const it = q[2].split(/[;,]/).map((s) => s.replace(/\\[,;: ]|\s+/g, '').replace(/\{,\}/g, ',')).filter(Boolean); if (it.length && it.length <= 12 && !fin.some((f) => f[0] === q[1])) fin.push([q[1], it]); }
+        }));
+        if (fin.length >= 2) {
+          // tập bao (E, U, X chứa mọi tập khác)
+          const uIdx = fin.findIndex((f) => /[EUX]/.test(f[0]) && fin.every((g) => g === f || g[1].every((x) => f[1].includes(x))));
+          const uni = uIdx >= 0 ? fin[uIdx] : null, sets = fin.filter((f) => f !== uni).slice(0, 3);
+          if (sets.length >= 2) {
+            const names = sets.map((s) => s[0]);
+            const all = [...new Set([].concat(...sets.map((s) => s[1]), uni ? uni[1] : []))];
+            const reg = {};
+            all.forEach((x) => { const k = names.filter((n, i) => sets[i][1].includes(x)).join('') || 'ngoài'; (reg[k] = reg[k] || []).push(x); });
+            const disjoint = sets.length === 2 && !reg[names.join('')];
+            const sub = sets.length === 2 && (sets[1][1].every((x) => sets[0][1].includes(x)));
+            const layout = sets.length === 3 ? 'ba' : disjoint ? 'roi' : sub ? 'con' : 'hai';
+            // vùng được hỏi: phần bù trong tập bao, hoặc phép toán đầu tiên giữa các tập này
+            const sym = (s) => s.replace(/\\cup/g, '∪').replace(/\\cap/g, '∩').replace(/\\setminus/g, '∖').replace(/\\left|\\right|\s+/g, ' ').replace(/\s+/g, ' ').trim();
+            let shade = '';
+            const cpl = /phần bù của\s+(?:tập\s+(?:hợp\s+)?)?\$([^$]+)\$\s+trong\s+\$([A-Z])\$/.exec(text);
+            if (cpl && uni && cpl[2] === uni[0]) shade = uni[0] + ' ∖ (' + sym(cpl[1]) + ')';
+            else { const op = blk.map((l) => mathOf(l).map((m) => (/^[\sA-Z()\\a-z]+$/.test(m) && /\\(cup|cap|setminus)/.test(m) ? m : '')).find(Boolean)).find(Boolean); if (op) shade = sym(op); }
+            const at = blk.findIndex((l) => !/^#/.test(l) && /\\(cup|cap|setminus)|phần bù/.test(l));
+            addFig(blk, at >= 0 ? at : blk.length - 1, 'venn', {
+              kind: 'phantu', layout, names: names.join(', '), elements: Object.keys(reg).map((k) => k + ': ' + reg[k].join('; ')).join('\n'),
+              shade, unv: !!uni, uname: uni ? uni[0] : 'U', style: 'fill', w: sets.length === 3 ? 340 : 360, h: sets.length === 3 ? 300 : 230,
+            }, '', 0.8);
+            notes['thêm biểu đồ Ven'] = (notes['thêm biểu đồ Ven'] || 0) + 1;
+          }
         }
       }
       // --- đồ thị hàm số ---
@@ -428,7 +506,7 @@
         }
       }
       // --- hình phẳng: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải; chỉ khi câu chưa có hình nào khác ---
-      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|O\s*xy|góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?\$?[a-z][A-Z][a-z]|đoạn thẳng/.test(text) && !/(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
+      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|O\s*xy|góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?\$?[a-z][A-Z][a-z]|đoạn thẳng|\\Delta\s*[A-Z]{3}|△|lục giác|tọa độ|toạ độ/.test(text) && !/(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
         let pl = null;
         try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
         if (pl && pl.script) {
