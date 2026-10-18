@@ -6,6 +6,7 @@
 // Vẽ từng khung 1920×1080 theo kịch bản dựng, mã hoá VP9 (WebCodecs), ghi WebM.
 const fs = require('fs'), path = require('path'), { ipcRenderer } = require('electron');
 const { WebmWriter } = require('./webm.js');
+const { Mp4Writer } = require('./mp4.js');
 const ROOT = path.join(__dirname, '..');
 const KB = require('./canh.js');
 const args = new URLSearchParams(location.search).get('args') || '';
@@ -195,6 +196,8 @@ async function drawAt(t) {
 (async () => {
   try {
     console.log('Tổng thời lượng: ' + TOTAL.toFixed(1) + ' giây, ' + SEG.length + ' đoạn');
+    // --muc=1: in thời điểm bắt đầu các phần có tiêu đề (mốc chương khi đăng YouTube)
+    if (arg('muc')) { SEG.forEach((s) => { if (s.title) console.log('MUC ' + Math.floor(s.t0 / 60) + ':' + String(Math.floor(s.t0 % 60)).padStart(2, '0') + ' ' + s.title.replace(/^\d+\.\s*/, '')); }); console.log('MUC-TONG ' + TOTAL.toFixed(1)); ipcRenderer.send('xong', 0); return; }
     const anh = arg('anh');
     if (anh) {
       const dir = path.join(ROOT, 'xem'); fs.mkdirSync(dir, { recursive: true });
@@ -203,9 +206,10 @@ async function drawAt(t) {
     }
     const tu = +(arg('tu') || 0), den = Math.min(TOTAL, +(arg('den') || TOTAL));
     const out = arg('ra') || path.join(ROOT, (tu || den < TOTAL) ? 'xem-doan.webm' : 'ToanViet-Studio-gioi-thieu.webm');
-    const wr = new WebmWriter(W, H); let err = null;
-    const enc = new VideoEncoder({ output: (ch) => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); wr.add({ data: d, ms: Math.round(ch.timestamp / 1000), key: ch.type === 'key' }); }, error: (e) => { err = e; } });
-    enc.configure({ codec: 'vp09.00.40.08', width: W, height: H, bitrate: KB.bitrate || 6000000, framerate: FPS, latencyMode: 'quality' });
+    // .mp4: H.264 (High, mọi trang mạng nhận); còn lại: WebM VP9
+    const mp4 = /\.mp4$/i.test(out), wr = mp4 ? new Mp4Writer(W, H, FPS) : new WebmWriter(W, H); let err = null;
+    const enc = new VideoEncoder({ output: (ch, meta) => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); try { if (mp4) wr.add({ data: d, key: ch.type === 'key', ts: ch.timestamp }, meta && meta.decoderConfig && meta.decoderConfig.description); else wr.add({ data: d, ms: Math.round(ch.timestamp / 1000), key: ch.type === 'key' }); } catch (e) { err = e; } }, error: (e) => { err = e; } });
+    enc.configure(mp4 ? { codec: 'avc1.640028', width: W, height: H, bitrate: KB.bitrateMp4 || 8000000, framerate: FPS, avc: { format: 'avc' }, hardwareAcceleration: 'prefer-software' } : { codec: 'vp09.00.40.08', width: W, height: H, bitrate: KB.bitrate || 6000000, framerate: FPS, latencyMode: 'quality' });
     const n0 = Math.round(tu * FPS), n1 = Math.round(den * FPS), t0 = Date.now();
     for (let n = n0; n < n1; n++) {
       if (err) throw err;
@@ -216,7 +220,7 @@ async function drawAt(t) {
       if ((n - n0) % (FPS * 10) === 0) console.log('… ' + (n / FPS).toFixed(0) + ' / ' + den.toFixed(0) + ' giây (' + ((Date.now() - t0) / 1000).toFixed(0) + ' giây máy)');
     }
     await enc.flush(); if (err) throw err;
-    fs.writeFileSync(out, wr.finish((n1 - n0) * 1000 / FPS));
+    fs.writeFileSync(out, mp4 ? wr.finish() : wr.finish((n1 - n0) * 1000 / FPS));
     console.log('XONG ' + out + ' ' + (fs.statSync(out).size / 1048576).toFixed(1) + ' MB');
     ipcRenderer.send('xong', 0);
   } catch (e) { console.log('LỖI ' + (e && e.stack || e)); ipcRenderer.send('xong', 1); }

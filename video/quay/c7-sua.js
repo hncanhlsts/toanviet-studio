@@ -7,7 +7,7 @@
   REC.mark('bat-dau');
   const mf = document.getElementById('mf'); mf.focus(); await w(300);
   console.log('LOG ma cu: ' + mf.getValue());
-  await type([K('End'), ',', '   ', CS('E'), 'với ', CS('E'), C('G'), K('D', ['shift'], 'D'), '=b^2', RIGHT, '-4ac'], 150);
+  await type([K('End'), CS('E'), ', với ', CS('E'), C('G'), K('D', ['shift'], 'D'), '=b^2', RIGHT, '-4ac'], 150);
   await w(1300);
   const [x, y] = at('#fxok');
   console.log('LOG nut: ' + document.getElementById('fxok').textContent);

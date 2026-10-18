@@ -76,6 +76,8 @@ if ($Canh -eq 'c7') {
   $d.Paragraphs.Item(1).Range.Font.Size = 15
   $d.Saved = $true
 }
+# ribbon đang thu gọn thì mở ra để thấy các nút của thẻ ToanViet
+try { if ($app.CommandBars.GetPressedMso('MinimizeRibbon')) { $app.CommandBars.ExecuteMso('MinimizeRibbon') } } catch {}
 $app.WindowState = 0
 [void][Cap]::ShowWindow($hw, 9)
 [void][Cap]::SetWindowPos($hw, [IntPtr]::Zero, 0, 0, 2400, 1350, 0x40)
@@ -116,7 +118,7 @@ if ($Canh -eq 'c7') {
   if ($tab) { $c = Center $tab; MoveTo $c[0] $c[1] 900; Press $c[0] $c[1]; try { $tab.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch {} }
   Start-Sleep 1.2
   $btn = FindEl $win 'Công thức mới' ([Windows.Automation.ControlType]::Button)
-  if ($btn) { $c = Center $btn; MoveTo $c[0] $c[1] 800; Press $c[0] $c[1] }
+  if ($btn) { $b = $btn.Current.BoundingRectangle; $wr = [Cap]::Rect($hw); '   nút Công thức mới: ' + $b + ' cửa sổ ' + ($wr -join ','); $c = Center $btn; MoveTo $c[0] $c[1] 800; Press $c[0] $c[1] }
   Mark 'bam-nut'
   HideCur
   $app.StatusBar = 'ToanViet Studio đang mở…'
@@ -138,7 +140,8 @@ if ($Canh -eq 'c7') {
     Start-Sleep 2.5
   } else { '   (không thấy công thức đã chèn)' }
   # 3. chuyển các công thức Equation của tài liệu cũ sang ToanViet
-  $menu = FindEl $win 'Thống nhất định dạng công thức' ([Windows.Automation.ControlType]::MenuItem)
+  $menu = FindEl $win 'Equation → ToanViet' ([Windows.Automation.ControlType]::Button)
+  if (-not $menu) { $menu = FindEl $win 'Thống nhất định dạng công thức' ([Windows.Automation.ControlType]::MenuItem) }
   if (-not $menu) { $menu = FindEl $win 'Thống nhất định dạng công thức' ([Windows.Automation.ControlType]::Button) }
   if (-not $menu) { $menu = FindEl $win 'Thống nhất định dạng công thức' ([Windows.Automation.ControlType]::SplitButton) }
   if ($menu) { $c = Center $menu; MoveTo $c[0] $c[1] 1000; Press $c[0] $c[1] } else { '   (không thấy nút Thống nhất định dạng công thức)' }
