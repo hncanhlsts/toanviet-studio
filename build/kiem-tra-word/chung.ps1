@@ -40,3 +40,21 @@ function Bridge([hashtable]$envs, [int]$sec = 300) {
 $global:KQ = @()
 function Check($name, $cond, $info) { if ($cond) { "  ĐẠT  $name" } else { "  LỖI  $name  ($info)" }; $global:KQ += [bool]$cond }
 $INS = @{ TVS_ACT = 'insert'; TVS_APP = 'word'; TVS_PNG = $png; TVS_ALT = 'TVS1:e30='; TVS_W = '60'; TVS_H = '20'; TVS_POS = '0'; TVS_SRC = '' }
+# Bấm nút "Công thức mới" trên thẻ ToanViet của cửa sổ Word (tiến trình $p) bằng UI Automation, như người dùng nhấp chuột.
+# Không dùng SendKeys: phím gửi giả lập đôi khi rơi vào cửa sổ khác. Trả về cách đã bấm.
+function BamCongThucMoi($p) {
+  Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+  $A = [Windows.Automation.AutomationElement]
+  $find = { param($root, $type, $name)
+    $c = New-Object Windows.Automation.AndCondition (New-Object Windows.Automation.PropertyCondition($A::ControlTypeProperty, $type)), (New-Object Windows.Automation.PropertyCondition($A::NameProperty, $name))
+    $root.FindFirst([Windows.Automation.TreeScope]::Descendants, $c) }
+  $hw = (Get-Process -Id $p.Id).MainWindowHandle
+  if ($hw -ne 0) {
+    $win = $A::FromHandle($hw)
+    $tab = & $find $win ([Windows.Automation.ControlType]::TabItem) 'ToanViet'
+    if ($tab) { try { $tab.GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select() } catch {}; Start-Sleep 1 }
+    $btn = & $find $win ([Windows.Automation.ControlType]::Button) 'Công thức mới'
+    if ($btn) { try { $btn.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke(); return 'nút Công thức mới' } catch {} }
+  }
+  $sh = New-Object -ComObject WScript.Shell; [void]$sh.AppActivate($p.Id); Start-Sleep 2; $sh.SendKeys('^%q'); 'phím Ctrl+Alt+Q'
+}

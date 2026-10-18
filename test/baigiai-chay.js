@@ -15,3 +15,7 @@ txt.split(/\r?\n/).forEach((l) => {
   if (inBody && !/\[renderer\]/.test(l)) console.log('   ' + l);
 });
 console.log('Tệp Word: ' + out + (fs.existsSync(out) ? ' (' + fs.statSync(out).size + ' byte)' : ' (CHƯA CÓ)'));
+// dùng trong npm test: báo lỗi khi có điểm kiểm tra sai hoặc không tạo được tệp
+const nFail = (txt.match(/\[renderer\] BG: ✘/g) || []).length, nPass = (txt.match(/\[renderer\] BG: ✔/g) || []).length;
+console.log('Bài giải AI → Word: ' + nPass + ' đạt, ' + nFail + ' lỗi');
+if (nFail || !nPass || !fs.existsSync(out)) process.exit(1);
