@@ -47,6 +47,8 @@
     // phangiacgoc(X, A, Y): một điểm trên tia phân giác của góc XAY (đỉnh A ở giữa, giống lệnh goc);
     // phangiacgoc(X, A, Y, P, Q): giao điểm của tia phân giác góc XAY với đường thẳng PQ
     phangiacgoc: (x, a, y, p, q) => { const u = sub(x, a), v = sub(y, a), lu = len(u), lv = len(v); if (!lu || !lv) throw new Error('góc suy biến'); let d = add(mul(u, 1 / lu), mul(v, 1 / lv)); if (len(d) < 1e-9) d = [-u[1] / lu, u[0] / lu]; const t = add(a, mul(d, lu / len(d))); if (p === undefined) return t; if (q === undefined) throw new Error('viết: phangiacgoc(X, A, Y, P, Q)'); return inter(a, t, p, q); },
+    // dat(P, Q, X, Y): điểm trên tia PQ cách P một đoạn bằng XY;  dat(P, Q, d): cách P một đoạn d
+    dat: (p, q, a, b) => { const d = dist(p, q); if (!d) throw new Error('tia suy biến'); const l = typeof a === 'number' ? a : dist(a, b); return add(p, mul(sub(q, p), l / d)); },
     tiepdiem: (p, o, a, k) => { const r = typeof a === 'number' ? a : dist(o, a), d = dist(p, o); if (d <= r) throw new Error('điểm nằm trong đường tròn'); const base = Math.atan2(p[1] - o[1], p[0] - o[0]), t = Math.acos(r / d) * (k === 2 ? -1 : 1); return [o[0] + r * Math.cos(base + t), o[1] + r * Math.sin(base + t)]; },
   };
 

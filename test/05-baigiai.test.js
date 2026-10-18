@@ -9,6 +9,13 @@ thu('bỏ câu chào của AI, dựng nhãn Câu, Lời giải', () => {
   bang(t, '#C Câu 1.\nTính $x$.\n#G\nTa có $x=2$.');
 });
 
+thu('câu nhỏ a), b), c) không có gạch đầu dòng (cả văn bản lẫn HTML từ trang AI); ý thường giữ gạch đầu dòng', () => {
+  const t = BaiGiai.fromText('Cho tam giác $ABC$.\n- a) Chứng minh.\n- **b)** Tính.\n- Một ý thường').markup;
+  dung(/^a\) Chứng minh\.$/m.test(t) && /^\*\*b\)\*\* Tính\.$/m.test(t) && /^- Một ý thường$/m.test(t), t);
+  const h = BaiGiai.fromText(BaiGiai.fromHtml('<p>Cho tam giác ABC.</p><ul><li><strong>a)</strong> Chứng minh.</li><li><strong>c)</strong> Trên đoạn thẳng AB lấy điểm E.</li></ul>')).markup;
+  dung(!/^- /m.test(h) && /^\*\*c\)\*\* Trên đoạn thẳng AB/m.test(h), h);
+});
+
 nhom('Bài giải AI: tự thêm hình ở chỗ SGK có hình');
 const figOf = (md, type) => { const r = BaiGiai.figures(md); const l = r.markup.split('\n').find((x) => x.startsWith('#FIG ') && x.includes('"type":"' + type + '"')); return l ? JSON.parse(l.replace(/^#FIG \S+ /, '')) : null; };
 thu('miền nghiệm: suy ra hệ từ đường biên và đỉnh, giữ tên đỉnh', () => {
@@ -49,6 +56,8 @@ DE_HINH_PHANG.forEach(([ten, de, exp]) => thu(ten, () => {
   const L = r.script.split('\n');
   const miss = exp.has.filter((h) => !L.some((l) => l.trim() === h || l.includes(h)));
   dung(!miss.length, 'thiếu: ' + miss.join(' | ') + '\n' + r.script);
+  const thua = (exp.not || []).filter((h) => L.some((l) => l.trim().startsWith(h)));
+  dung(!thua.length, 'thừa: ' + thua.join(' | ') + '\n' + r.script);
   const res = Plane.render({ id: 'dp', script: r.script, labels: true }, 340, 300);
   dung(!res.errors.length, 'vẽ lỗi: ' + res.errors.join('; '));
 }));

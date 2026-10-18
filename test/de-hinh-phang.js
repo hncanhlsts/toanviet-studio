@@ -36,5 +36,11 @@ const DE_HINH_PHANG = [
   ['tam giác đều cạnh a, tâm đường tròn ngoại tiếp',
     'Cho tam giác đều $ABC$ cạnh $a$. Gọi $O$ là tâm đường tròn ngoại tiếp tam giác $ABC$. Tính bán kính đường tròn theo $a$.',
     { has: ['B = (0, 0)', 'C = (1, 0)', 'O = tamngoai(A, B, C)', 'duongtron O A', 'bang AB BC CA = 1', 'diem O'] }],
+  ['tia đối, điểm trên đoạn với hai đoạn bằng nhau, ba điểm thẳng hàng (đề thầy gửi)',
+    'Cho tam giác $ABC$. Gọi $M$ là trung điểm của cạnh $BC$. Trên tia đối của tia $MA$ lấy điểm $D$ sao cho $MD = MA$.\na) Chứng minh $\\Delta MAB = \\Delta MDC$.\nb) Chứng minh $AB = CD$ và $AB \\parallel CD$.\nc) Trên đoạn thẳng $AB$ lấy điểm $E$, trên đoạn thẳng $CD$ lấy điểm $F$ sao cho $AE = DF$. Chứng minh $\\Delta MAE = \\Delta MDF$, từ đó chứng minh ba điểm $E, M, F$ thẳng hàng.',
+    { has: ['M = trungdiem(B, C)', 'D = doixung(A, M)', 'E = chia(A, B,', 'F = dat(D, C, A, E)', 'doan MD', 'doan EF', 'bang BM MC = 1', 'bang MA MD = 2', 'bang AE DF = 3'], not: ['diem'] }],
+  ['trung điểm đứng một mình: có chấm điểm',
+    'Cho tam giác $ABC$ có $AB = 4$ cm. Gọi $M$ là trung điểm của $AB$. Tính $AM$.',
+    { has: ['M = trungdiem(A, B)', 'diem M'] }],
 ];
 if (typeof module !== 'undefined' && module.exports) module.exports = DE_HINH_PHANG;

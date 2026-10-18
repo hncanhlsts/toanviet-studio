@@ -109,7 +109,9 @@
       }
       first = false;
       // gạch đầu dòng
-      const b = /^[-*•+]\s+(.*)$/.exec(ln);
+      const b = /^[-*•+○◦▪▫]\s+(.*)$/.exec(ln);
+      // mục là câu nhỏ "a) …", "**b)** …", "c. …": SGK không đặt gạch đầu dòng trước câu nhỏ
+      if (b && /^(\*\*)?\s*[a-zđ]\s*[).](\*\*)?\s/i.test(b[1] + ' ')) { out.push(b[1]); continue; }
       if (b) { out.push('- ' + b[1]); continue; }
       // công thức riêng dòng lẫn trong đoạn: tách ra
       if (/\$\$/.test(ln) && !/^\$\$[^$]+\$\$$/.test(ln)) {
@@ -357,7 +359,7 @@
         try { sp = DH.space(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { sp = null; }
         if (sp && sp.script) {
           const gi = blk.findIndex((l) => /^#G/.test(l));
-          const at = gi >= 0 ? gi : Math.min(1, blk.length - 1);
+          const at = gi >= 0 ? gi : blk.length - 1;
           addFig(blk, at, 'space', { kind: sp.kind, script: sp.script, w: 360, h: 320 }, '', 0.75);
           notes['thêm hình không gian (đọc từ đề)'] = (notes['thêm hình không gian (đọc từ đề)'] || 0) + 1;
           sp.unknown.forEach((u) => { notes['hình không gian — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
@@ -430,7 +432,7 @@
         try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
         if (pl && pl.script) {
           const gi = blk.findIndex((l) => /^#G/.test(l));
-          addFig(blk, gi >= 0 ? gi : Math.min(1, blk.length - 1), 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
+          addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
           notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
           pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }

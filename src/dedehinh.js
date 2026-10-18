@@ -20,7 +20,8 @@
       .replace(/\\(Delta|triangle)\s*/g, 'tam giác ').replace(/\\[,;: ]/g, ' ').replace(/\\(in)(?![a-z])/g, '∈').replace(/[{}]/g, '');
     s = s.replace(/\s+/g, ' ').trim();
     // chữ đầu câu của một từ tiếng Việt (Cho, Gọi, Kẻ, Lấy…) viết thường để mẫu câu khớp; tên điểm (hai chữ hoa) giữ nguyên
-    return s.replace(/(^|[.;:]\s+|\(\s*)([A-ZÀ-ỸĐ])(?=[a-zà-ỹđ])/g, (m0, p, c) => p + c.toLowerCase());
+    // kể cả sau nhãn câu nhỏ "c) Trên…", "**b)** Gọi…"
+    return s.replace(/(^|[.;:]\s+|\(\s*|(?:^|\s)\**[a-zđ]\)\**\s+)([A-ZÀ-ỸĐ])(?=[a-zà-ỹđ])/g, (m0, p, c) => p + c.toLowerCase());
   }
   // độ dài theo a (a = 1): "a", "2a", "a√2", "(a√3)/2", "3a/2" → số; không phải biểu thức theo a thì null
   function lenVal(x) {
@@ -543,6 +544,7 @@
 
     // ---------- 3. Điểm phụ ----------
     const cons = [];
+    const onSeg = {}; // điểm lấy trên một đoạn / tia → hai đầu (để quyết định có chấm điểm hay không)
     const rArg = base.k === 'cir' ? 'r' : baseNames[0];
     const isDef = (n) => made.has(n) || cons.some((c) => c.name === n);
     const add = (name, need, line, src, more) => { if (!isDef(name)) cons.push({ name, need, line, src, more: more || [] }); };
@@ -567,7 +569,7 @@
         const ns = listNames(q[1]), segs = listPairs(q[2]);
         ns.forEach((n, i) => {
           const sg = namesIn(segs[i] || ''); if (sg.length !== 2) return;
-          if (!isDef(n)) { add(n, sg, n + ' = trungdiem(' + sg.join(', ') + ')', 'trung điểm', ['bang ' + sg[0] + n + ' ' + n + sg[1] + ' = #']); hit = true; }
+          if (!isDef(n)) { onSeg[n] = sg; add(n, sg, n + ' = trungdiem(' + sg.join(', ') + ')', 'trung điểm', ['bang ' + sg[0] + n + ' ' + n + sg[1] + ' = #']); hit = true; }
           else if (isDef(sg[0]) !== isDef(sg[1])) { const k = isDef(sg[0]) ? 0 : 1; add(sg[1 - k], [sg[k], n], sg[1 - k] + ' = doixung(' + sg[k] + ', ' + n + ')', 'đối xứng', ['bang ' + sg[0] + n + ' ' + n + sg[1] + ' = #']); hit = true; }
         });
       }
@@ -654,6 +656,27 @@
         const i = ns.indexOf(miss[0]), p = ns[(i + 3) % 4], o = ns[(i + 2) % 4], nx = ns[(i + 1) % 4];
         add(miss[0], [p, o, nx], miss[0] + ' = hbh(' + nx + ', ' + o + ', ' + p + ')', 'đỉnh thứ tư của ' + q[2], ['doan ' + p + miss[0] + ' ' + miss[0] + nx]); hit = true;
       }
+      // trên tia (đối của tia) OX lấy điểm N sao cho ON = PQ; "N thuộc tia đối của tia OX sao cho …"
+      const rtia = re('(?:trên\\s+tia\\s+(đối\\s+của\\s+tia\\s+)?(PN)(PN)\\s*,?\\s*lấy\\s+(?:một\\s+)?(?:điểm\\s+)?(PN)|(PN)\\s+(?:là\\s+(?:một\\s+)?điểm\\s+)?(?:thuộc|nằm trên|trên)\\s+tia\\s+(đối\\s+của\\s+tia\\s+)?(PN)(PN))(?:\\s+sao cho\\s+([^,;.]+))?', 'g');
+      while ((q = rtia.exec(snt))) {
+        const opp = !!(q[1] || q[6]), O = q[2] || q[7], X = q[3] || q[8], n = q[4] || q[5];
+        if (isDef(n) || !O || !X) continue;
+        const c3 = (q[9] || '').replace(/\s+/g, ''), w = re('^(PN)(PN)=(PN)(PN)$').exec(c3), wn = re('^(PN)(PN)=([\\d.,]+)(?:cm)?$').exec(c3);
+        let line, need = [O, X], tk = [];
+        const side = w && ([w[1], w[2]].sort().join() === [O, n].sort().join() ? [w[3], w[4]] : [w[3], w[4]].sort().join() === [O, n].sort().join() ? [w[1], w[2]] : null);
+        let dir = X, pre = '';
+        if (opp) { dir = helper(); pre = dir + ' = doixung(' + X + ', ' + O + ')\n'; hidden.push(dir); }
+        if (side && opp && side.sort().join() === [O, X].sort().join()) { line = n + ' = doixung(' + X + ', ' + O + ')'; pre = ''; hidden.pop(); tk = [O + X, O + n]; }
+        else if (side) { line = pre + n + ' = dat(' + O + ', ' + dir + ', ' + side.join(', ') + ')'; need = need.concat(side); tk = [side.join(''), O + n]; }
+        else if (wn && [wn[1], wn[2]].sort().join() === [O, n].sort().join()) { const r = lenOf(wn[3]); line = pre + n + ' = dat(' + O + ', ' + dir + ', ' + r2(r ? r.v : 1) + ')'; }
+        else { line = pre + n + (opp ? ' = chia(' + O + ', ' + dir + ', 0.8)' : ' = chia(' + O + ', ' + X + ', 0.6)'); if (c3) notes.push('điểm ' + n + ' trên tia ' + O + X + ': chưa rõ vị trí, đặt tạm'); }
+        add(n, need, line, opp ? 'điểm trên tia đối' : 'điểm trên tia', ['doan ' + O + n].concat(tk.length ? ['bang ' + tk.join(' ') + ' = #'] : []));
+        onSeg[n] = [O, X];
+        hit = true;
+      }
+      // ba điểm X, Y, Z thẳng hàng: nối hai điểm ngoài (đường qua điểm giữa)
+      const rk = re('(?:ba\\s+điểm\\s+)?(PN)\\s*,\\s*(PN)\\s*(?:,|và)\\s*(PN)\\s+thẳng hàng', 'g');
+      while ((q = rk.exec(snt))) { cons.push({ name: '', need: [q[1], q[2], q[3]], line: '', src: '', more: ['doan ' + q[1] + q[3]] }); hit = true; }
       // điểm trên cạnh theo tỉ số / độ dài
       const r6 = re('(?:(PN)\\s+(?:là\\s+(?:một\\s+)?điểm\\s+)?(?:bất kì\\s+)?(?:thuộc|nằm trên|trên)\\s+(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?)?((?:PN){2})|trên\\s+(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?)((?:PN){2})\\s+lấy\\s+(?:điểm\\s+)?(PN))(?:\\s+sao cho\\s+([^,;.]+))?', 'g');
       while ((q = r6.exec(snt))) {
@@ -665,8 +688,19 @@
           if ((w = re('^(PN)(PN)=([\\d.,()/]*)(PN)(PN)$').exec(c3)) && w[2] === n && w[4] === n) { const r = w[3] ? lenOf(w[3]) : { v: 1 }; if (r) { k = w[1] === sg[0] ? r.v / (r.v + 1) : 1 / (r.v + 1); ok = true; } }
           else if ((w = re('^(PN)(PN)=([\\d.,()/]+)(PN)(PN)$').exec(c3)) && w[2] === n) { const r = lenOf(w[3]); if (r && r.v < 1) { k = w[1] === sg[0] ? r.v : 1 - r.v; ok = true; } }
           else if ((w = re('^(PN)(PN)=([\\d.,]+(?:cm)?)$').exec(c3)) && w[2] === n) { const r = lenOf(w[3]), whole = getL(sg[0], sg[1]); if (r && whole && r.v < whole) { k = w[1] === sg[0] ? r.v / whole : 1 - r.v / whole; ok = true; } }
+          else if ((w = re('^(PN)(PN)=(PN)(PN)$').exec(c3))) {
+            // hai đoạn bằng nhau, vd AE = DF với F trên CD: F cách D một đoạn bằng AE
+            const s1 = [w[1], w[2]], s2 = [w[3], w[4]], mine = s1.includes(n) ? s1 : s2.includes(n) ? s2 : null, other = mine === s1 ? s2 : s1;
+            const P = mine && mine.find((x) => x !== n);
+            if (mine && P && sg.includes(P) && !other.includes(n)) {
+              const Q = sg.find((x) => x !== P);
+              add(n, [P, Q].concat(other), n + ' = dat(' + P + ', ' + Q + ', ' + other.join(', ') + ')', 'điểm trên cạnh', ['bang ' + other.join('') + ' ' + P + n + ' = #']);
+              onSeg[n] = sg; hit = true; continue;
+            }
+          }
         }
         add(n, sg, n + ' = chia(' + sg.join(', ') + ', ' + r2(k) + ')', 'điểm trên cạnh');
+        onSeg[n] = sg;
         if (!ok) notes.push('điểm ' + n + ' trên ' + sg.join('') + ': chưa rõ vị trí, đặt tạm');
         hit = true;
       }
@@ -765,8 +799,15 @@
         if (n > 1 && m2) marks[i] = 'goc ' + m2[1] + ' x' + n + (m2[2] ? ' ' + m2[2] : '');
       });
     }
-    marks.filter((s) => !/^(vuong|diem)/.test(s) && markOk(s)).forEach((s) => { if (!lines.includes(s)) lines.push(s); });
+    // cạnh có điểm lấy trên đó (vd trung điểm M của AB): không ghi độ dài giữa cạnh để khỏi đè tên điểm
+    const busyEdge = (s) => { const m3 = /^ghi\s+(\S+)/.exec(s); if (!m3) return false; const e = namesIn(m3[1]).sort().join(); return Object.keys(onSeg).some((n) => made.has(n) && onSeg[n].slice().sort().join() === e); };
+    marks.filter((s) => !/^(vuong|diem)/.test(s) && markOk(s) && !busyEdge(s)).forEach((s) => { if (!lines.includes(s)) lines.push(s); });
     marks.filter((s) => /^diem/.test(s)).forEach((s) => namesIn(s.slice(5)).forEach((n) => dots.add(n)));
+    // điểm lấy trên một đoạn mà không có đường nào khác đi tới: chấm điểm cho thấy vị trí (như SGK);
+    // điểm là đầu mút của một đoạn khác (giao, chỗ nối) thì đã thấy rõ, không chấm
+    const segs2 = [];
+    lines.forEach((l) => { const m2 = /^(doan|netdut|dagiac|tia|vecto|duongthang)\s+(.*)$/.exec(l); if (!m2) return; m2[2].replace(/=.*$/, '').trim().split(/\s+/).forEach((g) => { const ns = namesIn(g); for (let i = 0; i + 1 < ns.length; i++) segs2.push([ns[i], ns[i + 1]]); if (m2[1] === 'dagiac' && ns.length > 2) segs2.push([ns[ns.length - 1], ns[0]]); }); });
+    Object.keys(onSeg).forEach((n) => { if (!made.has(n)) return; const host = onSeg[n]; if (!segs2.some((sgm) => sgm.includes(n) && !host.includes(sgm[0] === n ? sgm[1] : sgm[0]))) dots.add(n); });
     const dd = [...dots].filter((n) => made.has(n));
     if (dd.length) lines.push('diem ' + dd.join(' '));
     const hh = hidden.filter((n) => made.has(n));

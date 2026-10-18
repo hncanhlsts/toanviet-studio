@@ -1,0 +1,5 @@
+Cho tam giác $ABC$. Gọi $M$ là trung điểm của cạnh $BC$. Trên tia đối của tia $MA$ lấy điểm $D$ sao cho $MD = MA$.
+
+○ **a)** Chứng minh $\Delta MAB = \Delta MDC$.
+○ **b)** Chứng minh $AB = CD$ và $AB \parallel CD$.
+○ **c)** Trên đoạn thẳng $AB$ lấy điểm $E$, trên đoạn thẳng $CD$ lấy điểm $F$ sao cho $AE = DF$. Chứng minh $\Delta MAE = \Delta MDF$, từ đó chứng minh ba điểm $E, M, F$ thẳng hàng.
