@@ -257,6 +257,7 @@
     };
     for (const blk of blocks) {
       const text = blk.join('\n');
+      const f0 = fig;
       // --- miền nghiệm hệ bất phương trình bậc nhất hai ẩn ---
       if (/miền nghiệm/i.test(text)) {
         const lns = [], ineqs = [], pts = [];
@@ -421,6 +422,17 @@
             points: pts.map((p) => p[0] + '(' + NUM(p[1]) + '; ' + NUM(p[2]) + ')').join('\n'), grid: false, ticks: true, legend: true, proj: true, w: 380, h: 360,
           }, '', 0.8);
           notes['thêm đồ thị'] = (notes['thêm đồ thị'] || 0) + 1;
+        }
+      }
+      // --- hình phẳng: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải; chỉ khi câu chưa có hình nào khác ---
+      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|O\s*xy/i.test(text) && !/hình chóp|lăng trụ|hình hộp|lập phương|tứ diện|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
+        let pl = null;
+        try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
+        if (pl && pl.script) {
+          const gi = blk.findIndex((l) => /^#G/.test(l));
+          addFig(blk, gi >= 0 ? gi : Math.min(1, blk.length - 1), 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
+          notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
+          pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }
       out.push(...blk);

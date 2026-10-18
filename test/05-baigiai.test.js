@@ -41,3 +41,26 @@ DE_KHONG_GIAN.forEach(([ten, de, exp]) => thu(ten, () => {
   dung(!res.errors.length, 'vẽ lỗi: ' + res.errors.join('; '));
 }));
 thu('đề không có khối không gian: không vẽ', () => dung(DeHinh.space('Cho tam giác ABC vuông tại A.') === null));
+
+nhom('Đọc đề hình phẳng (src/dedehinh.js)');
+DE_HINH_PHANG.forEach(([ten, de, exp]) => thu(ten, () => {
+  const r = DeHinh.plane(de);
+  dung(!!r, 'không nhận ra hình');
+  const L = r.script.split('\n');
+  const miss = exp.has.filter((h) => !L.some((l) => l.trim() === h || l.includes(h)));
+  dung(!miss.length, 'thiếu: ' + miss.join(' | ') + '\n' + r.script);
+  const res = Plane.render({ id: 'dp', script: r.script, labels: true }, 340, 300);
+  dung(!res.errors.length, 'vẽ lỗi: ' + res.errors.join('; '));
+}));
+thu('đề không có hình phẳng: không vẽ', () => dung(DeHinh.plane('Giải phương trình $x^2 - 5x + 6 = 0$.') === null));
+thu('tam giác chỉ được nhắc qua (không phải câu dựng đề): không vẽ', () => dung(DeHinh.plane('Ta có $\\Delta ABC \\backsim \\Delta MNP$ nên $\\widehat{ABC} = 60^\\circ$.') === null));
+thu('chỉ ghi lên hình độ dài cho trong đề, không ghi kết quả của lời giải', () => {
+  const s = DeHinh.plane('Cho tam giác $ABC$ vuông tại $A$ có $AB = 3$ cm, $AC = 4$ cm.\n#G\nTa có $BC = 5$ cm.').script;
+  dung(/ghi AB = 3/.test(s) && !/ghi BC/.test(s) && /C = \(5, 0\)|B = \(0, 3\)/.test(s), s);
+});
+thu('Bài giải AI: hình phẳng đặt ngay đầu lời giải; câu đã có hình khác (miền nghiệm trong Oxy) thì không thêm', () => {
+  const r = BaiGiai.figures('#C Câu 1.\nCho tam giác $ABC$ vuông tại $A$, đường cao $AH$. Chứng minh $AH^2 = HB \\cdot HC$.\n#G\nXét hai tam giác $HBA$ và $HAC$.');
+  dung(/^#G\n\[FIG h1\|Hình 1\]/m.test(r.markup) && /"type":"plane"/.test(r.markup) && /H = chan\(A, B, C\)/.test(r.markup), r.markup);
+  const r2 = BaiGiai.figures('#C Câu 1.\nTrong mặt phẳng Oxy, biểu diễn miền nghiệm của hệ $\\begin{cases} x\\ge 0 \\\\ y \\ge 0 \\\\ x+y\\le 4 \\end{cases}$. Các đỉnh $O(0; 0)$, $A(4; 0)$, $B(0; 4)$.');
+  dung(!/"type":"plane"/.test(r2.markup), r2.markup);
+});

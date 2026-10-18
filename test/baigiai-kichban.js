@@ -75,6 +75,20 @@
     ok('xem trước có hình không gian, không lỗi', !!document.querySelector('#bgview .pv-fig svg') && !document.querySelector('#bgview .pv-fig .bgerr'));
     const r4 = await window.__baigiai.make(src.value);
     ok('tạo tệp Word có hình không gian', r4 && r4.ok && r4.missing.length === 0, JSON.stringify(r4));
+    // hình phẳng: đọc từ đề, vẽ ngay đầu lời giải
+    document.getElementById('bgclear').click(); await w(100);
+    const txt5 = await (await fetch('../test/baigiai-hinh-phang.txt')).text();
+    const dt5 = new DataTransfer(); dt5.setData('text/plain', txt5);
+    src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt5, bubbles: true, cancelable: true })); await w(800);
+    const v5 = src.value;
+    console.log('BG-NOIDUNG\n' + v5 + '\nBG-HET');
+    const sp5 = (/^#FIG \S+ (\{.*"type":"plane".*\})$/m.exec(v5) || [])[1];
+    const s5 = sp5 ? JSON.parse(sp5) : null;
+    ok('hình phẳng: đọc đúng đề (vuông tại A, đường cao AH, trung điểm M)', s5 && /vuong BAC AHB/.test(s5.script) && /H = chan\(A, B, C\)/.test(s5.script) && /M = trungdiem\(B, C\)/.test(s5.script) && /doan AM/.test(s5.script), s5 && s5.script);
+    ok('hình phẳng đặt ngay đầu lời giải', /^#G\n\[FIG h\d+\|Hình \d+\]/m.test(v5), v5.slice(0, 300));
+    ok('xem trước có hình phẳng, không lỗi', !!document.querySelector('#bgview .pv-fig svg') && !document.querySelector('#bgview .pv-fig .bgerr'));
+    const r5 = await window.__baigiai.make(src.value);
+    ok('tạo tệp Word có hình phẳng', r5 && r5.ok && r5.missing.length === 0, JSON.stringify(r5));
   } catch (e) { console.log('BG: ✘ lỗi ' + e.message + ' ' + e.stack); }
   console.log('BG-XONG');
 })();

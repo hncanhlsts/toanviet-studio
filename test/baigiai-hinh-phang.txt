@@ -1,0 +1,9 @@
+**Câu 4.** Cho tam giác $ABC$ vuông tại $A$ có $AB = 6$ cm, $AC = 8$ cm, đường cao $AH$. Gọi $M$ là trung điểm của $BC$.
+a) Tính $BC$ và $AH$.
+b) Chứng minh $AM = \frac{1}{2}BC$.
+
+**Lời giải:**
+
+a) Áp dụng định lí Pythagore cho tam giác $ABC$ vuông tại $A$: $BC^2 = AB^2 + AC^2 = 36 + 64 = 100$, suy ra $BC = 10$ cm.
+Ta có $AH \cdot BC = AB \cdot AC$ nên $AH = \frac{6 \cdot 8}{10} = 4.8$ cm.
+b) Trong tam giác vuông, đường trung tuyến ứng với cạnh huyền bằng nửa cạnh huyền nên $AM = \frac{1}{2}BC = 5$ cm.
