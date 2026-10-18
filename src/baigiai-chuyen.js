@@ -221,6 +221,15 @@
     return { a, b, c };
   }
   const NUM = (v) => { const r = Math.round(v * 1e6) / 1e6; return String(r); };
+  // hàm một biến x (cú pháp ToanViet) → hàm JS để tính giá trị (chỉ cho phép số, x, phép toán và hàm toán học quen thuộc)
+  function compileFn(expr) {
+    let e = String(expr).replace(/\s+/g, '').replace(/\|([^|]+)\|/g, 'abs($1)');
+    e = e.replace(/(\d|\))(?=[a-z(])/g, '$1*').replace(/x(?=[a-z\d(])/g, 'x*').replace(/\)(?=\()/g, ')*').replace(/\^/g, '**');
+    e = e.replace(/\b(sqrt|sin|cos|tan|abs|exp)\b/g, 'Math.$1').replace(/\bln\b/g, 'Math.log').replace(/\blog\b/g, 'Math.log10').replace(/\bpi\b/g, 'Math.PI').replace(/\be\b/g, 'Math.E');
+    if (!/^[0-9x+\-*/(). ]*$/.test(e.replace(/Math\.(sqrt|sin|cos|tan|abs|exp|log10|log|PI|E)/g, ''))) return null;
+    try { const f = new Function('x', 'return ' + e); f(0.37); return f; } catch (err) { return null; }
+  }
+  const niceStep = (x) => { const p = Math.pow(10, Math.floor(Math.log10(x))), m = x / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p; };
   // a x + b y (op) k → chuỗi kiểu ToanViet "2x - y <= 6"
   function lineStr(a, b, op, k) {
     const term = (co, v, first) => { if (Math.abs(co) < 1e-12) return ''; const sg = co < 0 ? '-' : '+', m = Math.abs(co), t = (Math.abs(m - 1) < 1e-12 ? '' : NUM(m)) + v; return first ? (co < 0 ? '-' : '') + t : ' ' + sg + ' ' + t; };
@@ -339,6 +348,67 @@
         if (at < 0) at = blk.findIndex((l) => re.test(l) && !/^#/.test(l));
         addFig(blk, at >= 0 ? at : blk.length - 1, type, type === 'bbt' ? { expr, w: 520, h: 170 } : { expr, w: 480, h: 76 }, '', type === 'bbt' ? 0.8 : 0.8);
         notes['thêm ' + kind] = (notes['thêm ' + kind] || 0) + 1;
+      }
+      // --- tập hợp trên trục số: khoảng, đoạn có đầu mút là số và các phép ∪, ∩, \, phần bù ---
+      {
+        const txt = blk.join('\n'), named = [], ops = [];
+        blk.forEach((l) => mathOf(l).forEach((m) => {
+          let q;
+          const re = /([A-Z])\s*=\s*((?:\\left)?[[(][^;[\]()]*;[^;[\]()]*(?:\\right)?[\])])/g;
+          while ((q = re.exec(m))) if (!/[a-zA-Z]/.test(q[2].replace(/\\(infty|left|right|d?frac|sqrt)/g, '')) && !named.some((n) => n[0] === q[1])) named.push([q[1], q[1] + '=' + q[2].replace(/\s+/g, '')]);
+          const ro = /([A-Z])\s*\\(cup|cap|setminus)\s*([A-Z])(?![a-zA-Z(])/g;
+          while ((q = ro.exec(m))) { const s = q[1] + '\\' + q[2] + ' ' + q[3]; if (!ops.includes(s)) ops.push(s); }
+          const rc = /C_\{?\s*\\mathbb\{?R\}?\s*\}?\s*([A-Z])/g;
+          while ((q = rc.exec(m))) { const s = '\\mathbb{R}\\setminus ' + q[1]; if (!ops.includes(s)) ops.push(s); }
+        }));
+        const has = (n) => named.some((x) => x[0] === n);
+        const okOps = ops.filter((s) => { const v = s.match(/(?:^|[^a-zA-Z\\{])([A-Z])(?![a-zA-Z])/g) || []; return v.map((x) => x.slice(-1)).every((n) => n === 'R' || has(n)); });
+        if (named.length && (okOps.length || /trục số/i.test(txt))) {
+          const sets = named.map((n) => n[1]).concat(okOps);
+          let at = blk.findIndex((l) => /trục số/i.test(l) && !/^#/.test(l));
+          if (at < 0) at = blk.findIndex((l) => !/^#/.test(l) && okOps.length && /\\(cup|cap|setminus)|C_/.test(l));
+          addFig(blk, at >= 0 ? at : blk.length - 1, 'numline', { kind: okOps.length ? 'hop' : 'khoang', sets: sets.join('\n'), rowLabels: true, zero: false, colorful: okOps.length > 0, ticks: false, nums: true, style: 'hatch', w: 560, h: sets.length * 62 + 8 }, '', 0.8);
+          notes['thêm hình tập hợp trên trục số'] = (notes['thêm hình tập hợp trên trục số'] || 0) + 1;
+        }
+      }
+      // --- đồ thị hàm số ---
+      if (/(vẽ|phác hoạ|phác họa|biểu diễn)\s+(đồ thị|parabol)|đồ thị (của )?(các )?hàm số/i.test(blk.join('\n'))) {
+        const funcs = [];
+        for (const l of blk) for (const m of mathOf(l)) {
+          const f = /^\s*(?:y|[fgh]\s*\(\s*x\s*\))\s*=\s*(.+)$/.exec(m);
+          if (f && !/[<>]|\\[lg]e/.test(f[1])) { const ex = texToExpr(f[1]); const fn = /x/.test(ex) && compileFn(ex); if (fn && !funcs.some((u) => u.ex === ex)) funcs.push({ ex, fn }); }
+        }
+        if (funcs.length && funcs.length <= 3) {
+          // khung: bao các nghiệm, cực trị (tìm số) và gốc toạ độ
+          const xs = [0];
+          funcs.forEach(({ fn }) => {
+            let pv = fn(-10), pd = fn(-9.99) - pv;
+            for (let x = -9.99; x <= 10; x += 0.01) {
+              const v = fn(x), d = v - pv;
+              if (isFinite(v) && isFinite(pv)) { if (v === 0 || (v > 0) !== (pv > 0)) xs.push(x); if ((d > 0) !== (pd > 0) && Math.abs(d) < 1) xs.push(x); }
+              pv = v; pd = d;
+            }
+          });
+          const pts = [];
+          blk.forEach((l) => mathOf(l).forEach((m) => { const re = /([A-Z])\s*\(\s*(-?[\d.]+)\s*;\s*(-?[\d.]+)\s*\)/g; let q; const p = texToExpr(m); while ((q = re.exec(p))) { const X = +q[2], Y = +q[3]; if (funcs.some(({ fn }) => Math.abs(fn(X) - Y) < 1e-6) && !pts.some((r) => r[0] === q[1])) { pts.push([q[1], X, Y]); xs.push(X); } } }));
+          let lo = Math.min(...xs), hi = Math.max(...xs);
+          if (hi - lo < 4) { const c = (lo + hi) / 2; lo = c - 2; hi = c + 2; }
+          lo = Math.floor(lo - 1.2); hi = Math.ceil(hi + 1.2);
+          // trục y theo các điểm đặc biệt (nghiệm, cực trị, giao với trục tung, điểm có tên) như SGK chọn khung
+          const ys = [0];
+          funcs.forEach(({ fn }) => xs.forEach((x) => { const v = fn(x); if (isFinite(v) && Math.abs(v) < 1e4) ys.push(v); }));
+          pts.forEach((p) => ys.push(p[2]));
+          let ylo = Math.min(...ys), yhi = Math.max(...ys);
+          if (yhi - ylo < 4) { const c = (ylo + yhi) / 2; ylo = c - 2; yhi = c + 2; }
+          ylo = Math.floor(ylo - 1); yhi = Math.ceil(yhi + 2);
+          const xst = hi - lo <= 12 ? 1 : niceStep((hi - lo) / 8), yst = yhi - ylo <= 12 ? 1 : niceStep((yhi - ylo) / 8);
+          let at = blk.findIndex((l) => /đồ thị/i.test(l) && !/^#/.test(l));
+          addFig(blk, at >= 0 ? at : blk.length - 1, 'graph', {
+            funcs: funcs.map((u) => u.ex).join('\n'), xmin: String(lo), xmax: String(hi), ymin: String(ylo), ymax: String(yhi), xstep: String(xst), ystep: String(yst),
+            points: pts.map((p) => p[0] + '(' + NUM(p[1]) + '; ' + NUM(p[2]) + ')').join('\n'), grid: false, ticks: true, legend: true, proj: true, w: 380, h: 360,
+          }, '', 0.8);
+          notes['thêm đồ thị'] = (notes['thêm đồ thị'] || 0) + 1;
+        }
       }
       out.push(...blk);
     }

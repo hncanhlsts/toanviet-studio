@@ -1,0 +1,11 @@
+**Câu 1.** Cho hai tập hợp $A=[-3, 4)$ và $B=(1, +\infty)$. Xác định $A\cup B$, $A\cap B$, $A\setminus B$ và $C_{\mathbb{R}}A$.
+
+**Lời giải:**
+
+Biểu diễn các tập hợp trên trục số, ta được $A\cup B=[-3;+\infty)$, $A\cap B=(1;4)$, $A\setminus B=[-3;1]$ và $C_{\mathbb{R}}A=(-\infty;-3)\cup[4;+\infty)$.
+
+**Câu 2.** Vẽ đồ thị hàm số $y=x^2-4x+3$.
+
+**Lời giải:**
+
+Đồ thị là parabol có đỉnh $I(2; -1)$, trục đối xứng $x=2$, cắt trục hoành tại $A(1; 0)$ và $B(3; 0)$, cắt trục tung tại $C(0; 3)$.
