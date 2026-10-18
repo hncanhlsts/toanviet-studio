@@ -186,14 +186,15 @@
       } else if (c.k === 'angle') {
         const a = S[c.a], t1 = Math.atan2(S[c.b][1] - a[1], S[c.b][0] - a[0]), t2 = Math.atan2(S[c.c][1] - a[1], S[c.c][0] - a[0]);
         let df = t2 - t1; while (df > Math.PI) df -= 2 * Math.PI; while (df < -Math.PI) df += 2 * Math.PI;
-        const R0 = Math.abs(df) < 0.6 ? 26 : 17, sg = df > 0 ? 1 : -1;
-        // hai góc kề nhau cùng đỉnh (vd hai góc tạo bởi tia phân giác): cung hở một chút ở tia chung
-        // để thấy rõ là hai góc, không nhầm thành một góc lớn (như hình SGK)
-        const shared = (t) => cmds.some((d) => d !== c && d.k === 'angle' && d.a === c.a && [d.b, d.c].some((p) => { const u = Math.atan2(S[p][1] - a[1], S[p][0] - a[0]); return Math.abs(Math.atan2(Math.sin(u - t), Math.cos(u - t))) < 1e-3; }));
-        const g1 = shared(t1), g2 = shared(t2);
+        // hai góc kề nhau cùng đỉnh (vd hai góc tạo bởi tia phân giác): cung vẫn liền từ tia này sang tia kia nhưng
+        // góc sau vẽ ở bán kính lệch ra một chút, để hai cung không nối thành một cung của góc lớn (như hình SGK)
+        const ix = cmds.indexOf(c), dir = (p) => Math.atan2(S[p][1] - a[1], S[p][0] - a[0]);
+        const same = (u, t) => Math.abs(Math.atan2(Math.sin(u - t), Math.cos(u - t))) < 1e-3;
+        const before = cmds.slice(0, ix).filter((d) => d.k === 'angle' && d.a === c.a && [d.b, d.c].some((p) => same(dir(p), t1) || same(dir(p), t2))).length;
+        const R0 = (Math.abs(df) < 0.6 ? 26 : 17) + before * 5;
         for (let k = 0; k < c.n; k++) {
-          const R = R0 + k * 3.5, gap = Math.min(4.5 / R, Math.abs(df) / 4), s1 = t1 + (g1 ? sg * gap : 0), s2 = t2 - (g2 ? sg * gap : 0);
-          marks.push(`<path d="M${r1(a[0] + R * Math.cos(s1))},${r1(a[1] + R * Math.sin(s1))}A${R},${R} 0 0 ${df > 0 ? 1 : 0} ${r1(a[0] + R * Math.cos(s2))},${r1(a[1] + R * Math.sin(s2))}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
+          const R = R0 + k * 3.5;
+          marks.push(`<path d="M${r1(a[0] + R * Math.cos(t1))},${r1(a[1] + R * Math.sin(t1))}A${R},${R} 0 0 ${df > 0 ? 1 : 0} ${r1(a[0] + R * Math.cos(t2))},${r1(a[1] + R * Math.sin(t2))}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
         }
         // nhãn số đo: góc hẹp thì đặt xa đỉnh hơn để nhãn nằm gọn trong góc, không chồng nhãn góc bên cạnh
         if (c.label) { const tm = t1 + df / 2, tw = c.label.replace(/\\[a-zA-Z]+|[{}^_]/g, '').length * 4.2, R = Math.min(90, Math.max(R0 + c.n * 3.5 + 11, tw / Math.max(0.05, Math.sin(Math.abs(df) / 2)) * 0.95)); labels.push({ x: a[0] + R * Math.cos(tm), y: a[1] + R * Math.sin(tm), tex: c.label, size: 13 }); }
