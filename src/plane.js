@@ -121,6 +121,74 @@
     return { P, cmds, errors, hidden, relabel, dots };
   }
 
+  // Đặt tên điểm / tên tia, đường thẳng sao cho KHÔNG nét nào cắt ngang chữ (dùng chung cho hình phẳng và hình không gian).
+  // items: [{ k, p: [x, y], tx }] (toạ độ màn hình); prims: các nét [[x, y], [x, y]]; circs: [{ c, r }]; labels: nhãn đã có (thêm vào đây);
+  // pts: mọi điểm đang hiện { tên: [x, y] }; cen: tâm hình; w, h: khung; size, color: cỡ, màu chữ.
+  function placeNames(items, prims, circs, labels, pts, cen, w, h, size, color) {
+    const boxOf = (l) => { const txt = String(l.tex !== undefined ? l.tex : l.text || '').replace(/\\[a-zA-Z]+|[{}^_\s]/g, ''), fs = l.size || 14; const bw = fs * 0.36 + Math.max(1, txt.length) * fs * 0.58, bh = fs * 1.05; return [l.x - bw / 2, l.y - bh / 2, l.x + bw / 2, l.y + bh / 2]; };
+    // đoạn PQ có cắt hình chữ nhật r không (Liang–Barsky)
+    const hit = (p, q, r) => {
+      let t0 = 0, t1 = 1; const dx = q[0] - p[0], dy = q[1] - p[1];
+      for (const [pp, qq] of [[-dx, p[0] - r[0]], [dx, r[2] - p[0]], [-dy, p[1] - r[1]], [dy, r[3] - p[1]]]) {
+        if (pp === 0) { if (qq < 0) return false; } else { const tt = qq / pp; if (pp < 0) { if (tt > t1) return false; if (tt > t0) t0 = tt; } else { if (tt < t0) return false; if (tt < t1) t1 = tt; } }
+      }
+      return true;
+    };
+    const circHit = (cc, r) => { const nx = Math.max(r[0], Math.min(cc.c[0], r[2])), ny = Math.max(r[1], Math.min(cc.c[1], r[3])), dmin = Math.hypot(nx - cc.c[0], ny - cc.c[1]); const dmax = Math.max(...[[r[0], r[1]], [r[2], r[1]], [r[0], r[3]], [r[2], r[3]]].map((v) => Math.hypot(v[0] - cc.c[0], v[1] - cc.c[1]))); return dmin <= cc.r && cc.r <= dmax; };
+    const over = (a, b) => Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0])) * Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+    const placed = labels.map(boxOf);
+    // điểm có nhiều nét đi qua đặt trước (khó chỗ hơn)
+    const deg = (it) => prims.filter((s) => Math.min(Math.hypot(s[0][0] - it.p[0], s[0][1] - it.p[1]), Math.hypot(s[1][0] - it.p[0], s[1][1] - it.p[1])) < 1).length;
+    items.slice().sort((a, b) => deg(b) - deg(a)).forEach((it) => {
+      const p = it.p, k = it.k, tx = it.tx, out = Math.atan2(p[1] - cen[1], p[0] - cen[0]);
+      const proto = boxOf({ x: 0, y: 0, tex: tx, size }), hw = (proto[2] - proto[0]) / 2, hh = (proto[3] - proto[1]) / 2;
+      let best = null;
+      const score = (x, y, extra, a) => {
+        const r = [x - hw - 1, y - hh - 1, x + hw + 1, y + hh + 1];
+        let pen = extra * 1.5 - 4 * Math.cos(a - out);
+        prims.forEach((s) => { if (hit(s[0], s[1], r)) pen += 100; });
+        circs.forEach((cc) => { if (circHit(cc, r)) pen += 100; });
+        placed.forEach((b) => { const ov = over(b, r); if (ov > 0) pen += 60 + ov; });
+        Object.keys(pts).forEach((n) => { const q = pts[n]; if (n !== k && q[0] > r[0] - 2 && q[0] < r[2] + 2 && q[1] > r[1] - 2 && q[1] < r[3] + 2) pen += 60; });
+        if (r[0] < 0 || r[1] < 0 || r[2] > w || r[3] > h) pen += 40;
+        return { pen, x, y, r };
+      };
+      // tên tia, đường thẳng (x, y, z, d…): ở cuối nét nhưng lệch lên trên / xuống dưới nét, không chắn đầu nét
+      if (/^[a-z](?:'{1,2}|_?\d)?$/.test(tx)) {
+        prims.forEach((s) => {
+          let e = Math.hypot(s[1][0] - p[0], s[1][1] - p[1]) < 1 ? 1 : Math.hypot(s[0][0] - p[0], s[0][1] - p[1]) < 1 ? 0 : -1;
+          let tip = p;
+          if (e < 0) {
+            // điểm nằm trong nét (tia, đường thẳng vẽ dài quá điểm): tên đặt ở đầu nét gần điểm đó
+            const dx = s[1][0] - s[0][0], dy = s[1][1] - s[0][1], l2 = dx * dx + dy * dy, tt = ((p[0] - s[0][0]) * dx + (p[1] - s[0][1]) * dy) / (l2 || 1);
+            if (tt <= 0 || tt >= 1 || Math.abs((p[0] - s[0][0]) * dy - (p[1] - s[0][1]) * dx) / Math.sqrt(l2 || 1) > 1) return;
+            e = tt > 0.5 ? 1 : 0; tip = s[e];
+          }
+          const o2 = s[1 - e], ll = Math.hypot(tip[0] - o2[0], tip[1] - o2[1]) || 1, u = [(tip[0] - o2[0]) / ll, (tip[1] - o2[1]) / ll];
+          const px = tip;
+          for (const nrm of [[u[1], -u[0]], [-u[1], u[0]]]) {
+            const dp = 4 + Math.abs(nrm[0]) * hw + Math.abs(nrm[1]) * hh;
+            for (const back of [6, 11, 16]) {
+              const c = score(px[0] - u[0] * back + nrm[0] * dp, px[1] - u[1] * back + nrm[1] * dp, back / 3, Math.atan2(nrm[1], nrm[0]));
+              c.pen -= nrm[1] < 0 ? 3 : 0; // ưu tiên phía trên
+              if (!best || c.pen < best.pen) best = c;
+            }
+          }
+        });
+      }
+      for (const extra of (best && best.pen < 50 ? [] : [0, 3, 7, 12])) {
+        for (let i = 0; i < 24; i++) {
+          const a = i * Math.PI / 12, ca = Math.cos(a), sa = Math.sin(a), d = 5 + Math.abs(ca) * hw + Math.abs(sa) * hh + extra;
+          const c = score(p[0] + ca * d, p[1] + sa * d, extra, a);
+          if (!best || c.pen < best.pen) best = c;
+        }
+        if (best && best.pen < 50) break; // đã có chỗ sạch ở khoảng cách này
+      }
+      placed.push(best.r);
+      labels.push(Object.assign({ x: best.x, y: best.y, tex: tx, size }, color ? { color } : {}));
+    });
+  }
+
   function render(o, w, h) {
     const { P, cmds, errors, hidden, relabel, dots } = build(o.script);
     const names = Object.keys(P);
@@ -217,24 +285,19 @@
     });
     // chấm điểm
     names.forEach((n) => { if ((dots.has(n) || o.dots) && !hidden.has(n)) marks.push(`<circle cx="${r1(S[n][0])}" cy="${r1(S[n][1])}" r="2.4" fill="${col}"/>`); });
-    // tên điểm: đặt vào giữa khoảng trống góc lớn nhất quanh điểm, ưu tiên phía xa tâm hình
-    if (o.labels !== false) names.forEach((k) => {
-      if (hidden.has(k) || relabel[k] === '') return;
-      const p = S[k], out = Math.atan2(p[1] - cen[1], p[0] - cen[0]), angs = [];
-      segs.forEach((s) => {
-        const other = s[0] === k ? s[1] : s[1] === k ? s[0] : null;
-        if (other) { const t0 = Math.atan2(S[other][1] - p[1], S[other][0] - p[0]); angs.push(t0); if (s[2] === 'line' || (s[2] === 'ray' && s[1] === k)) angs.push(t0 + Math.PI); return; }
-        const a = S[s[0]], b = S[s[1]], cr = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]), dt = (p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1]), l2 = (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2;
-        if (Math.abs(cr) < 1e-3 * Math.max(1, l2) && dt > 0 && dt < l2) { const t = Math.atan2(b[1] - a[1], b[0] - a[0]); angs.push(t, t + Math.PI); }
+    // tên điểm, tên đường / tia (x, y, d…): chọn chỗ đặt sao cho KHÔNG nét nào cắt ngang chữ (như SGK):
+    // thử nhiều hướng và khoảng cách quanh điểm, tính khung chữ thật, phạt khi khung bị đoạn / đường thẳng / tia / đường tròn
+    // cắt qua, đè lên chữ hay điểm khác, ra ngoài khung hình; ưu tiên gần điểm và phía xa tâm hình.
+    if (o.labels !== false) {
+      const prims = [], circs = [];
+      cmds.forEach((c) => {
+        if (c.k === 'seg' || c.k === 'line' || c.k === 'ray' || c.k === 'vec') { const e = ext(c); prims.push([T(e[0]), T(e[1])]); }
+        else if (c.k === 'circle') circs.push({ c: T(c.c), r: c.r * sc });
+        else if (c.k === 'axes') { prims.push([T([c.x0, 0]), T([c.x1, 0])], [T([0, c.y0]), T([0, c.y1])]); }
       });
-      let best = out;
-      if (angs.length) {
-        const srt = angs.map((t) => ((t % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)).sort((a, b) => a - b);
-        let score = -Infinity;
-        srt.forEach((t, i) => { const gap = (i + 1 < srt.length ? srt[i + 1] : srt[0] + 2 * Math.PI) - t, m = t + gap / 2, s2 = Math.min(gap, Math.PI) + 0.35 * Math.cos(m - out); if (s2 > score) { score = s2; best = m; } });
-      }
-      labels.push({ x: p[0] + Math.cos(best) * 14, y: p[1] + Math.sin(best) * 14, tex: relabel[k] !== undefined ? relabel[k] : k, size: 16 });
-    });
+      const shown = names.filter((k) => !hidden.has(k)), pts = {}; shown.forEach((k) => { pts[k] = S[k]; });
+      placeNames(shown.filter((k) => relabel[k] !== '').map((k) => ({ k, p: S[k], tx: relabel[k] !== undefined ? relabel[k] : k })), prims, circs, labels, pts, cen, w, h, 16);
+    }
     let defs = '';
     vecCols.forEach((cc) => { defs += `<marker id="pv${o.id}${cc.replace('#', '')}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${cc}"/></marker>`; });
     if (defs) defs = '<defs>' + defs + '</defs>';
@@ -856,5 +919,5 @@ diem O`],
 
   // toạ độ các điểm (dùng khi kéo điểm để giải ngược thông số)
   const points = (script) => build(script).P;
-  root.Plane = { render, KINDS, scriptOf, params, setParam, points };
+  root.Plane = { render, KINDS, scriptOf, params, setParam, points, placeNames };
 })(window);

@@ -354,13 +354,14 @@
       }
       // --- hình không gian: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải như SGK ---
       const DH = root.DeHinh || (typeof require === 'function' ? require('./dedehinh.js') : null);
-      if (DH && /hình chóp|lăng trụ|hình hộp|lập phương|tứ diện/i.test(blk.join('\n'))) {
+      if (DH && /(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu/i.test(blk.join('\n'))) {
         let sp = null;
         try { sp = DH.space(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { sp = null; }
-        if (sp && sp.script) {
+        if (sp && (sp.script || sp.round)) {
           const gi = blk.findIndex((l) => /^#G/.test(l));
           const at = gi >= 0 ? gi : blk.length - 1;
-          addFig(blk, at, 'space', { kind: sp.kind, script: sp.script, w: 360, h: 320 }, '', 0.75);
+          // khối tròn xoay: không kèm kịch bản → dùng hình mẫu (kind) của phần mềm
+          addFig(blk, at, 'space', sp.script ? { kind: sp.kind, script: sp.script, w: 360, h: 320 } : { kind: sp.kind, w: 360, h: 320 }, '', 0.75);
           notes['thêm hình không gian (đọc từ đề)'] = (notes['thêm hình không gian (đọc từ đề)'] || 0) + 1;
           sp.unknown.forEach((u) => { notes['hình không gian — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
@@ -427,7 +428,7 @@
         }
       }
       // --- hình phẳng: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải; chỉ khi câu chưa có hình nào khác ---
-      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|O\s*xy/i.test(text) && !/hình chóp|lăng trụ|hình hộp|lập phương|tứ diện|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
+      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|O\s*xy|góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?\$?[a-z][A-Z][a-z]|đoạn thẳng/.test(text) && !/(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
         let pl = null;
         try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
         if (pl && pl.script) {

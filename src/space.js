@@ -337,8 +337,16 @@
     // tên điểm: hướng có khoảng trống lớn nhất, ưu tiên phía xa tâm hình
     const S = {}; names.forEach((n) => { S[n] = T(P[n]); });
     const cen = [names.reduce((s, n) => s + S[n][0], 0) / names.length, names.reduce((s, n) => s + S[n][1], 0) / names.length];
+    // cách đặt chung với hình phẳng (Plane.placeNames): không nét nào cắt ngang chữ; điểm có hướng đặt sẵn (place) giữ nguyên
+    const placeFn = root.Plane && root.Plane.placeNames;
+    if (o.labels !== false && placeFn) {
+      const shown = names.filter((k) => !hidden.has(k)), pts = {}; shown.forEach((k) => { pts[k] = S[k]; });
+      const auto = shown.filter((k) => relabel[k] !== '' && place[k] === undefined);
+      placeFn(auto.map((k) => ({ k, p: S[k], tx: relabel[k] !== undefined ? relabel[k] : k })), segs2.map(([a, b]) => [a, b]), [], labels, pts, cen, w, h, 16, lcol);
+    }
     if (o.labels !== false) names.forEach((k) => {
       if (hidden.has(k) || relabel[k] === '') return;
+      if (placeFn && place[k] === undefined) return; // đã đặt ở trên
       const p = S[k];
       let best = place[k];
       if (best === undefined) {

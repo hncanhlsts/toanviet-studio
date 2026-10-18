@@ -1,0 +1,61 @@
+Dưới đây là bộ 10 bài tập hình học 7 về hai tam giác bằng nhau đã được chuẩn hóa lại cách trình bày, lược bỏ các nhãn phân loại cấp độ:
+
+**Bài 1**
+Cho tam giác $ABC$. Gọi $M$ là trung điểm của cạnh $BC$. Trên tia đối của tia $MA$ lấy điểm $D$ sao cho $MD=MA$.
+- a) Chứng minh $\Delta MAB=\Delta MDC$.
+- b) Chứng minh $AB=CD$ và $AB\parallel CD$.
+- c) Trên đoạn thẳng $AB$ lấy điểm $E$, trên đoạn thẳng $CD$ lấy điểm $F$ sao cho $AE=DF$. Chứng minh $\Delta MAE=\Delta MDF$, từ đó chứng minh ba điểm $E,M,F$ thẳng hàng.
+
+**Bài 2**
+Cho góc nhọn $xOy$. Trên tia $Ox$ lấy điểm $A$, trên tia $Oy$ lấy điểm $B$ sao cho $OA=OB$. Lấy điểm $M$ bất kỳ trên tia phân giác $Oz$ của góc $xOy$ ($M\ne O$).
+- a) Chứng minh $\Delta OAM=\Delta OBM$.
+- b) Chứng minh $MA=MB$ và $OM$ là tia phân giác của $\widehat{AMB}$.
+- c) Tia $AM$ cắt tia $Oy$ tại $D$, tia $BM$ cắt tia $Ox$ tại $E$. Chứng minh $\Delta MAD=\Delta MBE$ và chứng minh $OM\perp DE$.
+
+**Bài 3**
+Cho góc nhọn $xOy$ có tia phân giác $Ot$. Lấy điểm $M$ trên tia $Ot$ ($M\ne O$). Kẻ $MA\perp Ox$ tại $A$ và $MB\perp Oy$ tại $B$.
+- a) Chứng minh $\Delta OAM=\Delta OBM$.
+- b) Chứng minh $MA=MB$ và đường thẳng $OM$ vuông góc với đoạn thẳng $AB$.
+- c) Tia $AM$ cắt tia $Oy$ tại $D$, tia $BM$ cắt tia $Ox$ tại $E$. Chứng minh $\Delta MAD=\Delta MBE$ và suy ra $AB\parallel DE$.
+
+**Bài 4**
+Cho đoạn thẳng $AB$. Lấy điểm $I$ là trung điểm của $AB$. Qua $I$ kẻ đường thẳng $d$ vuông góc với $AB$. Lấy điểm $M$ bất kỳ trên đường thẳng $d$ ($M\ne I$).
+- a) Chứng minh $\Delta AIM=\Delta BIM$.
+- b) Chứng minh $MA=MB$ và $MI$ là tia phân giác của $\widehat{AMB}$.
+- c) Lấy điểm $N$ trên đường thẳng $d$ sao cho $I$ nằm giữa $M$ và $N$ ($N\ne I$). Chứng minh $\Delta MAN=\Delta MBN$, từ đó chứng minh $\widehat{MAN}=\widehat{MBN}$.
+
+**Bài 5**
+Cho tam giác $ABC$ có $AB=AC$. Gọi $H$ là trung điểm của cạnh $BC$.
+- a) Chứng minh $\Delta ABH=\Delta ACH$.
+- b) Chứng minh $AH\perp BC$ và $AH$ là tia phân giác của $\widehat{BAC}$.
+- c) Từ $H$ kẻ $HE\perp AB$ tại $E$, kẻ $HF\perp AC$ tại $F$. Chứng minh $\Delta HBE=\Delta HCF$ và chứng minh $EF\parallel BC$.
+
+**Bài 6**
+Cho đoạn thẳng $AB$ có trung điểm là $O$. Qua $O$ vẽ đường thẳng $xy$ (không vuông góc với $AB$). Kẻ $AH\perp xy$ tại $H$ và $BK\perp xy$ tại $K$.
+- a) Chứng minh $\Delta OAH=\Delta OBK$.
+- b) Chứng minh $AH=BK$ và $AH\parallel BK$.
+- c) Trên tia đối của tia $HA$ lấy điểm $C$, trên tia đối của tia $KB$ lấy điểm $D$ sao cho $HC=KD$. Chứng minh $\Delta OHC=\Delta OKD$, từ đó suy ra ba điểm $C,O,D$ thẳng hàng.
+
+**Bài 7**
+Cho tam giác $ABC$ có $AB<AC$. Kẻ tia phân giác $AD$ của $\widehat{BAC}$ ($D\in BC$). Trên cạnh $AC$ lấy điểm $E$ sao cho $AE=AB$.
+- a) Chứng minh $\Delta ADB=\Delta ADE$.
+- b) Chứng minh $DB=DE$ và $\widehat{ABD}=\widehat{AED}$.
+- c) Tia $ED$ cắt đường thẳng $AB$ tại điểm $K$. Chứng minh $\Delta DBK=\Delta DEC$ và chứng minh $AD\perp KC$.
+
+**Bài 8**
+Cho tam giác nhọn $ABC$ ($AB<AC$). Kẻ đường cao $AH$ ($H\in BC$). Trên tia đối của tia $HA$ lấy điểm $D$ sao cho $HD=HA$.
+- a) Chứng minh $\Delta ABH=\Delta DBH$.
+- b) Chứng minh $BA=BD$ và $CB$ là tia phân giác của $\widehat{ACD}$.
+- c) Từ $H$ kẻ $HK\perp AB$ tại $K$ và kẻ $HM\perp DB$ tại $M$. Chứng minh $\Delta HKB=\Delta HMB$, từ đó chứng minh $KM\parallel AD$.
+
+**Bài 9**
+Cho tam giác $ABC$ vuông tại $A$ có $AB=AC$. Qua $A$ vẽ đường thẳng $xy$ sao cho đoạn thẳng $BC$ không cắt $xy$. Kẻ $BD\perp xy$ tại $D$ và kẻ $CE\perp xy$ tại $E$.
+- a) Chứng minh $\widehat{BAD}=\widehat{ACE}$ và $\Delta ADB=\Delta CEA$.
+- b) Chứng minh $DE=BD+CE$.
+- c) Gọi $M$ là trung điểm của cạnh $BC$. Chứng minh $\Delta MBD=\Delta MAE$, từ đó suy ra tam giác $MDE$ là tam giác vuông cân tại $M$.
+
+**Bài 10**
+Cho tam giác $ABC$. Trên tia đối của tia $AB$ lấy điểm $D$ sao cho $AD=AB$. Trên tia đối của tia $AC$ lấy điểm $E$ sao cho $AE=AC$.
+- a) Chứng minh $\Delta ABC=\Delta ADE$.
+- b) Chứng minh $BC=DE$ và $BC\parallel DE$.
+- c) Gọi $M$ là trung điểm của đoạn thẳng $BC$, $N$ là trung điểm của đoạn thẳng $DE$. Chứng minh $\Delta ABM=\Delta ADN$, từ đó suy ra ba điểm $M,A,N$ thẳng hàng.

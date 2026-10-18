@@ -48,6 +48,11 @@ DE_KHONG_GIAN.forEach(([ten, de, exp]) => thu(ten, () => {
   dung(!res.errors.length, 'vẽ lỗi: ' + res.errors.join('; '));
 }));
 thu('đề không có khối không gian: không vẽ', () => dung(DeHinh.space('Cho tam giác ABC vuông tại A.') === null));
+thu('từ khoá hình không gian: khối chóp, chóp S.ABCD, khối lập phương, hình nón, mặt cầu', () => {
+  const kindOf = (s) => { const r = BaiGiai.figures(s); const m = /"type":"space","kind":"(\w+)"/.exec(r.markup); return m ? m[1] : ''; };
+  const got = [kindOf('#C Câu 1.\nCho khối chóp $S.ABC$ có $SA\\perp (ABC)$.'), kindOf('#C Câu 2.\nCho chóp $S.ABCD$ có đáy là hình vuông.'), kindOf("#C Câu 3.\nCho khối lập phương $ABCD.A'B'C'D'$ cạnh $a$."), kindOf('#C Câu 4.\nCho hình nón có bán kính đáy $r=3$.'), kindOf('#C Câu 5.\nMột mặt cầu có bán kính 5 cm.'), kindOf('#C Câu 6.\nTính đạo hàm của hàm số $y=x^2$.')];
+  bang(got.join(','), 'k_chop3sa,k_chop4sa,k_lapphuong,k_non,k_cau,');
+});
 
 nhom('Đọc đề hình phẳng (src/dedehinh.js)');
 DE_HINH_PHANG.forEach(([ten, de, exp]) => thu(ten, () => {
