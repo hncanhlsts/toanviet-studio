@@ -2,7 +2,15 @@
 
 Phần mềm soạn công thức Toán (kiểu MathType) kèm công cụ vẽ cho chương trình Toán phổ thông Việt Nam, chạy trên Windows.
 
-## Chạy
+## Tải về và cài đặt (dành cho thầy cô)
+
+1. Vào trang **[Bản phát hành mới nhất](https://github.com/hncanhlsts/toanviet-studio/releases/latest)**, mục *Assets*, bấm tải tệp `ToanVietStudio-Setup-<phiên bản>.exe`.
+2. Mở tệp vừa tải và làm theo hướng dẫn. Nếu Windows báo "Windows đã bảo vệ máy tính của bạn" (bộ cài chưa có chữ ký số), bấm **Thông tin bổ sung** rồi **Vẫn chạy**.
+3. Đóng Word, PowerPoint trước khi cài để thẻ **ToanViet** xuất hiện trong Word / PowerPoint.
+
+Cần Windows 10 hoặc 11 (64 bit); dùng với Word, PowerPoint 2016, 2019, 2021 hoặc Microsoft 365. Tài liệu hướng dẫn sử dụng (PDF) có trong phần mềm (Trợ giúp) và trong mục *Assets*.
+
+## Chạy từ mã nguồn
 
     npm install
     npm start
@@ -17,7 +25,7 @@ Kết quả nằm trong `dist/ToanViet Studio-win32-x64/ToanViet Studio.exe`.
 
     npm run installer
 
-Tạo `cai-dat/ToanVietStudio-Setup-1.0.0.exe` (chọn thư mục cài, tạo lối tắt Desktop/Start Menu, gắn tệp `.tvs` với chương trình, có trình gỡ cài đặt).
+Tạo `cai-dat/ToanVietStudio-Setup-<phiên bản>.exe` (chọn thư mục cài, tạo lối tắt Desktop/Start Menu, gắn tệp `.tvs` với chương trình, có trình gỡ cài đặt).
 
 ## Tính năng
 
