@@ -298,8 +298,29 @@
         labels.push({ x: m[0] + nrm[0] * off, y: m[1] + nrm[1] * off, tex: c.label, size: 13 });
       }
     });
-    // chấm điểm
-    names.forEach((n) => { if ((dots.has(n) || o.dots) && !hidden.has(n)) marks.push(`<circle cx="${r1(S[n][0])}" cy="${r1(S[n][1])}" r="2.4" fill="${col}"/>`); });
+    // chấm điểm. Ngoài các điểm kịch bản yêu cầu (diem …), tự chấm điểm "nằm một mình": điểm ở giữa một đường
+    // (đoạn, đường thẳng, tia) mà không có nét nào khác đi tới theo hướng khác, hoặc điểm không nằm trên nét nào —
+    // như SGK, để thấy rõ vị trí của điểm (giao điểm, đầu mút của đoạn khác thì đã rõ, không chấm)
+    const lone = (n) => {
+      if (relabel[n] !== undefined && !/^[A-Z]/.test(String(relabel[n]))) return false; // đầu tia x, y, đường thẳng d: không chấm
+      const p = P[n], dirs = [];
+      cmds.forEach((c) => {
+        if (!['seg', 'line', 'ray', 'vec'].includes(c.k)) return;
+        const a = P[c.a], b = P[c.b], d = sub(b, a), L = len(d); if (L < 1e-9) return;
+        const u = [d[0] / L, d[1] / L], v = mul(u, -1);
+        if (c.a === n || c.b === n) {
+          if (c.k === 'line' || (c.k === 'ray' && c.b === n)) dirs.push(u, v); else dirs.push(c.a === n ? u : v);
+          return;
+        }
+        const w = sub(p, a), t = dot(w, d) / (L * L), lo = c.k === 'line' ? -0.3 : 0, hi = c.k === 'seg' || c.k === 'vec' ? 1 : 1.3;
+        if (Math.abs(cross(d, w)) / L < 1e-6 * Math.max(1, L) && t > lo + 1e-6 && t < hi - 1e-6) dirs.push(u, v);
+      });
+      if (!dirs.length) return true;
+      // nằm trên đường tròn: là giao điểm của đường tròn với đường đó, đã rõ
+      if (cmds.some((c) => c.k === 'circle' && Math.abs(dist(p, c.c) - c.r) < 1e-6 * Math.max(1, c.r))) return false;
+      return dirs.every((x) => Math.abs(cross(dirs[0], x)) < 1e-6) && dirs.some((x) => dot(dirs[0], x) < -0.5);
+    };
+    names.forEach((n) => { if ((dots.has(n) || o.dots || lone(n)) && !hidden.has(n)) marks.push(`<circle cx="${r1(S[n][0])}" cy="${r1(S[n][1])}" r="2.4" fill="${col}"/>`); });
     // tên điểm, tên đường / tia (x, y, d…): chọn chỗ đặt sao cho KHÔNG nét nào cắt ngang chữ (như SGK):
     // thử nhiều hướng và khoảng cách quanh điểm, tính khung chữ thật, phạt khi khung bị đoạn / đường thẳng / tia / đường tròn
     // cắt qua, đè lên chữ hay điểm khác, ra ngoài khung hình; ưu tiên gần điểm và phía xa tâm hình.
@@ -311,7 +332,13 @@
         else if (c.k === 'axes') { prims.push([T([c.x0, 0]), T([c.x1, 0])], [T([0, c.y0]), T([0, c.y1])]); }
       });
       const shown = names.filter((k) => !hidden.has(k)), pts = {}; shown.forEach((k) => { pts[k] = S[k]; });
-      placeNames(shown.filter((k) => relabel[k] !== '').map((k) => ({ k, p: S[k], tx: relabel[k] !== undefined ? relabel[k] : k })), prims, circs, labels, pts, cen, w, h, 16);
+      // hai điểm có tên trùng nhau (đề cho hai cách gọi cùng một điểm): một nhãn chung "I ≡ K", không ghi hai chữ chồng nhau
+      const items = [];
+      shown.filter((k) => relabel[k] !== '').forEach((k) => {
+        const tx = relabel[k] !== undefined ? relabel[k] : k, same = items.find((it) => dist(it.p, S[k]) < 0.5);
+        if (same) same.tx += ' \\equiv ' + tx; else items.push({ k, p: S[k], tx });
+      });
+      placeNames(items, prims, circs, labels, pts, cen, w, h, 16);
     }
     let defs = '';
     vecCols.forEach((cc) => { defs += `<marker id="pv${o.id}${cc.replace('#', '')}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${cc}"/></marker>`; });

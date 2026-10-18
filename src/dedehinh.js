@@ -5,7 +5,7 @@
 // "kẻ AH ⊥ SC", điểm chia đoạn theo tỉ số; nối các đoạn, mặt được nhắc tới. Câu không hiểu được liệt kê để giáo viên sửa.
 (function (root) {
   'use strict';
-  const PN = "[A-Z]'{0,2}"; // tên điểm: A, A', A''
+  const PN = "[A-Z](?:'{1,2}|\\d(?!\\d|[.,]\\d))?"; // tên điểm: A, A', A'', G1 (viết G_1 trong đề)
   const re = (s, f) => new RegExp(s.replace(/PN/g, PN), f || '');
   const namesIn = (s) => String(s).match(re('PN', 'g')) || [];
 
@@ -15,9 +15,9 @@
       .replace(/\^\{?\\prime\\prime\}?/g, "''").replace(/\^\{?\\prime\}?|′|’/g, "'")
       .replace(/\\perp/g, '⊥').replace(/\\(parallel|sslash)|⫽|∥/g, '∥').replace(/\\left|\\right/g, '')
       .replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/\\sqrt\{([^{}]*)\}/g, '√($1)').replace(/\\sqrt\s*(\d+)/g, '√$1')
-      .replace(/\\(widehat|angle)\s*\{?((?:[A-Z]'?){3})\}?/g, 'góc $2').replace(/\\(widehat|hat|angle)\s*\{?([A-Z]'?)\}?/g, 'góc $2')
+      .replace(/\\(widehat|angle)\s*\{?((?:[A-Z]'?){3}|[a-z][A-Z][a-z])\}?/g, 'góc $2').replace(/\\(widehat|hat|angle)\s*\{?([A-Z]'?)\}?/g, 'góc $2')
       .replace(/∠\s*/g, 'góc ').replace(/△\s*/g, 'tam giác ').replace(/\\(overrightarrow|vec)\s*\{?((?:[A-Z]'?){2})\}?/g, 'vectơ $2').replace(/\^\{?\\circ\}?/g, '°').replace(/\\cdot|\\times/g, '*')
-      .replace(/\\(Delta|triangle)\s*/g, 'tam giác ').replace(/\\[,;: ]/g, ' ').replace(/\\(in)(?![a-z])/g, '∈').replace(/[{}]/g, '');
+      .replace(/([A-Z])_\{?(\d)\}?/g, '$1$2').replace(/\\(Delta|triangle)\s*/g, 'tam giác ').replace(/\\[,;: ]/g, ' ').replace(/\\(in)(?![a-z])/g, '∈').replace(/[{}]/g, '');
     s = s.replace(/\s+/g, ' ').trim();
     // chữ đầu câu của một từ tiếng Việt (Cho, Gọi, Kẻ, Lấy…) viết thường để mẫu câu khớp; tên điểm (hai chữ hoa) giữ nguyên
     // kể cả sau nhãn câu nhỏ "c) Trên…", "**b)** Gọi…"
@@ -212,9 +212,9 @@
     sentences.forEach((snt, si) => {
       let hit = false, q;
       // trung điểm (M là trung điểm của AB; M, N lần lượt là trung điểm của SB, SD; trung điểm M của AB)
-      const r1 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng)?\\s*là\\s+(?:các\\s+)?trung điểm\\s+(?:của\\s+)?(?:các\\s+)?(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?|dây\\s+(?:cung\\s+)?)?((?:PN){2}(?:\\s*(?:,|và)\\s*(?:cạnh\\s+)?(?:PN){2})*)', 'g');
+      const r1 = re('(?<![A-Za-z])((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng|theo thứ tự)?\\s*là\\s+(?:các\\s+)?trung điểm\\s+(?:của\\s+)?(?:các\\s+)?(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?|dây\\s+(?:cung\\s+)?)?((?:PN){2}(?:\\s*(?:,|và)\\s*(?:cạnh\\s+)?(?:PN){2})*)', 'g');
       while ((q = r1.exec(snt))) {
-        const ns = listNames(q[1]), segs = listPairs(q[2]);
+        const segs = listPairs(q[2]), ns0 = listNames(q[1]), ns = ns0.slice(Math.max(0, ns0.length - segs.length)); // "trọng tâm G và M là trung điểm của BC": chỉ M
         ns.forEach((n, i) => { const sg = pairOf(segs[i] || ''); if (sg.length === 2) { add(n, sg, n + ' = trungdiem(' + nm(sg[0]) + ', ' + nm(sg[1]) + ')', 'trung điểm'); hit = true; } });
       }
       const r1b = re('trung điểm\\s+(PN)\\s+(?:của\\s+)?(?:cạnh\\s+|đoạn\\s+)?((?:PN){2})', 'g');
@@ -228,6 +228,13 @@
         hit = true;
       }
       // tâm của đáy / hình vuông ABCD / tam giác đều ABC; trọng tâm G của tam giác ABC
+      // G1, G2 lần lượt là trọng tâm của các tam giác ABC và ABD
+      const r3l = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)+)\\s+lần lượt\\s+là\\s+(?:các\\s+)?trọng tâm\\s+(?:của\\s+)?(?:các\\s+)?(?:tam giác\\s+)?([A-Z]{3}(?:\\s*(?:,|và)\\s*(?:tam giác\\s+)?[A-Z]{3})+)', 'g');
+      while ((q = r3l.exec(snt))) {
+        const ns = listNames(q[1]), ts = q[2].match(/[A-Z]{3}/g);
+        ns.forEach((n, i) => { const tr = ts[i] && ts[i].split(''); if (tr && tr.every((c) => p3[c] || base.includes(c))) add(n, tr, n + ' = trongtam(' + tr.map(nm).join(', ') + ')', 'trọng tâm'); });
+        hit = true;
+      }
       const r3 = re('(?:(PN)\\s+là\\s+(trọng tâm|tâm)|(trọng tâm|tâm)\\s+(PN))\\s+(?:của\\s+)?(?:mặt\\s+)?(?:đáy|hình vuông|hình chữ nhật|hình bình hành|hình thoi|tam giác(?:\\s+đều)?|tứ giác)?\\s*([A-Z]{3,4})?', 'g');
       while ((q = r3.exec(snt))) {
         const n = q[1] || q[4], ns = q[5] ? q[5].split('') : (q[0].includes('đáy') ? base : null);
@@ -237,7 +244,7 @@
         hit = true;
       }
       // hình chiếu (vuông góc) của A trên SB / (SBC); M, N lần lượt là hình chiếu của A trên SB, SD
-      const r4 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng)?\\s*là\\s+(?:các\\s+)?hình chiếu\\s+(?:vuông góc\\s+)?(?:của\\s+)?(?:điểm\\s+)?(PN)\\s+(?:trên|lên|xuống)\\s+((?:(?:đường thẳng|mặt phẳng)\\s+)?(?:\\(\\s*(?:PN){3,4}\\s*\\)|(?:PN){2})(?:\\s*(?:,|và)\\s*(?:\\(\\s*(?:PN){3,4}\\s*\\)|(?:PN){2}))*)', 'g');
+      const r4 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng|theo thứ tự)?\\s*là\\s+(?:các\\s+)?hình chiếu\\s+(?:vuông góc\\s+)?(?:của\\s+)?(?:điểm\\s+)?(PN)\\s+(?:trên|lên|xuống)\\s+((?:(?:đường thẳng|mặt phẳng)\\s+)?(?:\\(\\s*(?:PN){3,4}\\s*\\)|(?:PN){2})(?:\\s*(?:,|và)\\s*(?:\\(\\s*(?:PN){3,4}\\s*\\)|(?:PN){2}))*)', 'g');
       while ((q = r4.exec(snt))) {
         const ns = listNames(q[1]), src = q[2], tg = q[3].replace(/đường thẳng|mặt phẳng/g, '').split(/\s*(?:,|và)\s*/).map((x) => x.trim()).filter(Boolean);
         ns.forEach((n, i) => {
@@ -301,6 +308,8 @@
     const aux = [...made].filter((n) => !base.includes(n) && !top.includes(n) && n !== apex);
     if (aux.length) lines.push('diem ' + aux.map(nm).join(' '));
     [...made].filter((n) => /'/.test(n)).forEach((n) => lines.push('nhan ' + nm(n) + ' = ' + n));
+    // tên có chỉ số trong đề (G_1, G_2): nhãn viết chỉ số dưới
+    [...made].filter((n) => /^[A-Z]\d$/.test(n)).forEach((n) => lines.push('nhan ' + n + ' = ' + n[0] + '_{' + n[1] + '}'));
     // câu có vẻ là dựng hình nhưng chưa hiểu
     sentences.forEach((snt, si) => {
       if (used.has(si)) return;
@@ -353,8 +362,14 @@
       const ray = new Set(), lineN = new Set();
       t.replace(/góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?([a-z])([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, a, o, b) => { ray.add(a); ray.add(b); return m0; });
       t.replace(/tia\s+(?:phân giác\s+)?([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, o, a) => { ray.add(a); return m0; });
-      t.replace(/tiếp tuyến\s+([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, o, a) => { ray.add(a); return m0; });
+      // các tiếp tuyến Ax và By (mọi tên dạng Ax trong cùng câu)
+      t.replace(/tiếp tuyến[^.;]*/g, (seg) => { seg.replace(/(?<![A-Za-zÀ-ỹ])([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, o, a) => { ray.add(a); return m0; }); return seg; });
       t.replace(/đường thẳng\s+([a-z]{1,2})(?![A-Za-zÀ-ỹ])/g, (m0, a) => { lineN.add(a); return m0; });
+      // tên góc viết kiểu xOy, mOn, yOz ở bất kì đâu (hai góc kề bù xOy và yOz…); hai đường thẳng a và b / a, b, c;
+      // đường trung trực d
+      t.replace(/(?<![A-Za-zÀ-ỹ\\])([a-z])([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, a, o, b) => { ray.add(a); ray.add(b); return m0; });
+      t.replace(/đường thẳng\s+(?:song song\s+)?([a-z])(?:\s*(?:,|và)\s*([a-z])(?![A-Za-zÀ-ỹ]))(?:\s*(?:,|và)\s*([a-z])(?![A-Za-zÀ-ỹ]))?/g, (m0, a, b, c) => { [a, b, c].forEach((x) => x && lineN.add(x)); return m0; });
+      t.replace(/đường trung trực\s+([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, a) => { lineN.add(a); return m0; });
       ray.forEach((a) => { if (!LC[a]) { const c = take(); if (c) { LC[a] = c; lcLabel[c] = a; } } });
       lineN.forEach((nm) => {
         if (nm.length === 2) nm.split('').forEach((a) => { if (!LC[a]) { const c = take(); if (c) { LC[a] = c; lcLabel[c] = a; } } });
@@ -364,7 +379,8 @@
         const ln = (nm) => (nm.length === 2 ? (LC[nm[0]] && LC[nm[1]] ? LC[nm[0]] + LC[nm[1]] : '') : LC[nm] || '');
         t = t.replace(/(góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?)([a-z])([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, p, a, o, b) => (LC[a] && LC[b] ? p + LC[a] + o + LC[b] : m0));
         t = t.replace(/(?<![A-Za-zÀ-ỹ])([A-Z])([a-z])(?![A-Za-zÀ-ỹ'])/g, (m0, o, a) => (ray.has(a) && LC[a] ? o + LC[a] : m0));
-        t = t.replace(/(đường thẳng|⊥|vuông góc với|cắt|trên|với)(\s*)([a-z]{1,2})(?![A-Za-zÀ-ỹ])/g, (m0, k, sp, nm) => (lineN.has(nm) && ln(nm) ? k + sp + ln(nm) : m0));
+        t = t.replace(/(?<![A-Za-zÀ-ỹ\\])([a-z])([A-Z])([a-z])(?![A-Za-zÀ-ỹ])/g, (m0, a, o, b) => (LC[a] && LC[b] && ray.has(a) && ray.has(b) ? LC[a] + o + LC[b] : m0));
+        t = t.replace(/(đường thẳng|đường trung trực|song song|⊥|∥|vuông góc với|cắt|trên|thuộc|với|và|,)(\s*)([a-z]{1,2})(?![A-Za-zÀ-ỹ])/g, (m0, k, sp, nm) => (lineN.has(nm) && ln(nm) ? k + sp + ln(nm) : m0));
         t = t.replace(/(?<![A-Za-zÀ-ỹ])([a-z]{2})(?![A-Za-zÀ-ỹ])/g, (m0, nm) => (lineN.has(nm) && ln(nm) ? ln(nm) : m0));
       }
     }
@@ -378,7 +394,9 @@
       (mm[1].match(re('(PN)(PN)\\s*=', 'g')) || []).forEach((pq) => { const nn = namesIn(pq), k = nn.length === 2 && key(nn[0], nn[1]); if (k && !Lraw[k]) { Lraw[k] = mm[2].trim(); if (isGiven) given.add(k); } });
     }));
     const ANG = {};
-    t.replace(re('góc\\s+((?:PN){1,3})\\s*(?:=|bằng)\\s*(\\d+(?:[.,]\\d+)?)\\s*°', 'g'), (m0, g, v) => { const ns = namesIn(g); ANG[ns.length === 3 ? ns[1] : ns[0]] = +v.replace(',', '.'); return m0; });
+    // số đo góc chỉ lấy ở phần giả thiết: "Chứng minh góc ABD = 90°", "Tính góc C" là điều phải tìm
+    const tGiven = t.split(/(?<=[.;])\s+/).map((s) => s.replace(/(?:^|\s)(?:chứng minh|chứng tỏ|suy ra|từ đó|tính|so sánh|tìm|xác định)(?=\s|$)[\s\S]*$/i, '')).join(' ');
+    tGiven.replace(re('góc\\s+(?:(?:nhọn|tù)\\s+)?((?:PN){1,3})\\s*(?:có\\s+)?(?:số đo\\s+)?(?:=|bằng|là)\\s*(\\d+(?:[.,]\\d+)?)\\s*°', 'g'), (m0, g, v) => { const ns = namesIn(g); ANG[ns.length === 3 ? ns[1] : ns[0]] = +v.replace(',', '.'); return m0; });
     let rr = 3, rTex = '';
     const getL = (p, qq) => { const raw = Lraw[key(p, qq)]; const o = raw ? lenOf(raw, rr) : null; return o ? o.v : null; };
     const texL = (p, qq) => { const raw = given.has(key(p, qq)) && Lraw[key(p, qq)]; const o = raw ? lenOf(raw, rr) : null; return o ? o.tex : ''; };
@@ -395,13 +413,36 @@
     if ((m = quadRe.exec(t))) cand.push({ i: m.index, end: m.index + m[0].length, k: 'quad', name: m[2] || m[3], type: (m[1] || m[4]).replace(/\s+/g, ' ') });
     const cirRe = re('(nửa\\s+)?đường tròn\\s*(?:\\(\\s*(PN)\\s*(?:;\\s*([^()]*?))?\\s*\\)|tâm\\s+(PN)(?:\\s*,?\\s*bán kính\\s*(?:(?:R|r)\\s*=\\s*)?(\\d+(?:,\\d+)?\\s*(?:cm)?|[A-Za-z]\\b))?)(?:\\s*,?\\s*(?:có\\s+)?đường kính\\s+(PN)(PN))?');
     if ((m = cirRe.exec(t))) cand.push({ i: m.index, end: m.index + m[0].length, k: 'cir', o: m[2] || m[4], r: m[3] || m[5] || '', dia: m[6] ? [m[6], m[7]] : null, half: !!m[1] });
+    // hai đường tròn (O) và (O') cắt nhau tại A và B / tiếp xúc ngoài (trong) tại A / ở ngoài nhau
+    const cir2Re = re('hai\\s+đường tròn\\s*(?:\\(\\s*(PN)(?:\\s*;[^)]*)?\\)|tâm\\s+(PN))\\s+và\\s+(?:đường tròn\\s*)?(?:\\(\\s*(PN)(?:\\s*;[^)]*)?\\)|tâm\\s+(PN))\\s*(cắt nhau|tiếp xúc ngoài|tiếp xúc trong|tiếp xúc|ở ngoài nhau|ngoài nhau|không giao nhau|đựng nhau)?(?:\\s+(?:nhau\\s+)?tại\\s+(?:hai\\s+điểm\\s+)?(?:điểm\\s+)?(PN)(?:\\s+và\\s+(PN))?)?');
+    if ((m = cir2Re.exec(t))) cand.push({ i: m.index - 0.1, end: m.index + m[0].length, k: 'cir2', o1: m[1] || m[2], o2: m[3] || m[4], rel: m[5] || 'cắt nhau', a: m[6] || '', b: m[7] || '' });
     // góc xOy (tên tia viết thường đã đổi sang chữ hoa ở trên), đoạn thẳng AB
-    const angRe = re('góc\\s+(?:(nhọn|tù|vuông|bẹt)\\s+)?(PN)(PN)(PN)(?![A-Za-z\'])');
+    const angRe = re('góc\\s+(?:(nhọn|tù|vuông|bẹt|kề bù)\\s+)?(PN)(PN)(PN)(?![A-Za-z\'])');
     if ((m = angRe.exec(t)) && lcLabel[m[2]] && lcLabel[m[4]]) cand.push({ i: m.index, end: m.index + m[0].length, k: 'ang', o: m[3], a: m[2], b: m[4], type: m[1] || '' });
-    const hexRe = re('lục giác đều\\s+([A-Z]{6})(?![A-Za-z\'])(?:\\s+(?:có\\s+)?tâm\\s+(?:là\\s+)?(PN))?');
-    if ((m = hexRe.exec(t))) cand.push({ i: m.index, end: m.index + m[0].length, k: 'hex', name: m[1], o: m[2] || '' });
+    const hexRe = re('lục giác đều\\s+([A-Z]{6})(?![A-Za-z\'])(?:\\s+(?:có\\s+)?tâm\\s+(?:là\\s+)?(PN)|\\s+nội tiếp\\s+(?:trong\\s+)?đường tròn\\s*(?:\\(\\s*(PN)|tâm\\s+(PN)))?');
+    if ((m = hexRe.exec(t))) cand.push({ i: m.index, end: m.index + m[0].length, k: 'hex', name: m[1], o: m[2] || m[3] || m[4] || '', ins: !!(m[3] || m[4]) });
     const segRe0 = /đoạn thẳng\s+([A-Z])([A-Z])(?![A-Za-z'])/;
     if ((m = segRe0.exec(t))) cand.push({ i: m.index, end: m.index + m[0].length, k: 'seg', a: m[1], b: m[2] });
+    // hình tự do lớp 6, 7 (không có đa giác, đường tròn): ba điểm thẳng hàng, hai tia đối nhau, một tia, hai đường thẳng
+    // cắt nhau / song song, một đường thẳng và điểm nằm ngoài. Chỉ dùng khi không có hình chính nào khác.
+    {
+      const F = [
+        ['coll', re('(?:ba\\s+điểm\\s+)?(?<![A-Za-z])(PN)\\s*,\\s*(PN)\\s*(?:,|và)\\s*(PN)\\s+thẳng hàng')],
+        ['btw', re('(?:điểm\\s+)?(PN)\\s+nằm giữa\\s+(?:hai\\s+điểm\\s+)?(PN)\\s+và\\s+(PN)')],
+        ['opp', re('(?:hai\\s+)?tia\\s+(?:(PN)(PN)\\s+và\\s+(PN)(PN)\\s+(?:là\\s+)?(?:hai\\s+tia\\s+)?đối nhau|đối nhau\\s+(PN)(PN)\\s+và\\s+(PN)(PN))')],
+        ['x2', re('(?:hai\\s+)?(?:đường thẳng\\s+)?(?<![A-Za-z])(PN)(PN)\\s+và\\s+(?:đường thẳng\\s+)?(PN)(PN)\\s+cắt nhau\\s+tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])')],
+        ['par', re('(?:hai\\s+)?đường thẳng\\s+(?:song song\\s+)?(PN)(PN)\\s+và\\s+(PN)(PN)(?:\\s+song song)?|(?<![A-Za-z])(PN)(PN)\\s*∥\\s*(PN)(PN)')],
+        ['out', re('(?:điểm\\s+)?(PN)\\s+(?:nằm\\s+)?(?:ở\\s+)?ngoài\\s+đường thẳng\\s+(PN)(PN)|đường thẳng\\s+(PN)(PN)\\s+và\\s+(?:một\\s+)?điểm\\s+(PN)\\s+(?:không thuộc|nằm ngoài)')],
+        ['ray', re('tia\\s+(PN)(PN)(?![A-Za-z])')],
+      ];
+      for (const [k, r0] of F) {
+        if (!(m = r0.exec(t))) continue;
+        if (k === 'par' && !/song song|∥/.test(m[0] + t.slice(m.index + m[0].length, m.index + m[0].length + 20))) continue;
+        if (k === 'ray' && !lcLabel[m[2]]) continue;
+        cand.push({ i: m.index + 0.5, end: m.index + m[0].length, k: 'free', f: k, g: m.slice(1).filter(Boolean), raw: m.slice(1) });
+        break;
+      }
+    }
     const pts0 = [];
     if (/O\s*xy|toạ độ|tọa độ/.test(t)) {
       const pr = re('(?<![A-Za-z])(PN)\\s*\\(\\s*([-+−]?[\\d.,/()√]+)\\s*[;,]\\s*([-+−]?[\\d.,/()√]+)\\s*\\)', 'g');
@@ -417,14 +458,17 @@
     const angMark = (ns, v) => { const i = ns.indexOf(v); if (i < 0 || ANG[v] == null || ANG[v] === 90) return; const a = ns[(i + ns.length - 1) % ns.length], b = ns[(i + 1) % ns.length]; marks.push('goc ' + a + v + b + ' = ' + lab(ANG[v]) + '^{\\circ}'); };
     let tpl = '', baseNames = [], cir = null, inscribed = false;
     cand.sort((a, b) => a.i - b.i);
-    let base = cand[0];
+    // hình chính phải được nêu trong câu dựng đề ("Cho tam giác…", "Xét…", "Vẽ…", "Từ điểm M…"), không phải câu nhắc qua;
+    // hình tự do ở câu đầu của đề ("Hai đường thẳng AB và CD cắt nhau tại O.") cũng là câu dựng đề
+    const valid = (c) => {
+      const st = Math.max(t.lastIndexOf('.', c.i), t.lastIndexOf(';', c.i), t.lastIndexOf('#', c.i)) + 1;
+      return /(^|\s)(cho|xét|vẽ|dựng|từ|lấy|gọi|trên)\s/i.test(t.slice(st, Math.ceil(c.i) + 1)) || (c.k === 'free' && /^\s*(?:#\w+\s*)?(?:\**(?:bài|câu|ví dụ)\s*\d+\s*[.:]?\**)?\s*$/i.test(t.slice(0, st)));
+    };
+    const ok = cand.filter(valid);
+    // hình tự do (điểm, tia, đường thẳng) chỉ dùng khi đề không có đa giác, đường tròn, góc, đoạn thẳng làm hình chính
+    let base = ok.find((c) => c.k !== 'free') || ok[0];
     if (pts0.length >= 2 && (!base || base.k !== 'cir')) base = { k: 'oxy' };
     if (!base) return null;
-    // hình chính phải được nêu trong câu dựng đề ("Cho tam giác…", "Xét…", "Vẽ…", "Từ điểm M…"), không phải câu nhắc qua
-    if (base.k !== 'oxy') {
-      const st = Math.max(t.lastIndexOf('.', base.i), t.lastIndexOf(';', base.i), t.lastIndexOf('#', base.i)) + 1;
-      if (!/(^|\s)(cho|xét|vẽ|dựng|từ|lấy|gọi|trên)\s/i.test(t.slice(st, base.i + 1))) return null;
-    }
     if (base.k === 'tri' || base.k === 'quad') {
       // đa giác nội tiếp đường tròn (tâm O)
       const after = t.slice(base.end, base.end + 160).split(/[.;](?!\d)/)[0];
@@ -492,6 +536,8 @@
         if (/AB\s*>\s*AC/.test(t) && !b && !c) { D0[1] = 4.4; D0[2] = 5.2; }
         // phân giác góc A cắt đường tròn ngoại tiếp tại điểm chính giữa cung BC: tam giác lệch hẳn để A không sát điểm đối tâm
         else if (!b && !c && /phân giác[^.;]*cắt[^.;]*(?:đường tròn|\(\s*[A-Z]\s*\))/.test(t)) { D0[1] = 5.6; D0[2] = 3.9; }
+        // đường tròn đường kính BC cắt AB, AC: tam giác cao hơn để hai giao điểm cách xa A và cách xa nhau
+        else if (!b && !c && re('đường tròn\\s+(?:có\\s+)?đường kính\\s+(?:' + n1 + n2 + '|' + n2 + n1 + ')').test(t)) { D0[1] = 5.9; D0[2] = 5.4; }
         a = a || D0[0] * f; b = b || D0[1] * f; c = c || D0[2] * f;
         let al = ANG[n0], be = ANG[n1], ga = ANG[n2];
         if (/tù/.test(ty) && !al) al = 115;
@@ -522,6 +568,13 @@
         marks.push('vuong ' + A + D + C); tick([A + B, B + C, C + D, D + A]); tpl = 'vuongh';
       } else if (/chữ nhật/.test(ty)) {
         let w = g(A, B, g(C, D, 0)), h = g(A, D, g(B, C, 0)); const dg = getL(A, C) || getL(B, D);
+        // tỉ số hai cạnh kề: "AB = 2BC", "AD = 2AB"
+        const rk2 = re('(PN)(PN)\\s*=\\s*(\\d+(?:[.,]\\d+)?)\\s*(PN)(PN)').exec(tGiven);
+        if (rk2) {
+          const horiz = (x, y) => [A + B, B + A, C + D, D + C].includes(x + y), k = +rk2[3].replace(',', '.');
+          const h1 = horiz(rk2[1], rk2[2]), h2 = horiz(rk2[4], rk2[5]);
+          if (h1 !== h2) { if (w && !h) h = h1 ? w / k : w * k; else if (h && !w) w = h1 ? h * k : h / k; else if (!w && !h) { if (h1) { h = 3; w = 3 * k; } else { w = 4; h = 4 * k; } } }
+        }
         if (w && !h) h = dg && dg > w ? Math.sqrt(dg * dg - w * w) : 0.57 * w; if (h && !w) w = dg && dg > h ? Math.sqrt(dg * dg - h * h) : h / 0.57; if (!w) { w = 5.6; h = 3.2; }
         P[D] = [0, 0]; P[C] = [w, 0]; P[B] = [w, h]; P[A] = [0, h];
         marks.push('vuong ' + A + D + C); tpl = 'chunhat';
@@ -559,7 +612,11 @@
         }
         tpl = can ? 'thangcan' : 'hinhthang';
       } else if (inscribed) {
-        const o = [120, 30, -50, 205].map((d) => d * Math.PI / 180);
+        // hai cạnh đối kéo dài cắt nhau (AB cắt CD tại E, AD cắt BC tại F): đặt đỉnh để giao điểm cách tâm khoảng 1,7R
+        // (đặt tuỳ ý thì giao điểm có thể ở rất xa, hình bị thu nhỏ, các điểm dồn vào nhau)
+        const sd = (p, q2) => '(?:' + p + q2 + '|' + q2 + p + ')';
+        const meet = t.split(/[.;]/).some((s) => /cắt/.test(s) && ((re(sd(A, B)).test(s) && re(sd(C, D)).test(s)) || (re(sd(A, D)).test(s) && re(sd(B, C)).test(s))));
+        const o = (meet ? [135, 75, -55, 175] : [120, 30, -50, 205]).map((d) => d * Math.PI / 180);
         ns.forEach((n, i) => { P[n] = [3 * Math.cos(o[i]), 3 * Math.sin(o[i])]; });
         tpl = 'tgnoitiep';
       } else { P[D] = [0, 0]; P[C] = [6, 0]; P[B] = [5, 3.6]; P[A] = [0.8, 3.1]; tpl = 'tgnoitiep'; }
@@ -570,17 +627,71 @@
       const d = ANG[base.o] || { 'nhọn': 55, 'tù': 125, 'vuông': 90, 'bẹt': 180 }[base.type] || 60, R = d * Math.PI / 180;
       P[base.o] = [0, 0]; P[base.a] = [8, 0]; P[base.b] = [8 * Math.cos(R), 8 * Math.sin(R)]; // tia dài, nhãn x, y ở đầu mút
       tpl = 'goc'; notes.push('góc ' + lcLabel[base.a] + base.o + lcLabel[base.b]);
+      // số đo cho trong đề: ghi lên hình (góc vuông: kí hiệu vuông)
+      if (ANG[base.o] === 90) marks.push('vuong ' + base.a + base.o + base.b);
+      else if (ANG[base.o]) marks.push('goc ' + base.a + base.o + base.b + ' = ' + lab(ANG[base.o]) + '^{\\circ}');
+      // hai góc kề bù xOy và yOz: tia Oz là tia đối của tia Ox
+      const kb = re('kề bù\\s+(?:góc\\s+)?(PN)(PN)(PN)\\s+và\\s+(?:góc\\s+)?(PN)(PN)(PN)').exec(t);
+      if (kb && kb[2] === base.o && kb[5] === base.o) {
+        const z = [kb[4], kb[6]].find((c) => c !== base.a && c !== base.b);
+        if (z && !P[z]) { P[z] = [-8, 0]; base.extra = z; notes.push('góc kề bù'); }
+      }
     } else if (base.k === 'hex') {
       // lục giác đều: A trên trái, đi theo chiều kim đồng hồ (như hình SGK); tâm O ở gốc
       const ns = base.name.split('');
       [120, 60, 0, -60, -120, 180].forEach((d, i) => { P[ns[i]] = [4 * Math.cos(d * Math.PI / 180), 4 * Math.sin(d * Math.PI / 180)]; });
       if (base.o) { P[base.o] = [0, 0]; dots.add(base.o); }
+      if (base.ins) base.ext = ['duongtron ' + base.o + ' ' + base.name[0]];
       baseNames = ns; cyc(ns); tick(ns.map((n, i) => n + ns[(i + 1) % 6]));
       tpl = 'lucgiac'; notes.push('lục giác đều ' + base.name);
     } else if (base.k === 'seg') {
       const l = getL(base.a, base.b) || 6;
       P[base.a] = [0, 0]; P[base.b] = [l, 0]; edge(base.a, base.b);
       tpl = 'doan'; notes.push('đoạn thẳng ' + base.a + base.b);
+    } else if (base.k === 'cir2') {
+      // (O) bán kính 3 ở gốc, (O') bán kính nhỏ hơn bên phải, khoảng cách tâm theo vị trí tương đối
+      const r1 = 3, rel = base.rel, inner = /trong|đựng/.test(rel), r2v = inner ? 1.8 : 2.2;
+      const d = /tiếp xúc ngoài|^tiếp xúc$/.test(rel) ? r1 + r2v : /tiếp xúc trong/.test(rel) ? r1 - r2v : /đựng/.test(rel) ? 0.6 : /ngoài nhau|không giao/.test(rel) ? r1 + r2v + 2 : 4;
+      const O1 = base.o1, O2 = base.o2;
+      P[O1] = [0, 0]; P[O2] = [d, 0]; dots.add(O1); dots.add(O2);
+      if (/cắt/.test(rel) && base.a) { const x = (d * d + r1 * r1 - r2v * r2v) / (2 * d), h = Math.sqrt(r1 * r1 - x * x); P[base.a] = [x, h]; if (base.b) P[base.b] = [x, -h]; }
+      else if (/tiếp xúc/.test(rel) && base.a) P[base.a] = [r1, 0];
+      base.c2 = { [O1]: [0, 0, r1], [O2]: [d, 0, r2v] };
+      cir = { o: O1 }; rr = r1;
+      notes.push('hai đường tròn (' + O1 + ') và (' + O2 + ') ' + rel);
+      tpl = 'duongtron';
+    } else if (base.k === 'free') {
+      const g = base.g, ext = [];
+      if (base.f === 'coll' || base.f === 'btw') {
+        // thứ tự trên đường thẳng: điểm nằm giữa ở giữa ("B nằm giữa A và C" có thể ở câu khác)
+        let ord = base.f === 'btw' ? [g[1], g[0], g[2]] : g.slice();
+        const bw = re('(PN)\\s+nằm giữa\\s+(?:hai\\s+điểm\\s+)?(PN)\\s+và\\s+(PN)').exec(t);
+        if (base.f === 'coll' && bw && [bw[1], bw[2], bw[3]].every((c) => ord.includes(c))) ord = [bw[2], bw[1], bw[3]];
+        [[0, 0], [3.2, 0], [7.5, 0]].forEach((p, i) => { P[ord[i]] = p; dots.add(ord[i]); });
+        ext.push('doan ' + ord[0] + ord[2]); notes.push('ba điểm thẳng hàng ' + ord.join(', '));
+      } else if (base.f === 'opp') {
+        const [O, X, , Y] = g; P[O] = [0, 0]; P[X] = [6, 0]; P[Y] = [-6, 0]; dots.add(O);
+        ext.push('doan ' + O + X + ' ' + O + Y); notes.push('hai tia đối nhau');
+      } else if (base.f === 'ray') {
+        const [O, X] = g; P[O] = [0, 0]; P[X] = [8, 0]; dots.add(O); ext.push('doan ' + O + X); notes.push('tia ' + O + (lcLabel[X] || X));
+      } else if (base.f === 'x2') {
+        const [A, B, C, D, O] = g; P[O] = [0, 0]; P[A] = [-5, -1.6]; P[B] = [5, 1.6]; P[C] = [-1.8, 4.2]; P[D] = [1.8, -4.2];
+        ext.push('doan ' + A + B + ' ' + C + D); notes.push('hai đường thẳng cắt nhau tại ' + O);
+      } else if (base.f === 'par') {
+        const [A, B, C, D] = g; P[A] = [-5, 2]; P[B] = [5, 2]; P[C] = [-5, -1.2]; P[D] = [5, -1.2];
+        ext.push('doan ' + A + B + ' ' + C + D); notes.push('hai đường thẳng song song');
+      } else if (base.f === 'out') {
+        const w = base.raw, [A, X, Y] = w[0] ? [w[0], w[1], w[2]] : [w[5], w[3], w[4]];
+        P[X] = [-5, 0]; P[Y] = [5, 0]; P[A] = [-0.6, 3.2]; dots.add(A);
+        ext.push('doan ' + X + Y); notes.push('điểm ' + A + ' nằm ngoài đường thẳng');
+      }
+      // đường thẳng đặt tên chữ thường còn lại (đường thẳng c cắt a tại A và cắt b tại B): một cát tuyến xiên
+      const tv = [[-1.6, 4.4], [1.6, -3.6], [-3.5, -3.8], [3.5, 4.2]];
+      Object.keys(LC).filter((k2) => k2.length === 1 && LC[k2].length === 2).forEach((k2, i) => {
+        const [c1, c2] = LC[k2].split(''); if (P[c1] || P[c2] || i > 1) return;
+        P[c1] = tv[2 * (i % 2)]; P[c2] = tv[2 * (i % 2) + 1]; ext.push('doan ' + c1 + c2);
+      });
+      base.ext = ext; tpl = 'doan';
     } else if (base.k === 'oxy') {
       pts0.forEach(([n, x, y]) => { P[n] = [x, y]; dots.add(n); });
       tpl = 'vt_oxy'; notes.push('mặt phẳng toạ độ Oxy: ' + pts0.map((p) => p[0]).join(', '));
@@ -595,8 +706,9 @@
       lines.unshift('truc ' + [Math.floor(Math.min(...xs)) - 1, Math.ceil(Math.max(...xs)) + 1, Math.floor(Math.min(...ys)) - 1, Math.ceil(Math.max(...ys)) + 1].join(' '));
     }
     if (baseNames.length) lines.push('dagiac ' + baseNames.join(''));
-    if (base.k === 'ang') lines.push('doan ' + base.o + base.a + ' ' + base.o + base.b);
+    if (base.k === 'ang') lines.push('doan ' + base.o + base.a + ' ' + base.o + base.b + (base.extra ? ' ' + base.o + base.extra : ''));
     if (base.k === 'seg') lines.push('doan ' + base.a + base.b);
+    if ((base.k === 'free' || base.k === 'hex') && base.ext) base.ext.forEach((l) => lines.push(l));
     // đường tròn chính / đường tròn ngoại tiếp đa giác nội tiếp
     const circPool = [];
     if (base.k === 'cir') {
@@ -608,6 +720,11 @@
       lines.push(base.half && base.dia ? 'cung ' + base.o + ' ' + base.dia[1] + ' ' + base.dia[0] : 'duongtron ' + base.o + ' r');
       notes.push('đường tròn (' + base.o + (rTex ? '; ' + rTex : '') + ')' + (base.dia ? ', đường kính ' + base.dia.join('') : ''));
       tpl = 'duongtron';
+    } else if (base.k === 'cir2') {
+      const ks = Object.keys(base.c2);
+      lines.unshift('r = ' + r2(base.c2[ks[0]][2]) + '   # Bán kính (' + ks[0] + ')');
+      lines.push('duongtron ' + ks[0] + ' r', 'duongtron ' + ks[1] + ' ' + r2(base.c2[ks[1]][2]));
+      circPool.push(110, 200, 250, 150);
     } else if (inscribed) {
       const o = cir.o || 'O';
       lines.push(o + ' = tamngoai(' + baseNames.slice(0, 3).join(', ') + ')', 'duongtron ' + o + ' ' + baseNames[0]);
@@ -617,7 +734,7 @@
     // ---------- 3. Điểm phụ ----------
     const cons = [];
     const onSeg = {}; // điểm lấy trên một đoạn / tia → hai đầu (để quyết định có chấm điểm hay không)
-    const rArg = base.k === 'cir' ? 'r' : baseNames[0];
+    const rArg = base.k === 'cir' || base.k === 'cir2' ? 'r' : baseNames[0];
     const isDef = (n) => made.has(n) || cons.some((c) => c.name === n);
     const add = (name, need, line, src, more) => { if (!isDef(name)) cons.push({ name, need, line, src, more: more || [] }); };
     let hid = 0;
@@ -636,10 +753,11 @@
     const lineThrough = {}, linePts = {}; // đường thẳng (hai điểm phụ) → điểm nó đi qua; số điểm đã lấy trên đó
     const vtx = (P0) => (base.k === 'tri' && baseNames.includes(P0)) || (base.k === 'quad' && baseNames.includes(P0));
     // đường tròn đã có: tâm → bán kính (điểm trên đường tròn hoặc thông số r); điểm nằm trên đường tròn chính
-    const circReg = {};
+    const circReg = {}, circOn = {}, diaReg = {}; // tâm → bán kính; tâm → điểm đã nằm trên đường tròn; đường kính → tâm phụ
     if (cir && cir.o) circReg[cir.o] = rArg;
+    if (base.k === 'cir2') { const ks = Object.keys(base.c2); circReg[ks[1]] = r2(base.c2[ks[1]][2]); }
     let lastC = cir && cir.o ? cir.o : '';
-    const onC = new Set(base.k === 'cir' && base.dia ? base.dia : inscribed ? baseNames : []);
+    const onC = new Set(base.k === 'cir' && base.dia ? base.dia : inscribed ? baseNames : base.k === 'cir2' ? [base.a, base.b].filter(Boolean) : []);
     const tanH = {}; // tiếp tuyến tại X → [Z1, Z2] (hai điểm phụ trên tiếp tuyến)
     const tanAt = (X, O) => { if (tanH[X]) return tanH[X]; const h1 = helper(), h2 = helper(); hidden.push(h1, h2); cons.push({ name: h1, need: [X, O], line: h1 + ' = quay(' + O + ', ' + X + ', 90)\n' + h2 + ' = quay(' + O + ', ' + X + ', -90)', src: '', more: ['vuong ' + O + X + h1] }); cons.push({ name: h2, need: [h1], line: '', src: '', more: [] }); tanH[X] = [h1, h2]; return tanH[X]; };
     const cOf = (s) => { const m2 = re('\\(\\s*(PN)\\s*(?:;[^)]*)?\\)').exec(s || ''); return m2 && circReg[m2[1]] !== undefined ? m2[1] : lastC; };
@@ -659,13 +777,26 @@
       }
       // đường tròn tâm O đường kính AH (đường tròn phụ, có tên tâm)
       const rdt = re('đường tròn\\s+tâm\\s+(PN)\\s*,?\\s*đường kính\\s+(PN)(PN)', 'g');
-      while ((q = rdt.exec(snt))) { if (!isDef(q[1])) { add(q[1], [q[2], q[3]], q[1] + ' = trungdiem(' + q[2] + ', ' + q[3] + ')', 'tâm đường tròn', ['duongtron ' + q[1] + ' ' + q[2], 'diem ' + q[1]]); circReg[q[1]] = q[2]; lastC = q[1]; hit = true; } }
+      while ((q = rdt.exec(snt))) { if (!isDef(q[1])) { add(q[1], [q[2], q[3]], q[1] + ' = trungdiem(' + q[2] + ', ' + q[3] + ')', 'tâm đường tròn', ['duongtron ' + q[1] + ' ' + q[2], 'diem ' + q[1]]); circReg[q[1]] = q[2]; circOn[q[1]] = [q[2], q[3]]; lastC = q[1]; hit = true; } }
       // đường tròn (này) cắt các cạnh AB và AC lần lượt tại D và E (khác A)
-      const rcc = re('đường tròn\\s*(?:này|\\(\\s*(PN)\\s*\\))?\\s+cắt\\s+(?:các\\s+)?(?:cạnh\\s+|đường thẳng\\s+|đoạn thẳng\\s+)?(PN)(PN)\\s+và\\s+(?:cạnh\\s+)?(PN)(PN)\\s+lần lượt\\s+tại\\s+(?:điểm\\s+)?(PN)\\s+và\\s+(PN)', 'g');
+      // đường tròn (này / (O) / đường kính BC) cắt AB, AC lần lượt tại E và D: giao điểm khác điểm đã nằm trên đường tròn
+      const rcc = re('đường tròn\\s*(?:này|\\(\\s*(PN)\\s*\\)|đường kính\\s+(PN)(PN))?\\s+cắt\\s+(?:các\\s+)?(?:cạnh\\s+|đường thẳng\\s+|đoạn thẳng\\s+)?(PN)(PN)\\s*(?:,|và)\\s*(?:cạnh\\s+)?(PN)(PN)\\s+(?:lần lượt\\s+)?tại\\s+(?:các\\s+điểm\\s+|điểm\\s+)?(PN)\\s*(?:,|và)\\s*(PN)', 'g');
       while ((q = rcc.exec(snt))) {
-        const O = q[1] || lastC, s1 = [q[2], q[3]], s2 = [q[4], q[5]], A0 = s1.find((c) => s2.includes(c)) || s1[0];
+        let O = q[1] || lastC;
+        if (q[2]) {
+          const k = [q[2], q[3]].sort().join('');
+          if (!diaReg[k]) { const h = helper(); hidden.push(h); cons.push({ name: h, need: [q[2], q[3]], line: h + ' = trungdiem(' + q[2] + ', ' + q[3] + ')', src: '', more: ['duongtron ' + h + ' ' + q[2]] }); diaReg[k] = h; circReg[h] = q[2]; circOn[h] = [q[2], q[3]]; }
+          O = diaReg[k]; lastC = O;
+        }
+        const s1 = [q[4], q[5]], s2 = [q[6], q[7]], A0 = s1.find((c) => s2.includes(c)) || s1[0];
         if (!O || circReg[O] === undefined) continue;
-        [[s1, q[6]], [s2, q[7]]].forEach(([sg, n]) => { if (isDef(n)) return; const o2 = sg.find((c) => c !== A0) || sg[1]; add(n, [A0, o2, O], n + ' = giaotronkhac(' + A0 + ', ' + o2 + ', ' + O + ', ' + circReg[O] + ', ' + A0 + ')', 'giao với đường tròn'); });
+        const on = (c) => (circOn[O] || []).includes(c) || (O === (cir && cir.o) && onC.has(c));
+        [[s1, q[8]], [s2, q[9]]].forEach(([sg, n]) => {
+          if (isDef(n)) return;
+          const o2 = sg.find((c) => c !== A0) || sg[1], ex = on(o2) ? o2 : A0;
+          add(n, [A0, o2, O], n + ' = giaotronkhac(' + A0 + ', ' + o2 + ', ' + O + ', ' + circReg[O] + ', ' + ex + ')', 'giao với đường tròn');
+          (circOn[O] = circOn[O] || []).push(n);
+        });
         hit = true;
       }
       // cát tuyến SCD từ điểm S ngoài đường tròn (C nằm giữa S và D)
@@ -726,6 +857,17 @@
         add(n, [V, q[4], O], n + ' = giaotronkhac(' + V + ', ' + q[4] + ', ' + O + ', ' + circReg[O] + ', ' + V + ')', 'phân giác cắt đường tròn', ['doan ' + q[4] + n]);
         if (O === (cir && cir.o)) onC.add(n); hit = true;
       }
+      // M là điểm chính giữa (của) cung nhỏ / cung lớn BC
+      const rcm = re('(PN)\\s+là\\s+điểm chính giữa\\s+(?:của\\s+)?cung\\s+(?:(nhỏ|lớn)\\s+)?(PN)(PN)|điểm chính giữa\\s+(PN)\\s+(?:của\\s+)?cung\\s+(?:(nhỏ|lớn)\\s+)?(PN)(PN)', 'g');
+      while ((q = rcm.exec(snt))) {
+        const n = q[1] || q[5], kind = q[2] || q[6] || 'nhỏ', B0 = q[3] || q[7], C0 = q[4] || q[8], O = cOf(snt) || (cir && cir.o);
+        if (!O || isDef(n)) continue;
+        // trung điểm dây → tia từ tâm qua đó cắt cung nhỏ; cung lớn: điểm đối xứng qua tâm
+        const h = helper(), h2 = helper(); hidden.push(h, h2);
+        const line = h + ' = trungdiem(' + B0 + ', ' + C0 + ')\n' + (kind === 'nhỏ' ? n + ' = dat(' + O + ', ' + h + ', ' + O + ', ' + B0 + ')' : h2 + ' = dat(' + O + ', ' + h + ', ' + O + ', ' + B0 + ')\n' + n + ' = doixung(' + h2 + ', ' + O + ')');
+        add(n, [B0, C0, O], line, 'điểm chính giữa cung');
+        onC.add(n); hit = true;
+      }
       // tiếp tuyến tại C cắt (hai) tiếp tuyến tại A và B lần lượt tại M và N
       const rt3 = re('tiếp tuyến\\s+tại\\s+(PN)\\s+cắt\\s+(?:hai\\s+)?(?:các\\s+)?tiếp tuyến\\s+tại\\s+(PN)\\s+và\\s+(PN)[^.;]*?lần lượt\\s+tại\\s+(?:điểm\\s+)?(PN)\\s+và\\s+(PN)', 'g');
       while ((q = rt3.exec(snt))) {
@@ -748,12 +890,47 @@
         const tb = tanAt(q[3], O);
         add(n, [q[1], q[2], tb[1]], n + ' = giao(' + q[1] + ', ' + q[2] + ', ' + tb.join(', ') + ')', 'giao với tiếp tuyến', ['doan ' + q[2] + n + ' ' + q[3] + n]); hit = true; tanDone = true;
       }
+      // hai đường tròn: tiếp tuyến chung ngoài (trong) BC, B thuộc (O), C thuộc (O')
+      const rtc = re('tiếp tuyến chung\\s+(ngoài|trong)?\\s*(PN)(PN)(?![A-Za-z])', 'g');
+      while (base.c2 && (q = rtc.exec(snt))) {
+        const ks = Object.keys(base.c2), [x1, , ra] = base.c2[ks[0]], [x2, , rb] = base.c2[ks[1]], d = x2 - x1;
+        let [B0, C0] = [q[2], q[3]];
+        const own = re('(PN)\\s*(?:∈|thuộc)\\s*\\(\\s*(PN)').exec(t); if (own && own[1] === C0 && own[2] === ks[0]) [B0, C0] = [C0, B0];
+        if (isDef(B0) || isDef(C0)) continue;
+        const inner = q[1] === 'trong', ph = Math.acos(inner ? (ra + rb) / d : (ra - rb) / d);
+        if (!isFinite(ph)) continue;
+        const pB = [x1 + ra * Math.cos(ph), ra * Math.sin(ph)], pC = inner ? [x2 - rb * Math.cos(ph), -rb * Math.sin(ph)] : [x2 + rb * Math.cos(ph), rb * Math.sin(ph)];
+        add(B0, [], B0 + ' = (' + r2(pB[0]) + ', ' + r2(pB[1]) + ')', 'tiếp tuyến chung', ['doan ' + B0 + C0 + ' ' + ks[0] + B0 + ' ' + ks[1] + C0, 'vuong ' + ks[0] + B0 + C0 + ' ' + ks[1] + C0 + B0]);
+        add(C0, [], C0 + ' = (' + r2(pC[0]) + ', ' + r2(pC[1]) + ')', 'tiếp tuyến chung');
+        hit = true;
+      }
       // tiếp tuyến Ax tại điểm A của đường tròn (tên tia viết thường)
-      const rtx = re('tiếp tuyến\\s+(PN)(PN)(?![A-Za-z])\\s*(?:với|của)?', 'g');
+      // (các) tiếp tuyến Ax và By: hai tiếp tuyến tại hai đầu đường kính vẽ về cùng một phía như hình SGK
+      const rtx = re('tiếp tuyến\\s+((?:PN)(?:PN)(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))*)(?![A-Za-z])', 'g');
       while ((q = rtx.exec(snt))) {
-        const A0 = q[1], X = q[2], O = cOf(snt) || (cir && cir.o);
-        if (!O || !lcLabel[X] || isDef(X) || !(onC.has(A0) || isDef(A0))) continue;
-        add(X, [A0, O], X + ' = quay(' + O + ', ' + A0 + ', 90)', 'tiếp tuyến', ['doan ' + A0 + X, 'vuong ' + O + A0 + X]); hit = true;
+        const O = cOf(snt) || (cir && cir.o);
+        listPairs(q[1]).map(namesIn).forEach(([A0, X]) => {
+          if (!O || !X || !lcLabel[X] || isDef(X) || !(onC.has(A0) || isDef(A0))) return;
+          const sg = base.dia && A0 === base.dia[1] ? -90 : 90;
+          add(X, [A0, O], X + ' = quay(' + O + ', ' + A0 + ', ' + sg + ')', 'tiếp tuyến', ['doan ' + A0 + X, 'vuong ' + O + A0 + X]); hit = true;
+        });
+      }
+      // tiếp tuyến tại M cắt Ax, By (hai đường thẳng) lần lượt tại C và D
+      const rt2l = re('tiếp tuyến\\s+tại\\s+(?:điểm\\s+)?(PN)\\s+(?:của\\s+[^,]*?\\s+)?cắt\\s+(?:các\\s+(?:tiếp tuyến|đường thẳng)\\s+)?(PN)(PN)\\s*(?:,|và)\\s*(PN)(PN)\\s+(?:lần lượt\\s+)?tại\\s+(?:điểm\\s+)?(PN)\\s*(?:,|và)\\s*(PN)', 'g');
+      while ((q = rt2l.exec(snt))) {
+        const O = cOf(snt) || (cir && cir.o); if (!O) continue;
+        const tm = tanAt(q[1], O);
+        [[q[2], q[3], q[6]], [q[4], q[5], q[7]]].forEach(([U, V, n]) => {
+          // tia Ax (tên chữ thường) đã dựng ngắn: hướng chuyển sang điểm phụ, đầu tia x đặt quá giao điểm để chữ x ở cuối nét
+          let dir = V; const cx = cons.find((c) => c.name === V && /= quay\(/.test(c.line));
+          if (cx && lcLabel[V]) {
+            dir = helper(); hidden.push(dir);
+            cons.push({ name: dir, need: cx.need, line: cx.line.replace(new RegExp('^' + V + ' ='), dir + ' ='), src: '', more: [] });
+            cx.line = V + ' = chia(' + U + ', ' + n + ', 1.3)'; cx.need = [U, n];
+          }
+          add(n, [tm[1], U, dir], n + ' = giao(' + tm.join(', ') + ', ' + U + ', ' + dir + ')', 'giao của tiếp tuyến', ['doan ' + U + n]);
+        });
+        cons.push({ name: '', need: [q[6], q[7]], line: '', src: '', more: ['doan ' + q[6] + q[7]] }); hit = true; tanDone = true;
       }
       // đẳng thức vectơ cho một điểm chưa có: MA + MB + 2MC = 0, AM = 2MB, 3MB + MC = 0, AM + 2BM − CM = 0
       {
@@ -778,7 +955,8 @@
         }
       }
       // hình bình hành (chữ nhật, thoi, vuông) ABCD tâm O
-      const rtam = re('(?:hình vuông|hình chữ nhật|hình bình hành|hình thoi)\\s+([A-Z]{4})\\s+(?:có\\s+)?tâm\\s+(?:là\\s+)?(PN)(?![A-Za-z])', 'g');
+      // "hình vuông ABCD tâm O", "hình vuông ABCD cạnh a, tâm O", "… có tâm là O"
+      const rtam = re('(?:hình vuông|hình chữ nhật|hình bình hành|hình thoi)\\s+([A-Z]{4})\\s+(?:[^.;]{0,30}?,\\s*)?(?:có\\s+)?tâm\\s+(?:là\\s+)?(PN)(?![A-Za-z])', 'g');
       while ((q = rtam.exec(snt))) { const ns = q[1].split(''), n = q[2]; if (!isDef(n)) { add(n, ns, n + ' = giao(' + ns[0] + ', ' + ns[2] + ', ' + ns[1] + ', ' + ns[3] + ')', 'tâm', ['doan ' + ns[0] + ns[2] + ' ' + ns[1] + ns[3], 'diem ' + n]); hit = true; } }
       // điểm M tuỳ ý (không nằm trên đường nào): đặt ngoài hình, phía trên bên phải
       const rfree = re('(?:với\\s+mọi\\s+điểm\\s+(PN)|điểm\\s+(PN)\\s+(?:tùy ý|tuỳ ý|bất kì|bất kỳ)|(PN)\\s+là\\s+(?:một\\s+)?điểm\\s+(?:tùy ý|tuỳ ý|bất kì|bất kỳ))(?!\\s+(?:trên|thuộc|nằm))', 'g');
@@ -836,9 +1014,9 @@
         add(n, need, line, 'điểm trên đường thẳng'); onSeg[n] = [U, V]; hit = true;
       }
       // trung điểm; đối xứng khi trung điểm đã có và một đầu mút chưa có
-      const r1 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng)?\\s*là\\s+(?:các\\s+)?trung điểm\\s+(?:của\\s+)?(?:các\\s+)?(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?|dây\\s+(?:cung\\s+)?)?((?:PN){2}(?:\\s*(?:,|và)\\s*(?:cạnh\\s+)?(?:PN){2})*)', 'g');
+      const r1 = re('(?<![A-Za-z])((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng|theo thứ tự)?\\s*là\\s+(?:các\\s+)?trung điểm\\s+(?:của\\s+)?(?:các\\s+)?(?:cạnh\\s+|đoạn\\s+(?:thẳng\\s+)?|dây\\s+(?:cung\\s+)?)?((?:PN){2}(?:\\s*(?:,|và)\\s*(?:cạnh\\s+)?(?:PN){2})*)', 'g');
       while ((q = r1.exec(snt))) {
-        const ns = listNames(q[1]), segs = listPairs(q[2]);
+        const segs = listPairs(q[2]), ns0 = listNames(q[1]), ns = ns0.slice(Math.max(0, ns0.length - segs.length)); // "trọng tâm G và M là trung điểm của BC": chỉ M
         ns.forEach((n, i) => {
           const sg = namesIn(segs[i] || ''); if (sg.length !== 2) return;
           if (!isDef(n)) { onSeg[n] = sg; add(n, sg, n + ' = trungdiem(' + sg.join(', ') + ')', 'trung điểm', ['bang ' + sg[0] + n + ' ' + n + sg[1] + ' = #']); hit = true; }
@@ -849,7 +1027,13 @@
       while ((q = r1b.exec(snt))) { const sg = namesIn(q[2]); onSeg[q[1]] = onSeg[q[1]] || sg; add(q[1], sg, q[1] + ' = trungdiem(' + sg.join(', ') + ')', 'trung điểm', ['bang ' + sg[0] + q[1] + ' ' + q[1] + sg[1] + ' = #']); hit = true; }
       // đối xứng qua điểm / qua đường thẳng
       const rs = re('(PN)\\s+(?:là\\s+(?:điểm\\s+)?)?đối xứng\\s+(?:của\\s+|với\\s+)?(?:điểm\\s+)?(PN)\\s+qua\\s+(?:điểm\\s+|đường thẳng\\s+|cạnh\\s+)?((?:PN){1,2})(?![A-Za-z])', 'g');
-      while ((q = rs.exec(snt))) { const ax = namesIn(q[3]); add(q[1], [q[2]].concat(ax), q[1] + (ax.length === 1 ? ' = doixung(' + q[2] + ', ' + ax[0] + ')' : ' = doixungtruc(' + q[2] + ', ' + ax.join(', ') + ')'), 'đối xứng'); hit = true; }
+      while ((q = rs.exec(snt))) {
+        // nối điểm với điểm đối xứng của nó (qua tâm: đoạn đi qua tâm; qua trục: đoạn vuông góc với trục tại chân)
+        const ax = namesIn(q[3]), [n, s0] = [q[1], q[2]];
+        if (ax.length === 1) add(n, [s0].concat(ax), n + ' = doixung(' + s0 + ', ' + ax[0] + ')', 'đối xứng', ['doan ' + s0 + n]);
+        else { const h = helper(); hidden.push(h); add(n, [s0].concat(ax), h + ' = chan(' + s0 + ', ' + ax.join(', ') + ')\n' + n + ' = doixungtruc(' + s0 + ', ' + ax.join(', ') + ')', 'đối xứng', ['doan ' + s0 + n, 'vuong ' + s0 + h + ax[0], 'bang ' + s0 + h + ' ' + h + n + ' = #']); }
+        hit = true;
+      }
       // qua M kẻ đường thẳng song song (vuông góc) với BC, cắt AC tại N
       const rq = re('qua\\s+(?:điểm\\s+)?(PN)\\s*,?\\s*(?:kẻ|vẽ)?\\s*(?:đường thẳng|tia)?\\s*(?:(PN)\\s+)?(song song|vuông góc)\\s+với\\s+(?:đường thẳng\\s+|cạnh\\s+)?(PN)(PN)\\s*,?\\s*(?:và\\s+)?cắt\\s+(?:cạnh\\s+|đường thẳng\\s+|tia\\s+)?(PN)(PN)\\s+(?:lần lượt\\s+)?tại\\s+(?:điểm\\s+)?(PN)', 'g');
       while ((q = rq.exec(snt))) {
@@ -868,7 +1052,7 @@
       // "các đường cao AD, BE, CF cắt nhau tại H": giao của hai đường đầu
       const rn = re('(?<![A-Za-z])((?:PN)(?:PN))\\s*(?:,|và)\\s*((?:PN)(?:PN))(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))*\\s+(?:đồng quy|cắt nhau)\\s+tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])', 'g');
       while ((q = rn.exec(snt))) { const a = namesIn(q[1]), b = namesIn(q[2]); if (!isDef(q[3])) { add(q[3], a.concat(b), q[3] + ' = giao(' + a.concat(b).join(', ') + ')', 'giao điểm'); hit = true; } }
-      const rc = re('(?<![A-Za-z])(PN)(PN)\\s+(?:và\\s+(PN)(PN)\\s+)?cắt\\s+(?:nhau\\s+)?(?:đường thẳng\\s+|đoạn thẳng\\s+|đoạn\\s+|tia\\s+|cạnh\\s+)?(?:(PN)(PN)\\s+)?tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])', 'g');
+      const rc = re('(?<![A-Za-z])(PN)(PN)\\s+(?:và\\s+(PN)(PN)\\s+)?cắt\\s+(?:nhau\\s+)?(?:đường thẳng\\s+|đoạn thẳng\\s+|đoạn\\s+|tia\\s+|cạnh\\s+)?(?:(PN)(PN)\\s+(?:kéo dài\\s+|\\(\\s*kéo dài\\s*\\)\\s+)?)?tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])', 'g');
       const giaoDraw = (a, b, n) => add(n, a.concat(b), n + ' = giao(' + a.concat(b).join(', ') + ')', 'giao điểm', ['doan ' + a.join('') + ' ' + b.join('') + ' ' + a[0] + n + ' ' + a[1] + n + ' ' + b[0] + n + ' ' + b[1] + n]);
       // "… cắt CH tại I và cắt AN tại K": cùng một đường cắt tiếp đường khác
       const chainRe = re('^\\s*,?\\s*(?:và\\s+)?cắt\\s+(?:đường thẳng\\s+|đoạn thẳng\\s+|đoạn\\s+|tia\\s+|cạnh\\s+)?(PN)(PN)\\s+tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])');
@@ -882,9 +1066,11 @@
         const [A, B, C, D] = baseNames; add(q[5], baseNames, q[5] + ' = giao(' + A + ', ' + C + ', ' + B + ', ' + D + ')', 'giao điểm hai đường chéo', ['doan ' + A + C + ' ' + B + D]); hit = true;
       }
       // tâm đường tròn ngoại tiếp / nội tiếp; đường tròn ngoại / nội tiếp không nêu tên tâm
-      const rt = re('(?:(PN)\\s+là\\s+tâm\\s+(?:của\\s+)?đường tròn|đường tròn\\s*(?:\\(\\s*(PN)\\s*\\)|tâm\\s+(PN))?)\\s+(ngoại|nội)\\s+tiếp\\s+(?:tam giác\\s+)?([A-Z]{3})', 'g');
+      // "I là tâm đường tròn nội tiếp tam giác." (không nhắc tên): tam giác chính; "xác định tâm O và bán kính đường tròn ngoại tiếp…"
+      const rt = re('(?:(PN)\\s+là\\s+tâm\\s+(?:của\\s+)?đường tròn|tâm\\s+(PN)\\s+(?:và\\s+[^.;]*?\\s+)?(?:của\\s+)?đường tròn|đường tròn\\s*(?:\\(\\s*(PN)\\s*\\)|tâm\\s+(PN))?)\\s+(ngoại|nội)\\s+tiếp\\s*(?:tam giác\\s*)?([A-Z]{3})?', 'g');
       while ((q = rt.exec(snt))) {
-        const n = q[1] || q[2] || q[3], ns = q[5].split(''), out = q[4] === 'ngoại';
+        const n = q[1] || q[2] || q[3] || q[4], ns = (q[6] || (baseNames.length === 3 ? baseNames.join('') : tris[0] || '')).split(''), out = q[5] === 'ngoại';
+        if (ns.length !== 3) continue;
         if (n) add(n, ns, n + ' = ' + (out ? 'tamngoai' : 'tamnoi') + '(' + ns.join(', ') + ')', out ? 'tâm đường tròn ngoại tiếp' : 'tâm đường tròn nội tiếp', [(out ? 'duongtron ' + n + ' ' + ns[0] : 'noitiep ' + ns.join('')), 'diem ' + n]);
         else if (ns.every(isDef)) cons.push({ name: '', need: ns, line: '', src: '', more: [(out ? 'ngoaitiep ' : 'noitiep ') + ns.join('')] });
         hit = true;
@@ -908,8 +1094,16 @@
         }
         hit = true;
       }
+      // trong phần kết luận vẫn có thể định nghĩa điểm: "…thì trọng tâm G của tam giác ACD luôn chạy trên…"
+      if (cutAt >= 0) {
+        const r3k = re('(trọng tâm|trực tâm)\\s+(PN)\\s+(?:của\\s+)?tam giác\\s+([A-Z]{3})(?![A-Za-z])', 'g');
+        while ((q = r3k.exec(snt0.slice(cutAt)))) {
+          const n = q[2], ns = q[3].split(''); if (isDef(n)) continue;
+          add(n, ns, n + ' = ' + (q[1] === 'trực tâm' ? 'tructam' : 'trongtam') + '(' + ns.join(', ') + ')', q[1], ['diem ' + n]);
+        }
+      }
       // đường cao, trung tuyến, phân giác: "đường cao AH", "các đường trung tuyến AM, BN", "AD là phân giác của tam giác ABC"
-      const rl = re('(?:các\\s+)?(đường cao|đường trung tuyến|trung tuyến|đường phân giác(?:\\s+trong)?|phân giác)\\s+((?:PN)(?:PN)(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))*)(?:\\s+(?:của\\s+)?tam giác\\s+([A-Z]{3}))?|((?:PN)(?:PN))\\s+là\\s+(?:một\\s+)?(?:tia\\s+)?(đường cao|đường trung tuyến|trung tuyến|đường phân giác|phân giác)(?:\\s+(?:của\\s+)?tam giác\\s+([A-Z]{3}))?', 'g');
+      const rl = re('(?:các\\s+)?(đường cao|đường trung tuyến|trung tuyến|đường phân giác(?:\\s+trong)?|phân giác)\\s+((?:PN)(?:PN)(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))*)(?:\\s+(?:của\\s+)?tam giác\\s+([A-Z]{3}))?|(?<![A-Za-z])((?:PN)(?:PN)(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))*)\\s+(?:lần lượt\\s+)?là\\s+(?:một\\s+|hai\\s+|ba\\s+|các\\s+)?(?:tia\\s+)?(đường cao|đường trung tuyến|trung tuyến|đường phân giác|phân giác)(?:\\s+(?:của\\s+)?tam giác\\s+([A-Z]{3}))?', 'g');
       while ((q = rl.exec(snt))) {
         const kind = q[1] || q[5], hint = q[3] || q[6];
         listPairs(q[2] || q[4]).forEach((pq) => {
@@ -930,7 +1124,7 @@
         add(q[4], [X, V, Y, q[2], q[3]], q[4] + ' = phangiacgoc(' + [X, V, Y, q[2], q[3]].join(', ') + ')', 'phân giác', ['doan ' + V + q[4], 'goc ' + X + V + q[4] + ' ' + q[4] + V + Y]); hit = true;
       }
       // hình chiếu, chân đường vuông góc, kẻ AH ⊥ BC
-      const r4 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng)?\\s*là\\s+(?:các\\s+)?(?:hình chiếu\\s+(?:vuông góc\\s+)?|chân\\s+(?:các\\s+)?đường (?:vuông góc|cao)\\s+(?:kẻ\\s+)?)(?:của\\s+|từ\\s+)?(?:điểm\\s+)?(PN)\\s+(?:trên|lên|xuống|đến|tới)\\s+((?:(?:cạnh|đường thẳng)\\s+)?(?:PN){2}(?:\\s*(?:,|và)\\s*(?:PN){2})*)', 'g');
+      const r4 = re('((?:PN)(?:\\s*(?:,|và)\\s*PN)*)\\s+(?:lần lượt|tương ứng|theo thứ tự)?\\s*là\\s+(?:các\\s+)?(?:hình chiếu\\s+(?:vuông góc\\s+)?|chân\\s+(?:các\\s+)?đường (?:vuông góc|cao)\\s+(?:kẻ\\s+)?)(?:của\\s+|từ\\s+)?(?:điểm\\s+)?(PN)\\s+(?:trên|lên|xuống|đến|tới)\\s+((?:(?:cạnh|đường thẳng)\\s+)?(?:PN){2}(?:\\s*(?:,|và)\\s*(?:PN){2})*)', 'g');
       while ((q = r4.exec(snt))) {
         const ns = listNames(q[1]), src = q[2], tg = listPairs(q[3].replace(/cạnh|đường thẳng/g, ''));
         ns.forEach((n, i) => { const ps = namesIn(tg[i] || tg[0] || ''); if (ps.length === 2) { foot(n, src, ps, 'hình chiếu'); hit = true; } });
@@ -952,6 +1146,109 @@
         add(miss[0], [p, o, nx], miss[0] + ' = hbh(' + nx + ', ' + o + ', ' + p + ')', 'đỉnh thứ tư của ' + q[2], ['doan ' + p + miss[0] + ' ' + miss[0] + nx]); hit = true;
       }
       // trên tia (đối của tia) OX lấy điểm N sao cho ON = PQ; "N thuộc tia đối của tia OX sao cho …"
+      // trên các cạnh AB, BC, CA lấy các điểm D, E, F (sao cho AD = BE = CF)
+      const rcl = re('trên\\s+(?:các\\s+)?(?:cạnh|đoạn thẳng|đoạn)\\s+((?:PN){2}(?:\\s*(?:,|và)\\s*(?:PN){2})+)\\s*,?\\s*(?:lần lượt\\s+)?lấy\\s+(?:các\\s+|hai\\s+|ba\\s+)?(?:điểm\\s+)?((?:PN)(?:\\s*(?:,|và)\\s*PN)+)(?:\\s+sao cho\\s+([^.;]+))?', 'g');
+      while ((q = rcl.exec(snt))) {
+        const sgs = listPairs(q[1]).map(namesIn), ns = listNames(q[2]);
+        const terms = (q[3] || '').split('=').map((x) => namesIn(x)).filter((x) => x.length === 2);
+        let first = null;
+        ns.forEach((n, i) => {
+          const sg = sgs[i]; if (!sg || sg.length !== 2 || isDef(n)) return;
+          const tm = terms.find((x) => x.includes(n)), P0 = tm ? tm.find((x) => x !== n) : sg[0], Q0 = sg.find((x) => x !== P0) || sg[1];
+          if (tm && first && sg.includes(P0)) add(n, [P0, Q0].concat(first), n + ' = dat(' + P0 + ', ' + Q0 + ', ' + first.join(', ') + ')', 'điểm trên cạnh');
+          else { add(n, [P0, Q0], n + ' = chia(' + P0 + ', ' + Q0 + ', ' + (tm ? 0.35 : 0.45) + ')', 'điểm trên cạnh'); if (tm) first = [P0, n]; }
+          onSeg[n] = sg;
+        });
+        if (terms.length >= 2) cons.push({ name: '', need: ns, line: '', src: '', more: ['bang ' + terms.map((x) => x.join('')).join(' ') + ' = #'] });
+        hit = true;
+      }
+      // đường trung trực d của đoạn thẳng AB (đường thẳng có tên); điểm trên đó dựng bởi các mẫu "M thuộc d"
+      const rtr = re('đường trung trực\\s+(PN)(PN)\\s+(?:của\\s+)?(?:đoạn thẳng\\s+|đoạn\\s+|cạnh\\s+)?(PN)(PN)(?![A-Za-z])', 'g');
+      while ((q = rtr.exec(snt))) {
+        const [X, Y, A0, B0] = [q[1], q[2], q[3], q[4]]; if (isDef(X)) continue;
+        const z = helper(), h = helper(); hidden.push(z, h);
+        add(X, [A0, B0], z + ' = trungdiem(' + A0 + ', ' + B0 + ')\n' + h + ' = quay(' + A0 + ', ' + z + ', 90)\n' + X + ' = chia(' + z + ', ' + h + ', 1.7)\n' + Y + ' = doixung(' + X + ', ' + z + ')', 'đường trung trực', ['doan ' + X + Y, 'vuong ' + X + z + B0, 'bang ' + A0 + z + ' ' + z + B0 + ' = #']);
+        cons.push({ name: Y, need: [X], line: '', src: '', more: [] }); lineThrough[X + Y] = z; hit = true;
+      }
+      // các đường trung trực của AB và AC cắt nhau tại O / O là giao điểm của các đường trung trực…
+      const rtr2 = re('(?:(PN)\\s+là\\s+giao điểm\\s+(?:của\\s+)?)?(?:các\\s+|hai\\s+|ba\\s+)?đường trung trực\\s+(?:của\\s+)?(?:các\\s+|hai\\s+)?(?:cạnh\\s+|đoạn thẳng\\s+)?(PN)(PN)\\s*(?:,|và)\\s*(?:cạnh\\s+|đoạn thẳng\\s+)?(PN)(PN)(?:\\s*(?:,|và)\\s*(?:PN)(?:PN))?(?:\\s+(?:của tam giác\\s+[A-Z]{3}\\s+)?cắt nhau\\s+tại\\s+(?:điểm\\s+)?(PN))?', 'g');
+      while ((q = rtr2.exec(snt))) {
+        const n = q[1] || q[6], ns = [...new Set([q[2], q[3], q[4], q[5]])]; if (!n || isDef(n) || ns.length !== 3) continue;
+        const m1 = helper(), m2 = helper(); hidden.push(m1, m2);
+        add(n, ns, m1 + ' = trungdiem(' + q[2] + ', ' + q[3] + ')\n' + m2 + ' = trungdiem(' + q[4] + ', ' + q[5] + ')\n' + n + ' = tamngoai(' + ns.join(', ') + ')', 'giao các đường trung trực',
+          ['doan ' + m1 + n + ' ' + m2 + n, 'vuong ' + n + m1 + q[3] + ' ' + n + m2 + q[5], 'bang ' + q[2] + m1 + ' ' + m1 + q[3] + ' = #', 'bang ' + q[4] + m2 + ' ' + m2 + q[5] + ' = #', 'diem ' + n]);
+        hit = true;
+      }
+      // các tia phân giác của góc B và góc C cắt nhau tại I
+      const rpg2 = re('(?:các\\s+|hai\\s+)?(?:tia\\s+|đường\\s+)?phân giác\\s+(?:trong\\s+)?(?:của\\s+)?(?:các\\s+|hai\\s+)?góc\\s+(PN)\\s+và\\s+(?:góc\\s+)?(PN)(?:\\s+của tam giác\\s+[A-Z]{3})?\\s+cắt nhau\\s+tại\\s+(?:điểm\\s+)?(PN)', 'g');
+      while ((q = rpg2.exec(snt))) {
+        const n = q[3], tr = (tris.find((x) => x.includes(q[1]) && x.includes(q[2])) || '').split(''); if (isDef(n) || tr.length !== 3) continue;
+        const o = tr.find((c) => c !== q[1] && c !== q[2]);
+        add(n, tr, n + ' = tamnoi(' + tr.join(', ') + ')', 'giao hai phân giác', ['doan ' + q[1] + n + ' ' + q[2] + n, 'goc ' + o + q[1] + n + ' ' + n + q[1] + q[2], 'goc ' + o + q[2] + n + ' ' + n + q[2] + q[1]]);
+        hit = true;
+      }
+      // điểm M nằm (bên) trong tam giác ABC: không trùng trọng tâm để không lẫn với điểm đặc biệt
+      const rin = re('(?:điểm\\s+)?(?<![A-Za-z])(PN)\\s+(?:là\\s+(?:một\\s+)?điểm\\s+)?(?:bất k[ìỳ]\\s+)?(?:nằm\\s+)?(?:ở\\s+)?(?:bên\\s+)?trong\\s+(?:tam giác|tứ giác)\\s*([A-Z]{3,4})?(?![A-Za-z])', 'g');
+      while ((q = rin.exec(snt))) {
+        const n = q[1], ns = (q[2] || (baseNames.length >= 3 ? baseNames.join('') : '')).split(''); if (isDef(n) || ns.length < 3) continue;
+        add(n, ns.slice(0, 3), n + ' = tohop(0.5, ' + ns[0] + ', 0.3, ' + ns[1] + ', 0.2, ' + ns[2] + ')', 'điểm trong tam giác', ['diem ' + n]); hit = true;
+      }
+      // dựng ra phía ngoài (trong) tam giác ABC: tam giác đều ABD, ACE; hình vuông ABDE; tam giác vuông cân ABD tại A
+      const rout2 = re('(?:vẽ|dựng)\\s+(?:về\\s+)?(?:phía\\s+ngoài\\s+(?:của\\s+)?tam giác\\s+[A-Z]{3}\\s+)?(?:các\\s+|hai\\s+)?(tam giác đều|tam giác vuông cân|hình vuông)\\s+((?:[A-Z]{3,4})(?:\\s*(?:,|và)\\s*[A-Z]{3,4})*)(?:\\s+tại\\s+(PN))?([^.;]*)', 'g');
+      while ((q = rout2.exec(snt))) {
+        const kind = q[1], shapes = q[2].match(/[A-Z]{3,4}/g), rest = q[0];
+        const inside = /phía\s+trong|cùng phía/.test(rest) && !/ngoài|khác phía/.test(rest);
+        shapes.forEach((sh) => {
+          const ns = sh.split(''), known = ns.filter((c) => P[c]), fresh = ns.filter((c) => !P[c] && !isDef(c));
+          if (known.length !== 2 || !fresh.length) return;
+          const [X, Y] = known, W = baseNames.find((c) => c !== X && c !== Y && P[c]);
+          const rot = (p, o, deg) => { const a = deg * Math.PI / 180, dx = p[0] - o[0], dy = p[1] - o[1]; return [o[0] + dx * Math.cos(a) - dy * Math.sin(a), o[1] + dx * Math.sin(a) + dy * Math.cos(a)]; };
+          const far = (deg) => { if (!W) return 1; const c = rot(P[Y], P[X], deg), d = Math.hypot(c[0] - P[W][0], c[1] - P[W][1]); const c2 = rot(P[Y], P[X], -deg), d2 = Math.hypot(c2[0] - P[W][0], c2[1] - P[W][1]); return (d > d2) !== inside ? 1 : -1; };
+          if (kind === 'tam giác đều') { const Z = fresh[0], s = far(60); add(Z, [X, Y], Z + ' = quay(' + Y + ', ' + X + ', ' + 60 * s + ')', 'tam giác đều', ['doan ' + X + Z + ' ' + Y + Z, 'bang ' + X + Y + ' ' + Y + Z + ' ' + Z + X + ' = #']); }
+          else if (kind === 'tam giác vuông cân') { const V = q[3] && known.includes(q[3]) ? q[3] : X, U = V === X ? Y : X, Z = fresh[0], s = far(90); add(Z, [X, Y], Z + ' = quay(' + U + ', ' + V + ', ' + 90 * s * (V === X ? 1 : -1) + ')', 'tam giác vuông cân', ['doan ' + V + Z + ' ' + U + Z, 'vuong ' + U + V + Z, 'bang ' + V + U + ' ' + V + Z + ' = #']); }
+          else if (fresh.length === 2) {
+            // hình vuông XYZT theo thứ tự đỉnh trong tên: hai đỉnh mới quay từ hai đỉnh đã có
+            const i0 = ns.indexOf(X), i1 = ns.indexOf(Y), [A1, B1] = (i1 === (i0 + 1) % 4) ? [X, Y] : [Y, X];
+            const C1 = ns[(ns.indexOf(B1) + 1) % 4], D1 = ns[(ns.indexOf(B1) + 2) % 4];
+            const s = (() => { const rA = rot(P[A1], P[B1], 90), rB = rot(P[A1], P[B1], -90); if (!W) return 1; return (Math.hypot(rA[0] - P[W][0], rA[1] - P[W][1]) > Math.hypot(rB[0] - P[W][0], rB[1] - P[W][1])) !== inside ? 1 : -1; })();
+            add(C1, [A1, B1], C1 + ' = quay(' + A1 + ', ' + B1 + ', ' + 90 * s + ')\n' + D1 + ' = hbh(' + B1 + ', ' + A1 + ', ' + C1 + ')', 'hình vuông', ['doan ' + B1 + C1 + ' ' + C1 + D1 + ' ' + D1 + A1, 'vuong ' + A1 + B1 + C1]);
+            cons.push({ name: D1, need: [C1], line: '', src: '', more: [] });
+          }
+        });
+        hit = true;
+      }
+      // O là giao điểm (của) hai đường chéo (tứ giác chính)
+      if (baseNames.length === 4 && (q = re('(PN)\\s+là\\s+giao điểm\\s+(?:của\\s+)?(?:hai\\s+)?đường chéo').exec(snt))) {
+        const [A, B, C, D] = baseNames; add(q[1], baseNames, q[1] + ' = giao(' + A + ', ' + C + ', ' + B + ', ' + D + ')', 'giao điểm hai đường chéo', ['doan ' + A + C + ' ' + B + D]); hit = true;
+      }
+      // qua O kẻ (một) đường thẳng cắt AB tại E và cắt CD tại F / cắt AB, CD lần lượt tại E, F
+      const rqo = re('qua\\s+(?:điểm\\s+)?(PN)\\s*,?\\s*(?:kẻ|vẽ)\\s+(?:một\\s+)?đường thẳng\\s+(?:bất k[ìỳ]\\s+)?(?:\\(?[^()]{0,40}\\)?\\s*)?cắt\\s+(?:cạnh\\s+|đường thẳng\\s+)?(PN)(PN)\\s+(?:tại\\s+(PN)\\s+và\\s+cắt\\s+(?:cạnh\\s+|đường thẳng\\s+)?(PN)(PN)\\s+tại\\s+(PN)|(?:,|và)\\s*(?:cạnh\\s+)?(PN)(PN)\\s+(?:lần lượt\\s+)?tại\\s+(PN)\\s*(?:,|và)\\s*(PN))', 'g');
+      while ((q = rqo.exec(snt))) {
+        const O = q[1], [X, Y] = [q[2], q[3]], [U, V] = q[4] ? [q[5], q[6]] : [q[8], q[9]], E = q[4] || q[10], F = q[7] || q[11];
+        if (isDef(E) || isDef(F)) continue;
+        add(E, [X, Y], E + ' = chia(' + X + ', ' + Y + ', 0.3)', 'đường thẳng qua ' + O, ['doan ' + E + F]);
+        add(F, [E, O, U, V], F + ' = giao(' + E + ', ' + O + ', ' + U + ', ' + V + ')', 'đường thẳng qua ' + O);
+        onSeg[E] = [X, Y]; hit = true;
+      }
+      // vẽ tia Ot nằm trong góc xOy (giữa hai tia, lệch về phía Ox)
+      const rtg = re('tia\\s+(PN)(PN)\\s+(?:nằm\\s+)?(?:trong|ở trong|nằm giữa)\\s+(?:góc\\s+)?(PN)(PN)(PN)', 'g');
+      while ((q = rtg.exec(snt))) {
+        const [O, T, A0, V, B0] = [q[1], q[2], q[3], q[4], q[5]];
+        if (O !== V || isDef(T)) continue;
+        const h = helper(); hidden.push(h); add(T, [O, A0, B0], h + ' = chia(' + A0 + ', ' + B0 + ', 0.42)\n' + T + ' = dat(' + O + ', ' + h + ', ' + O + ', ' + A0 + ')', 'tia nằm trong góc', ['doan ' + O + T]); hit = true;
+      }
+      // trên tia Ox lấy hai điểm A và B (sao cho OA = 3 cm, OB = 6 cm)
+      const rtia2 = re('trên\\s+tia\\s+(PN)(PN)\\s*,?\\s*lấy\\s+(?:hai|ba|các)\\s+điểm\\s+((?:PN)(?:\\s*(?:,|và)\\s*PN)+)', 'g');
+      while ((q = rtia2.exec(snt))) {
+        const O = q[1], X = q[2], ns = listNames(q[3]);
+        ns.forEach((n, i) => {
+          if (isDef(n)) return;
+          const w = re('(?:' + O + n + '|' + n + O + ')\\s*=\\s*(\\d+(?:[.,]\\d+)?)').exec(snt), r = w && lenOf(w[1]);
+          add(n, [O, X], n + (r ? ' = dat(' + O + ', ' + X + ', ' + r2(r.v) + ')' : ' = chia(' + O + ', ' + X + ', ' + r2((i + 1) / (ns.length + 1)) + ')'), 'điểm trên tia', ['doan ' + O + n]);
+          onSeg[n] = [O, X];
+        });
+        hit = true;
+      }
       const rtia = re('(?:trên\\s+tia\\s+(?:phân giác\\s+)?(đối\\s+của\\s+tia\\s+)?(PN)(PN)\\s*,?\\s*lấy\\s+(?:một\\s+)?(?:điểm\\s+)?(PN)|(PN)\\s+(?:là\\s+(?:một\\s+)?điểm\\s+)?(?:bất k[ìỳ]\\s+)?(?:thuộc|nằm trên|trên)\\s+tia\\s+(?:phân giác\\s+)?(đối\\s+của\\s+tia\\s+)?(PN)(PN))(?:\\s+sao cho\\s+([^,;.]+))?', 'g');
       while ((q = rtia.exec(snt))) {
         const opp = !!(q[1] || q[6]), O = q[2] || q[7], X = q[3] || q[8], n = q[4] || q[5];
@@ -979,6 +1276,8 @@
       while ((q = r6.exec(snt))) {
         const n = q[1] || q[4], sg = namesIn(q[2] || q[3]); if (sg.length !== 2 || isDef(n)) continue;
         let k = 0.4, ok = !q[5] || /bất k[ìỳ]/.test(q[0]);
+        // "lấy điểm B thuộc d (B) khác H": đặt xa điểm đã nêu để hai điểm không sát nhau
+        if (re('^\\s*,?\\s*\\(?\\s*(?:PN\\s*)?(?:khác|≠|\\\\ne)\\s').test(snt.slice(r6.lastIndex) + ' ')) k = 0.82;
         if (q[5]) {
           const c3 = q[5].replace(/\s+/g, '');
           let w;
@@ -1000,7 +1299,10 @@
             }
           }
         }
-        add(n, sg, n + ' = chia(' + sg.join(', ') + ', ' + r2(k) + ')', 'điểm trên cạnh');
+        // đường thẳng có điểm gốc (trung trực d qua trung điểm): đặt điểm cách gốc một khoảng vừa phải, không sát đoạn AB
+        const thr = lineThrough[sg.join('')];
+        if (thr && !q[5]) add(n, sg, n + ' = chia(' + thr + ', ' + sg[0] + ', 0.75)', 'điểm trên đường thẳng');
+        else add(n, sg, n + ' = chia(' + sg.join(', ') + ', ' + r2(k) + ')', 'điểm trên cạnh');
         onSeg[n] = sg;
         if (!ok) notes.push('điểm ' + n + ' trên ' + sg.join('') + ': chưa rõ vị trí, đặt tạm');
         hit = true;
@@ -1008,7 +1310,8 @@
       // đường tròn (B; BA), đường tròn tâm B bán kính BA, đường tròn đường kính BC
       const rd = re('đường tròn\\s*(?:\\(\\s*(PN)\\s*;\\s*(PN)(PN)\\s*\\)|tâm\\s+(PN)\\s*,?\\s*bán kính\\s+(PN)(PN)|đường kính\\s+(PN)(PN))', 'g');
       while ((q = rd.exec(snt))) {
-        if (q[7]) { const h = helper(); cons.push({ name: h, need: [q[7], q[8]], line: h + ' = trungdiem(' + q[7] + ', ' + q[8] + ')', src: '', more: ['duongtron ' + h + ' ' + q[7]] }); hidden.push(h); }
+        if (q[7] && diaReg[[q[7], q[8]].sort().join('')]) { hit = true; continue; }
+        if (q[7]) { const h = helper(); diaReg[[q[7], q[8]].sort().join('')] = h; circReg[h] = q[7]; circOn[h] = [q[7], q[8]]; cons.push({ name: h, need: [q[7], q[8]], line: h + ' = trungdiem(' + q[7] + ', ' + q[8] + ')', src: '', more: ['duongtron ' + h + ' ' + q[7]] }); hidden.push(h); }
         else { const c = q[1] || q[4], a = q[1] ? q[2] : q[5], b = q[1] ? q[3] : q[6]; cons.push({ name: '', need: [c, a, b], line: '', src: '', more: ['duongtron ' + c + ' ' + (a === c ? b : a)] }); }
         hit = true;
       }
@@ -1067,7 +1370,10 @@
     const out = [], seen = new Set();
     const push = (s) => { if (!seen.has(s)) { seen.add(s); out.push(s); } };
     after.filter((s) => /^(doan|duongthang|tia|duongtron|ngoaitiep|noitiep|thanghang)/.test(s)).forEach((s) => { push(s); if (/^doan/.test(s)) s.slice(5).trim().split(/\s+/).forEach((sg) => { const ns = namesIn(sg); if (ns.length === 2) edge(ns[0], ns[1]); }); });
-    (t.match(/(?:tam giác|tứ giác|hình bình hành|hình chữ nhật|hình thoi|hình vuông|hình thang)\s+(?:\S+\s+)?([A-Z]{3,4})(?![A-Za-z'])/g) || []).forEach((x) => {
+    // đa giác được nhắc tới: "tứ giác ABCD", "hình chữ nhật ABDC", và cả "ABDC là hình chữ nhật" (tên đứng trước)
+    const polyM = (t.match(/(?:tam giác|tứ giác|hình bình hành|hình chữ nhật|hình thoi|hình vuông|hình thang)\s+(?:\S+\s+)?([A-Z]{3,4})(?![A-Za-z'])/g) || [])
+      .concat((t.match(/(?<![A-Za-z])[A-Z]{4}(?=\s+(?:là|cũng là)\s+(?:một\s+)?(?:tứ giác|hình bình hành|hình chữ nhật|hình thoi|hình vuông|hình thang))/g) || []));
+    polyM.forEach((x) => {
       const ns = namesIn(/([A-Z]{3,4})$/.exec(x)[1]);
       if (ns.every((n) => made.has(n)) && ns.join('') !== baseNames.join('')) { const sg = ns.map((n, i) => [n, ns[(i + 1) % ns.length]]).filter((p) => !edges.has(key(p[0], p[1]))); if (sg.length) push('doan ' + sg.map((p) => p.join('')).join(' ')); cyc(ns); }
     });
@@ -1102,7 +1408,11 @@
     }
     // cạnh có điểm lấy trên đó (vd trung điểm M của AB): không ghi độ dài giữa cạnh để khỏi đè tên điểm
     const busyEdge = (s) => { const m3 = /^ghi\s+(\S+)/.exec(s); if (!m3) return false; const e = namesIn(m3[1]).sort().join(); return Object.keys(onSeg).some((n) => made.has(n) && onSeg[n].slice().sort().join() === e); };
-    marks.filter((s) => !/^(vuong|diem)/.test(s) && markOk(s) && !busyEdge(s)).forEach((s) => { if (!lines.includes(s)) lines.push(s); });
+    // dấu bằng nhau đặt ở giữa cạnh: cạnh đã có điểm lấy trên đó (D trên AB của tam giác đều…) thì bỏ dấu của cạnh nguyên,
+    // để không lẫn với dấu của các đoạn con (AD = BE = CF)
+    const baseEdge = (e) => baseNames.some((n, i) => [n, baseNames[(i + 1) % baseNames.length]].sort().join() === e);
+    const busyTick = (s) => /^bang /.test(s) && s.replace(/=.*$/, '').trim().split(/\s+/).slice(1).some((g) => { const e = namesIn(g).sort().join(); return baseEdge(e) && Object.keys(onSeg).some((n) => made.has(n) && onSeg[n].slice().sort().join() === e); });
+    marks.filter((s) => !/^(vuong|diem)/.test(s) && markOk(s) && !busyEdge(s) && !busyTick(s)).forEach((s) => { if (!lines.includes(s)) lines.push(s); });
     marks.filter((s) => /^diem/.test(s)).forEach((s) => namesIn(s.slice(5)).forEach((n) => dots.add(n)));
     // điểm lấy trên một đoạn mà không có đường nào khác đi tới: chấm điểm cho thấy vị trí (như SGK);
     // điểm là đầu mút của một đoạn khác (giao, chỗ nối) thì đã thấy rõ, không chấm
@@ -1112,6 +1422,8 @@
     // nhãn viết thường của tia, đường thẳng (x, y, z, t, d); điểm thứ hai của đường thẳng một tên (d) thì ẩn
     Object.keys(lcLabel).forEach((c) => { if (made.has(c)) { lines.push('nhan ' + c + ' = ' + lcLabel[c]); dots.delete(c); } });
     lcHide.forEach((c) => { if (made.has(c)) { hidden.push(c); dots.delete(c); } });
+    // tên có chỉ số (G_1, G_2 trong đề): nhãn viết chỉ số dưới
+    [...made].filter((n) => /^[A-Z]\d$/.test(n) && !lcLabel[n]).forEach((n) => lines.push('nhan ' + n + ' = ' + n[0] + '_{' + n[1] + '}'));
     const dd = [...dots].filter((n) => made.has(n));
     if (dd.length) lines.push('diem ' + dd.join(' '));
     const hh = hidden.filter((n) => made.has(n));
@@ -1119,7 +1431,7 @@
     // câu có vẻ là dựng hình nhưng chưa hiểu
     sentences.forEach((snt, si) => {
       if (used.has(si)) return;
-      if (/(chứng minh|tính|tìm|xác định|hỏi|so sánh|giải thích|vì sao)/i.test(snt)) return;
+      if (/(chứng minh|chứng tỏ|tính|tìm|xác định|hỏi|so sánh|giải thích|vì sao|có bằng|có song song|có vuông góc)/i.test(snt)) return;
       if (base.i != null && t.indexOf(snt) <= base.i && t.indexOf(snt) + snt.length >= base.end) return;
       if (re('(PN)\\s+(?:là|thuộc)\\s+|kẻ\\s+|vẽ\\s+|sao cho|lấy điểm|dựng\\s+').test(snt)) unknown.push(snt.trim());
     });
