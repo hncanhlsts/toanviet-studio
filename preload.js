@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   testClick: (x, y) => ipcRenderer.invoke('test-click', { x, y }),
   testShot: (file) => ipcRenderer.invoke('test-shot', file),
   testKeys: (seq) => ipcRenderer.invoke('test-keys', seq),
+  testMouse: (seq) => ipcRenderer.invoke('test-mouse', seq),
   lib: (o) => ipcRenderer.invoke('lib', o),
   shared: (o) => ipcRenderer.invoke('shared', o),
   report: (o) => ipcRenderer.invoke('report', o),

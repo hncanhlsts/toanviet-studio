@@ -29,6 +29,8 @@ function createWindow() {
   if (!shotArg) bootLog('Mở ToanViet Studio ' + app.getVersion() + ' ' + process.argv.slice(1).filter((a) => a.startsWith('--')).join(' '));
   win = new BrowserWindow({
     width: office && office.mode !== 'full' ? 1080 : 1400, height: office && office.mode !== 'full' ? 760 : 900, minWidth: 980, minHeight: 600,
+    // quay video giới thiệu (chế độ kiểm thử): cửa sổ đúng khung 16:9, vd TVS_WIN_SIZE=1600x900
+    ...(shotArg && /^\d+x\d+$/.test(process.env.TVS_WIN_SIZE || '') ? { width: +process.env.TVS_WIN_SIZE.split('x')[0], height: +process.env.TVS_WIN_SIZE.split('x')[1], useContentSize: true } : {}),
     title: 'ToanViet Studio',
     show: true,
     webPreferences: { additionalArguments: office ? ['--tvs-office=' + office.app, '--tvs-mode=' + office.mode, '--tvs-size=' + (parseFloat(argVal('--size')) || 0), '--tvs-op=' + office.op] : [], preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, spellcheck: false },
@@ -432,7 +434,7 @@ ipcMain.handle('test-click', async (e, p) => {
 ipcMain.handle('test-shot', async (e, file) => {
   if (!shotArg) return false;
   const img = await e.sender.capturePage();
-  fs.writeFileSync(String(file), img.toPNG());
+  fs.writeFileSync(String(file), /\.jpg$/i.test(String(file)) ? img.toJPEG(92) : img.toPNG());
   return true;
 });
 // kiểm thử giao diện: gõ phím thật (sự kiện tin cậy) — chỉ khi chạy ở chế độ kiểm thử.
@@ -456,6 +458,22 @@ ipcMain.handle('test-keys', async (e, seq) => {
       wc.sendInputEvent({ type: 'keyUp', keyCode: it.key, modifiers });
       await pause();
     }
+  }
+  return true;
+});
+// kiểm thử / quay video giới thiệu: chuỗi thao tác chuột thật (di, nhấn, thả, nhấp đúp, cuộn) — chỉ khi chạy ở chế độ kiểm thử.
+// Mỗi mục: { t: 'move' | 'down' | 'up' | 'dbl' | 'wheel', x, y, dy, wait }
+ipcMain.handle('test-mouse', async (e, seq) => {
+  if (!shotArg) return false;
+  const wc = e.sender;
+  for (const it of seq) {
+    const x = Math.round(it.x), y = Math.round(it.y);
+    if (it.t === 'move') wc.sendInputEvent({ type: 'mouseMove', x, y, button: it.drag ? 'left' : undefined, modifiers: it.drag ? ['leftButtonDown'] : [] });
+    else if (it.t === 'down') wc.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: 1 });
+    else if (it.t === 'up') wc.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: 1 });
+    else if (it.t === 'dbl') { for (const c of [1, 2]) { wc.sendInputEvent({ type: 'mouseDown', x, y, button: 'left', clickCount: c }); wc.sendInputEvent({ type: 'mouseUp', x, y, button: 'left', clickCount: c }); } }
+    else if (it.t === 'wheel') wc.sendInputEvent({ type: 'mouseWheel', x, y, deltaX: 0, deltaY: it.dy || -100 });
+    if (it.wait) await new Promise((r) => setTimeout(r, it.wait));
   }
   return true;
 });

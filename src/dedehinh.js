@@ -622,7 +622,8 @@
       while ((q = rl.exec(snt))) {
         const kind = q[1] || q[5], hint = q[3] || q[6];
         listPairs(q[2] || q[4]).forEach((pq) => {
-          const [v, n] = namesIn(pq); if (!v || !n || isDef(n) || !isDef(v)) return;
+          const [v, n] = namesIn(pq); if (!v || !n || !isDef(v)) return;
+          if (isDef(n)) { hit = true; return; } // điểm đã dựng (vd lời giải nhắc lại "AM là đường trung tuyến"): câu đã hiểu
           const o = opp(v, hint); if (!o) return;
           if (/cao/.test(kind)) foot(n, v, o, 'đường cao');
           else if (/trung tuyến/.test(kind)) add(n, o, n + ' = trungdiem(' + o.join(', ') + ')', 'trung tuyến', ['doan ' + v + n, 'bang ' + o[0] + n + ' ' + n + o[1] + ' = #']);

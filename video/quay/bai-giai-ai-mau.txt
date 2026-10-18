@@ -1,0 +1,18 @@
+Chắc chắn rồi! Dưới đây là lời giải chi tiết cho hai bài toán của bạn.
+
+**Câu 1.** Cho tam giác $ABC$ vuông tại $A$ có $AB = 6$ cm, $AC = 8$ cm, đường cao $AH$. Gọi $M$ là trung điểm của $BC$. Tính $AH$ và $AM$.
+
+**Lời giải:**
+
+Áp dụng định lí Pythagore cho tam giác $ABC$ vuông tại $A$: $BC = \sqrt{AB^2 + AC^2} = \sqrt{36 + 64} = 10$ cm.
+Ta có $AH \cdot BC = AB \cdot AC$ nên $AH = \dfrac{6 \cdot 8}{10} = 4.8$ cm.
+Vì $AM$ là đường trung tuyến ứng với cạnh huyền nên $AM = \dfrac{BC}{2} = 5$ cm.
+
+**Câu 2.** Cho hình chóp $S.ABCD$ có đáy $ABCD$ là hình vuông cạnh $a$, $SA \perp (ABCD)$. Gọi $O$ là giao điểm của $AC$ và $BD$, $M$ là trung điểm của $SC$. Chứng minh $OM \perp (ABCD)$.
+
+**Lời giải:**
+
+Vì $O, M$ lần lượt là trung điểm của $AC, SC$ nên $OM$ là đường trung bình của tam giác $SAC$, suy ra $OM \parallel SA$.
+Mà $SA \perp (ABCD)$ nên $OM \perp (ABCD)$.
+
+Hy vọng lời giải này hữu ích cho bạn! Nếu cần thêm bài tập tương tự, hãy cho mình biết nhé. 😊

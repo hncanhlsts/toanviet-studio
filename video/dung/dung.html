@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Dựng video</title></head>
+<body style="margin:0;background:#fff">
+<canvas id="cv" width="1920" height="1080"></canvas>
+<script>
+// Vẽ từng khung 1920×1080 theo kịch bản dựng, mã hoá VP9 (WebCodecs), ghi WebM.
+const fs = require('fs'), path = require('path'), { ipcRenderer } = require('electron');
+const { WebmWriter } = require('./webm.js');
+const ROOT = path.join(__dirname, '..');
+const KB = require('./canh.js');
+const args = new URLSearchParams(location.search).get('args') || '';
+const arg = (n) => { const m = new RegExp('--' + n + '=(\\S+)').exec(args); return m ? m[1] : null; };
+const W = 1920, H = 1080, FPS = KB.fps || 30;
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const FONT = '"Segoe UI", "Segoe UI Variable", Arial, sans-serif';
+const C = { blue: '#1f5fbf', dark: '#14233d', band: 'rgba(16, 32, 64, 0.86)', gold: '#ffd166' };
+const ease = (k) => (k <= 0 ? 0 : k >= 1 ? 1 : k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
+
+// ---------- dữ liệu các cảnh quay ----------
+const REC = {};
+const recOf = (name) => {
+  if (!REC[name]) {
+    const dir = path.join(ROOT, 'khung', name), m = JSON.parse(fs.readFileSync(path.join(dir, 'meta.json'), 'utf8'));
+    m.dir = dir; m.mark = (x) => Array.isArray(x) ? m.mark(x[0]) + x[1] * 1000 : (typeof x === 'number' ? x * 1000 : (m.marks.find((k) => k.name === x) || { t: x === 'het' ? m.frames[m.frames.length - 1].t : 0 }).t);
+    REC[name] = m;
+  }
+  return REC[name];
+};
+const frameAt = (m, ms) => { const a = m.frames; let lo = 0, hi = a.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (a[mid].t <= ms) lo = mid; else hi = mid - 1; } return a[lo].f; };
+const IMG = new Map();
+async function img(file) {
+  if (IMG.has(file)) return IMG.get(file);
+  const bmp = await createImageBitmap(new Blob([fs.readFileSync(file)]));
+  IMG.set(file, bmp);
+  if (IMG.size > 24) { const k = IMG.keys().next().value; IMG.get(k).close(); IMG.delete(k); }
+  return bmp;
+}
+// ---------- thời gian biểu ----------
+const SEG = []; let T = 0;
+KB.segments.filter((s) => !(s.rec && s.optional && !fs.existsSync(path.join(ROOT, 'khung', s.rec, 'meta.json')))).forEach((s) => {
+  let dur = s.dur;
+  if (s.rec) { const m = recOf(s.rec); s.m = m; s.a = m.mark(s.from || 0); s.b = m.mark(s.to || 'het'); s.speed = s.speed || 1; if (!dur) dur = (s.b - s.a) / 1000 / s.speed + (s.hold || 0); }
+  SEG.push(Object.assign(s, { t0: T, dur })); T += dur;
+});
+const TOTAL = T;
+
+// ---------- vẽ ----------
+function wrap(text, maxW, font) {
+  ctx.font = font; const words = text.split(' '), lines = []; let cur = '';
+  words.forEach((wd) => { const t = cur ? cur + ' ' + wd : wd; if (ctx.measureText(t.replace(/\*\*/g, '')).width > maxW && cur) { lines.push(cur); cur = wd; } else cur = t; });
+  if (cur) lines.push(cur); return lines;
+}
+// chữ có đoạn **đậm** (tô vàng), căn giữa tại cx
+function richLine(line, cx, y, size, color) {
+  const parts = line.split('**'); let tot = 0;
+  parts.forEach((p, i) => { ctx.font = (i % 2 ? '700 ' : '500 ') + size + 'px ' + FONT; tot += ctx.measureText(p).width; });
+  let x = cx - tot / 2;
+  parts.forEach((p, i) => { ctx.font = (i % 2 ? '700 ' : '500 ') + size + 'px ' + FONT; ctx.fillStyle = i % 2 ? C.gold : color; ctx.fillText(p, x, y); x += ctx.measureText(p).width; });
+}
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function caption(text, alpha) {
+  if (!text || alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha;
+  const size = 42, lines = wrap(text, 1560, '500 ' + size + 'px ' + FONT), bh = 40 + lines.length * 58;
+  ctx.fillStyle = C.band; rrect(120, H - bh - 36, W - 240, bh, 18); ctx.fill();
+  ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => richLine(l, W / 2, H - bh - 36 + 20 + 29 + i * 58, size, '#ffffff'));
+  ctx.restore();
+}
+function chip(title, tag, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.textBaseline = 'middle';
+  ctx.font = '700 40px ' + FONT; const tw = ctx.measureText(title).width;
+  ctx.font = '600 26px ' + FONT; const gw = tag ? ctx.measureText(tag).width + 36 : 0;
+  const w = Math.max(tw, gw) + 64, h = tag ? 128 : 84, x = 48, y = 48;
+  ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 24;
+  ctx.fillStyle = '#ffffff'; rrect(x, y, w, h, 18); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.fillStyle = C.blue; rrect(x, y, 12, h, 6); ctx.fill();
+  ctx.fillStyle = C.dark; ctx.font = '700 40px ' + FONT; ctx.fillText(title, x + 36, y + 44);
+  if (tag) { ctx.fillStyle = '#e8f0fc'; rrect(x + 36, y + 80, gw, 36, 18); ctx.fill(); ctx.fillStyle = C.blue; ctx.font = '600 26px ' + FONT; ctx.fillText(tag, x + 54, y + 99); }
+  ctx.restore();
+}
+function keyBadge(label, alpha) {
+  if (alpha <= 0) return;
+  ctx.save(); ctx.globalAlpha = alpha; ctx.textBaseline = 'middle';
+  ctx.font = '700 40px ' + FONT; const parts = label.split(' + ');
+  const ws = parts.map((p) => ctx.measureText(p).width + 44), plus = 40, tot = ws.reduce((a, b) => a + b, 0) + plus * (parts.length - 1);
+  let x = W - 60 - tot; const y = 60;
+  parts.forEach((p, i) => {
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 16; ctx.fillStyle = '#ffffff'; rrect(x, y, ws[i], 76, 14); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#9fb3d1'; ctx.lineWidth = 3; rrect(x, y, ws[i], 76, 14); ctx.stroke();
+    ctx.fillStyle = C.dark; ctx.fillText(p, x + 22, y + 39); x += ws[i];
+    if (i < parts.length - 1) { ctx.fillStyle = C.dark; ctx.shadowColor = 'rgba(255,255,255,0.9)'; ctx.shadowBlur = 8; ctx.fillText('+', x + 9, y + 37); ctx.shadowBlur = 0; x += plus; }
+  });
+  ctx.restore();
+}
+function cursor(x, y, down, scale) {
+  const s = 1.25 * scale;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (down) { ctx.fillStyle = 'rgba(31, 95, 191, 0.28)'; ctx.beginPath(); ctx.arc(0, 0, 26, 0, 7); ctx.fill(); }
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 30); ctx.lineTo(7.5, 23); ctx.lineTo(12.5, 34); ctx.lineTo(17, 32); ctx.lineTo(12, 21.5); ctx.lineTo(22, 21.5); ctx.closePath();
+  ctx.fillStyle = '#111'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.2; ctx.lineJoin = 'round'; ctx.stroke(); ctx.fill();
+  ctx.restore();
+}
+// khung camera (toạ độ cửa sổ 1600×900): s.cam = [ {x,y,w}, [t, {x,y,w}, thời gian chuyển], … ] — t tính theo giây của đoạn video
+function camAt(s, u) {
+  const cam = s.cam || [{ x: 0, y: 0, w: 1600 }];
+  let r = cam[0];
+  for (let i = 1; i < cam.length; i++) {
+    const [t, to, d] = cam[i], dd = d == null ? 0.9 : d;
+    if (u <= t) break;
+    const k = ease((u - t) / dd); r = { x: r.x + (to.x - r.x) * k, y: r.y + (to.y - r.y) * k, w: r.w + (to.w - r.w) * k };
+  }
+  return { x: r.x, y: r.y, w: r.w, h: r.w * 9 / 16 };
+}
+function curAt(m, ms) {
+  const a = m.cursor; if (!a.length) return null;
+  let i = 0; while (i + 1 < a.length && a[i + 1].t <= ms) i++;
+  const p = a[i]; if (p.t > ms || !p.show) return null;
+  return p;
+}
+async function drawRec(s, u) {
+  const m = s.m, ms = Math.min(s.b, s.a + u * 1000 * s.speed);
+  const bmp = await img(path.join(m.dir, frameAt(m, ms)));
+  const k = bmp.width / m.w, c = camAt(s, u);
+  ctx.fillStyle = '#e9eef5'; ctx.fillRect(0, 0, W, H);
+  ctx.drawImage(bmp, c.x * k, c.y * k, c.w * k, c.h * k, 0, 0, W, H);
+  const p = curAt(m, ms);
+  if (p && !s.noCursor) cursor((p.x - c.x) / c.w * W, (p.y - c.y) / c.h * H, p.down, Math.min(1.6, 1600 / c.w));
+  if (!s.noKeys) { const kk = m.keys.filter((x) => x.t <= ms && ms - x.t < 1400 * s.speed); if (kk.length) { const x = kk[kk.length - 1]; keyBadge(x.label, Math.min(1, (1400 * s.speed - (ms - x.t)) / 300)); } }
+}
+function drawCard(s, u) {
+  const c = s.card;
+  const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, c.bg1 || '#ffffff'); g.addColorStop(1, c.bg2 || '#e6eefb'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+  const k = ease(Math.min(1, u / 0.6));
+  ctx.save(); ctx.globalAlpha = k; ctx.translate(0, (1 - k) * 30);
+  let y = c.y || 400;
+  if (c.logo) {
+    ctx.fillStyle = C.blue; rrect(W / 2 - 70, y - 230, 140, 140, 32); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '700 96px "Cambria Math", Cambria, serif'; ctx.fillText('∑', W / 2, y - 156);
+  }
+  if (c.title) { ctx.fillStyle = C.dark; ctx.font = '800 ' + (c.size || 92) + 'px ' + FONT; ctx.fillText(c.title, W / 2, y); y += (c.size || 92) * 0.95; }
+  (c.lines || []).forEach((l, i) => {
+    const kk = ease(Math.min(1, Math.max(0, (u - 0.5 - i * (c.step || 0.6)) / 0.5)));
+    ctx.save(); ctx.globalAlpha = k * kk; ctx.textAlign = 'left';
+    const sz = l.size || 46; y += (l.gap || 24) + sz * 0.6;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const parts = l.text.split('**'); let tot = 0;
+    parts.forEach((p, j) => { ctx.font = (j % 2 ? '700 ' : (l.weight || '500') + ' ') + sz + 'px ' + FONT; tot += ctx.measureText(p).width; });
+    let x = W / 2 - tot / 2; ctx.textAlign = 'left';
+    parts.forEach((p, j) => { ctx.font = (j % 2 ? '700 ' : (l.weight || '500') + ' ') + sz + 'px ' + FONT; ctx.fillStyle = j % 2 ? C.blue : (l.color || '#33465f'); ctx.fillText(p, x, y); x += ctx.measureText(p).width; });
+    ctx.restore(); y += sz * 0.6;
+  });
+  ctx.restore(); ctx.textAlign = 'left';
+}
+// lưới ảnh (màn kết): mỗi ô là một khung của cảnh đã quay, cắt theo cam, hiện lần lượt
+async function drawGrid(s, u) {
+  const g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#e6eefb'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const items = s.grid.filter((it) => fs.existsSync(path.join(ROOT, 'khung', it.rec, 'meta.json')));
+  const cols = s.cols || 3, rows = Math.ceil(items.length / cols), gw = 520, gh = 292, gap = 36;
+  const x0 = (W - cols * gw - (cols - 1) * gap) / 2, y0 = (s.top || 150);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if (s.heading) { ctx.fillStyle = C.dark; ctx.font = '800 56px ' + FONT; ctx.fillText(s.heading, W / 2, 80); }
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i], m = recOf(it.rec), k0 = ease(Math.min(1, Math.max(0, (u - 0.2 - i * 0.25) / 0.5)));
+    if (k0 <= 0) continue;
+    const bmp = await img(path.join(m.dir, frameAt(m, m.mark(it.at)))), k = bmp.width / m.w, c = Object.assign({ h: it.cam.w * 9 / 16 }, it.cam);
+    const x = x0 + (i % cols) * (gw + gap), y = y0 + Math.floor(i / cols) * (gh + gap + 44);
+    ctx.save(); ctx.globalAlpha = k0; ctx.shadowColor = 'rgba(0,0,0,0.18)'; ctx.shadowBlur = 24;
+    ctx.fillStyle = '#fff'; rrect(x - 6, y - 6, gw + 12, gh + 12, 14); ctx.fill(); ctx.shadowBlur = 0;
+    ctx.drawImage(bmp, c.x * k, c.y * k, c.w * k, c.h * k, x, y, gw, gh);
+    ctx.fillStyle = C.blue; ctx.font = '700 30px ' + FONT; ctx.fillText(it.label, x + gw / 2, y + gh + 30);
+    ctx.restore();
+  }
+  ctx.textAlign = 'left';
+}
+async function drawAt(t) {
+  let i = SEG.findIndex((s) => t < s.t0 + s.dur); if (i < 0) i = SEG.length - 1;
+  const s = SEG[i], u = t - s.t0;
+  if (s.rec) await drawRec(s, u); else if (s.card) drawCard(s, u); else if (s.grid) await drawGrid(s, u);
+  else if (s.img) { const bmp = await img(path.join(ROOT, s.img)); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); const k = Math.min(W / bmp.width, H / bmp.height); ctx.drawImage(bmp, (W - bmp.width * k) / 2, (H - bmp.height * k) / 2, bmp.width * k, bmp.height * k); }
+  if (s.title) chip(s.title, s.tag, Math.min(1, u / 0.3, (3.6 - u) / 0.4));
+  const cp = (s.caps || []).find(([a, d]) => u >= a && u < a + d);
+  if (cp) caption(cp[2], Math.min(1, (u - cp[0]) / 0.25, (cp[0] + cp[1] - u) / 0.25));
+  // chuyển cảnh: mờ qua trắng ở ranh giới (trừ khi s.cut)
+  const fin = 0.35;
+  let fade = 0;
+  if (!s.cut && u < fin && i > 0) fade = 1 - u / fin;
+  const nx = SEG[i + 1]; if (nx && !nx.cut && s.dur - u < fin) fade = Math.max(fade, 1 - (s.dur - u) / fin);
+  if (i === 0 && u < 0.6) fade = Math.max(fade, 1 - u / 0.6);
+  if (fade > 0) { ctx.fillStyle = 'rgba(255,255,255,' + fade + ')'; ctx.fillRect(0, 0, W, H); }
+}
+
+(async () => {
+  try {
+    console.log('Tổng thời lượng: ' + TOTAL.toFixed(1) + ' giây, ' + SEG.length + ' đoạn');
+    const anh = arg('anh');
+    if (anh) {
+      const dir = path.join(ROOT, 'xem'); fs.mkdirSync(dir, { recursive: true });
+      for (const t of anh.split(',').map(Number)) { await drawAt(t); const b = await new Promise((r) => cv.toBlob(r, 'image/png')); fs.writeFileSync(path.join(dir, 'xem-' + t + '.png'), Buffer.from(await b.arrayBuffer())); console.log('ảnh ' + t); }
+      ipcRenderer.send('xong', 0); return;
+    }
+    const tu = +(arg('tu') || 0), den = Math.min(TOTAL, +(arg('den') || TOTAL));
+    const out = arg('ra') || path.join(ROOT, (tu || den < TOTAL) ? 'xem-doan.webm' : 'ToanViet-Studio-gioi-thieu.webm');
+    const wr = new WebmWriter(W, H); let err = null;
+    const enc = new VideoEncoder({ output: (ch) => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); wr.add({ data: d, ms: Math.round(ch.timestamp / 1000), key: ch.type === 'key' }); }, error: (e) => { err = e; } });
+    enc.configure({ codec: 'vp09.00.40.08', width: W, height: H, bitrate: KB.bitrate || 6000000, framerate: FPS, latencyMode: 'quality' });
+    const n0 = Math.round(tu * FPS), n1 = Math.round(den * FPS), t0 = Date.now();
+    for (let n = n0; n < n1; n++) {
+      if (err) throw err;
+      await drawAt(n / FPS);
+      const vf = new VideoFrame(cv, { timestamp: Math.round((n - n0) * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
+      enc.encode(vf, { keyFrame: (n - n0) % (FPS * 2) === 0 }); vf.close();
+      while (enc.encodeQueueSize > 4) await new Promise((r) => setTimeout(r, 5));
+      if ((n - n0) % (FPS * 10) === 0) console.log('… ' + (n / FPS).toFixed(0) + ' / ' + den.toFixed(0) + ' giây (' + ((Date.now() - t0) / 1000).toFixed(0) + ' giây máy)');
+    }
+    await enc.flush(); if (err) throw err;
+    fs.writeFileSync(out, wr.finish((n1 - n0) * 1000 / FPS));
+    console.log('XONG ' + out + ' ' + (fs.statSync(out).size / 1048576).toFixed(1) + ' MB');
+    ipcRenderer.send('xong', 0);
+  } catch (e) { console.log('LỖI ' + (e && e.stack || e)); ipcRenderer.send('xong', 1); }
+})();
+</script>
+</body></html>
