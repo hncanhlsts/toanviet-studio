@@ -81,6 +81,13 @@ DE_HINH_PHANG.forEach(([ten, de, exp]) => thu(ten, () => {
   dung(!miss.length, 'thiếu: ' + miss.join(' | ') + '\n' + r.script);
   const thua = (exp.not || []).filter((h) => L.some((l) => l.trim().startsWith(h)));
   dung(!thua.length, 'thừa: ' + thua.join(' | ') + '\n' + r.script);
+  // điểm phải được chấm / không được chấm trên hình vẽ thật (bộ vẽ tự chấm điểm nằm một mình, không chấm giao điểm)
+  if (exp.cham || exp.khongcham) {
+    const svg = Plane.render({ script: r.script, labels: true }, 340, 300), S = svg.pts;
+    const dotted = (n) => S[n] && new RegExp('<circle cx="' + (Math.round(S[n][0] * 10) / 10) + '" cy="' + (Math.round(S[n][1] * 10) / 10) + '" r="2.4"').test(svg.svg);
+    (exp.cham || []).forEach((n) => dung(dotted(n), 'điểm ' + n + ' phải được chấm'));
+    (exp.khongcham || []).forEach((n) => dung(!dotted(n), 'điểm ' + n + ' là giao điểm, không chấm'));
+  }
   const res = Plane.render({ id: 'dp', script: r.script, labels: true }, 340, 300);
   dung(!res.errors.length, 'vẽ lỗi: ' + res.errors.join('; '));
 }));

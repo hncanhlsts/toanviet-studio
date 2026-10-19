@@ -22,6 +22,12 @@ const names = (s) => (s.match(new RegExp(PN, 'g')) || []).map((n) => n.replace(/
 // điểm có tên trong đề: chữ in hoa trong công thức $…$, bỏ tên hệ trục (Oxy, Oxyz), bán kính R, \sin B → B vẫn là điểm
 function pointNames(de) {
   const out = new Set();
+  // đề chép dạng chữ thường (không có $…$): tên điểm là các cụm chữ in hoa đứng riêng (MNP, MI, K), bỏ chữ đầu câu
+  if (!/\$/.test(de)) {
+    (de.replace(/([A-Z])_\{?(\d)\}?/g, '$1$2').replace(/O\s*xyz?/g, ' ').replace(/\(\s*[A-Z]'?\s*;[^)]*\)/g, ' ').match(/(?<![A-Za-zÀ-ỹĐđ])[A-Z]+'*\d?(?![a-zà-ỹđ'])/g) || []).forEach((w) => names(w).forEach((n) => out.add(n)));
+    out.delete('R');
+    return [...out];
+  }
   (de.match(/\$[^$]*\$/g) || []).forEach((m) => {
     let s = m.slice(1, -1)
       .replace(/\\(?:widehat|hat|overline|overrightarrow|vec|text|mathrm)\s*\{([^{}]*)\}/g, ' $1 ')
@@ -103,11 +109,25 @@ function checkOne(de, o, full) {
   return { errs, warns, script: pl ? pl.script : sp ? sp.script || '(' + sp.kind + ')' : '' };
 }
 
+// đề chép từ trang web / tin nhắn thường không có $…$: đổi đề mẫu sang dạng chữ thường như người dùng hay chép
+function plain(de) {
+  return de.replace(/\\(?:widehat|hat)\s*\{([^{}]*)\}/g, 'góc $1').replace(/\\overrightarrow\s*\{([^{}]*)\}/g, 'vectơ $1')
+    .replace(/\\vec\s*\{?0\}?/g, '0').replace(/\\vec\s*\{([^{}]*)\}/g, '$1').replace(/\\[dt]?frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1/$2')
+    .replace(/\\perp/g, '⊥').replace(/\\parallel/g, '//').replace(/\\Delta\s*/g, 'Δ').replace(/\^\\circ/g, '°').replace(/\\in\b/g, '∈')
+    .replace(/\\ne\b/g, '≠').replace(/\\cdot/g, '.').replace(/\\backsim/g, '∽').replace(/\\sqrt\{([^{}]*)\}/g, '√$1').replace(/\\text\{([^{}]*)\}/g, '$1')
+    .replace(/\$/g, '').replace(/\\[a-zA-Z]+/g, '').replace(/\s+/g, ' ').trim();
+}
+
 const rows = [];
 LIST.forEach(([lop, cd, de, o], idx) => {
   if (only && lop !== only) return;
   const r = checkOne(de, o);
   rows.push({ idx, lop, cd, ok: !r.errs.length, errs: r.errs, warns: r.warns, script: r.script });
+});
+LIST.forEach(([lop, cd, de, o], idx) => {
+  if ((only && lop !== only) || !/\$/.test(de)) return;
+  const p = plain(de), r = checkOne(p, o);
+  rows.push({ idx, lop: 'Lớp ' + lop + ' — đề chép dạng chữ (không có $)', cd: cd + (r.errs.length ? '\n      đề: ' + p : ''), ok: !r.errs.length, errs: r.errs, warns: r.warns, script: r.script });
 });
 // các bộ đề đã có (đề thầy gửi, đề cương, đề thử): cùng các tiêu chí, hình nào có thì phải đủ điểm, không chèn sát
 if (!only) {

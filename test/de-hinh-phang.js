@@ -80,7 +80,7 @@ const DE_HINH_PHANG = [
     { has: ['M = (1, 2)', 'B = doixung(C, M)', 'doan AB BC CA'] }],
   ['trung điểm đứng một mình: có chấm điểm',
     'Cho tam giác $ABC$ có $AB = 4$ cm. Gọi $M$ là trung điểm của $AB$. Tính $AM$.',
-    { has: ['M = trungdiem(A, B)', 'diem M'] }],
+    { has: ['M = trungdiem(A, B)'], cham: ['M'] }],
   ["đường tròn: ba đường cao cắt nhau tại trực tâm, K là giao của EF với (O), F nằm giữa K và E (Kiem thu đường tròn, bài 1)",
     "Bài 1 (Mô hình trực tâm và tam giác trực tâm.\nCho tam giác nhọn $ABC$ ($AB < AC$) nội tiếp đường tròn $(O)$. Ba đường cao $AD, BE, CF$ cắt nhau tại trực tâm $H$.\na) Chứng minh các tứ giác $BFHD$ và $BCEF$ nội tiếp.\nb) Chứng minh $DA$ là tia phân giác của $\\widehat{EDF}$.\nc) Gọi $K$ là giao điểm của đường thẳng $EF$ và đường tròn $(O)$ (với $F$ nằm giữa $K$ và $E$). Chứng minh $AK^2 = AE \\cdot AC$ và tam giác $AKD$ cân tại $A$ (Hình 1).",
     {"has": ["H = tructam(A, B, C)", "K = giaotron(E, F, O, A, 2)", "doan EK FK"]}],
@@ -111,5 +111,14 @@ const DE_HINH_PHANG = [
   ["tiếp tuyến SA, SB và cát tuyến SCD, I trung điểm dây cung CD, đường thẳng qua C song song SB cắt AB tại H và cắt AD tại K (Kiem thu đường tròn, bài 10)",
     "Bài 10 (Mô hình 5 điểm cùng thuộc một đường tròn và điều hòa.\nCho đường tròn $(O; R)$ và điểm $S$ nằm ngoài đường tròn. Kẻ hai tiếp tuyến $SA, SB$ tới $(O)$ ($A, B$ là các tiếp điểm) và cát tuyến $SCD$ ($C$ nằm giữa $S$ và $D$; tia $SD$ nằm giữa hai tia $SO$ và $SB$). Gọi $I$ là trung điểm của dây cung $CD$.\na) Chứng minh năm điểm $S, A, I, O, B$ cùng thuộc một đường tròn.\nb) Đường thẳng qua $C$ song song với $SB$ cắt $AB$ tại $H$ và cắt $AD$ tại $K$. Chứng minh tứ giác $AIHK$ nội tiếp và $H$ là trung điểm của đoạn thẳng $CK$.\nc) Gọi $E$ là giao điểm của $AB$ và $SO$. Chứng minh $SC \\cdot SD = SE \\cdot SO$ và khi cát tuyến $SCD$ quay quanh $S$ thì trọng tâm $G$ của tam giác $ACD$ luôn chạy trên một đường tròn cố định (Hình 10).",
     {"has": ["I = trungdiem(C, D)", "H = giao(C, Z2, A, B)", "K = giao(C, H, A, D)", "E = giao(A, B, S, O)"]}],
+  ['đề chép (không $): điểm tùy ý trên đoạn MI, đường vuông góc cắt hai cạnh; K là giao điểm nên không chấm',
+    'Cho tam giác MNP nhọn có đường cao MI (I thuộc NP). Trên đoạn MI, lấy điểm K tùy ý (không trùng M, I). Đường thẳng qua K vuông góc với MI cắt cạnh MN, MP lần lượt tại E, F.',
+    { has: ['K = chia(M, I,', 'E = giao(K,', 'F = giao(K,', 'doan EF', 'EKI'], not: ['K = ('], khongcham: ['K', 'E', 'F'] }],
+  ['đề chép (không $): ΔABC cân, "đường thẳng này cắt AB và AC lần lượt tại K và H"',
+    'Cho ΔABC cân tại A có đường trung tuyến AD. M là một điểm trên cạnh AD (M khác A và D). Qua M kẻ đường thẳng vuông góc với AD, đường thẳng này cắt AB và AC lần lượt tại K và H.',
+    { has: ['D = trungdiem(B, C)', 'M = chia(A, D, 0.4)', 'K = giao(M,', 'H = giao(M,', 'doan KH'], khongcham: ['M'] }],
+  ['đề chép (không $): hình bình hành có AD = 2AB',
+    'Cho hình bình hành ABCD (góc BAD bé hơn 120 độ) có AD = 2AB. Gọi M là trung điểm của AD. Kẻ CE vuông góc với AB tại E, MF vuông góc với CE tại F, MF cắt BC tại N (Hình 1).',
+    { has: ['C = (3, 0)', 'M = trungdiem(A, D)', 'E = chan(C, A, B)', 'F = chan(M, C, E)', 'N = giao(M, F, B, C)'] }],
 ];
 if (typeof module !== 'undefined' && module.exports) module.exports = DE_HINH_PHANG;

@@ -506,7 +506,7 @@
         }
       }
       // --- hình phẳng: đọc đề (src/dedehinh.js), vẽ ngay đầu lời giải; chỉ khi câu chưa có hình nào khác ---
-      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|thẳng hàng|nằm giữa|tia\s|đường thẳng|đường trung trực|kề bù|đối đỉnh|O\s*xy|góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?\$?[a-z][A-Z][a-z]|đoạn thẳng|\\Delta\s*[A-Z]{3}|△|lục giác|tọa độ|toạ độ/.test(text) && !/(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
+      if (fig === f0 && DH && DH.plane && /tam giác|hình vuông|hình chữ nhật|hình bình hành|hình thoi|hình thang|tứ giác|đường tròn|thẳng hàng|nằm giữa|tia\s|đường thẳng|đường trung trực|kề bù|đối đỉnh|O\s*xy|góc\s+(?:(?:nhọn|tù|vuông|bẹt)\s+)?\$?[a-z][A-Z][a-z]|đoạn thẳng|\\Delta\s*[A-Z]{3}|[Δ∆]\s*[A-Z]{3}|△|lục giác|tọa độ|toạ độ/.test(text) && !/(?:hình|khối)\s+(?:chóp|lăng trụ|hộp|lập phương|tứ diện|nón|trụ|cầu)(?![a-zà-ỹ])|chóp\s+\$?[A-Z]\s*\.|lăng trụ|lập phương|tứ diện|mặt cầu|miền nghiệm|đồ thị (?:của )?hàm số/i.test(text)) {
         let pl = null;
         try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
         if (pl && pl.script) {
