@@ -315,5 +315,25 @@
     }
   });
 
+  await step('Bàn phím toán: không che nút Chèn / Huỷ, có nút đóng, gõ được và chèn được vào trang', async () => {
+    __clear(); await w(100);
+    __run('ins-formula'); await w(600);
+    const kb = window.mathVirtualKeyboard, mf = document.getElementById('mf');
+    const vis = (el) => { const r = el.getBoundingClientRect(), t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return !!t && (t === el || el.contains(t)); };
+    document.getElementById('fKb').click(); await w(900);
+    ok('bàn phím hiện', kb && kb.visible);
+    ok('nút Chèn vào trang không bị bàn phím che', vis(document.getElementById('fxok')));
+    ok('nút Huỷ không bị che', vis(document.getElementById('fxcancel')));
+    ok('ô gõ công thức không bị che', vis(mf));
+    ok('có nút Đóng bàn phím', vis(document.getElementById('kbClose')));
+    document.getElementById('kbClose').click(); await w(500);
+    ok('nút Đóng bàn phím ẩn bàn phím', !kb.visible && !document.body.classList.contains('kb-open'));
+    document.getElementById('fKb').click(); await w(700);
+    mf.value = 'a+b'; document.getElementById('fxok').click(); await w(500);
+    const objs = document.querySelectorAll('#page .obj');
+    ok('chèn được công thức khi bàn phím đang mở; bàn phím tự đóng', objs.length === 1 && !kb.visible && !document.getElementById('fxdlg').open, objs.length + ' / ' + kb.visible);
+    __clear();
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

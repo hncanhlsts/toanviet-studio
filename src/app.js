@@ -464,7 +464,26 @@
     const t = SC[(e.shiftKey ? 'shift+' : '') + key];
     if (t) { stop(); fIns(t); }
   }, true);
-  $('#fKb').onclick = () => { const kb = window.mathVirtualKeyboard; if (!kb) return; mf.focus(); if (kb.visible) kb.hide(); else kb.show(); };
+  // Bàn phím toán: khi hiện, hộp công thức dời lên trên bàn phím (body.kb-open, --kbh = chiều cao bàn phím) để ô gõ và
+  // các nút Chèn / Huỷ không bị che; có nút "Đóng bàn phím" ngay trên bàn phím; nút trong hộp đổi thành "Ẩn bàn phím"
+  const kbSync = () => {
+    const kb = window.mathVirtualKeyboard, on = !!(kb && kb.visible && dlg.open);
+    let h = 0;
+    try { h = on && kb.boundingRect ? Math.round(kb.boundingRect.height) : 0; } catch (e) { h = 0; }
+    if (on && !h) { const el = document.querySelector('.ML__keyboard .MLK__plate') || document.querySelector('.ML__keyboard'); if (el) h = Math.min(Math.round(el.getBoundingClientRect().height), innerHeight); }
+    document.body.classList.toggle('kb-open', on);
+    if (on && h) document.body.style.setProperty('--kbh', h + 'px');
+    $('#kbClose').hidden = !on;
+    $('#fKb').textContent = on ? '⌨ Ẩn bàn phím' : '⌨ Bàn phím toán';
+  };
+  if (window.mathVirtualKeyboard) {
+    ['geometrychange', 'virtual-keyboard-toggle', 'visibilitychange'].forEach((ev) => { try { window.mathVirtualKeyboard.addEventListener(ev, () => setTimeout(kbSync, 0)); } catch (e) { /* bản MathLive không có sự kiện này */ } });
+  }
+  const kbHide = () => { try { if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.hide(); } catch (e) { /* bỏ qua */ } setTimeout(kbSync, 50); };
+  $('#fKb').onclick = () => { const kb = window.mathVirtualKeyboard; if (!kb) return; mf.focus(); if (kb.visible) kb.hide(); else kb.show(); setTimeout(kbSync, 50); setTimeout(kbSync, 400); };
+  $('#kbClose').addEventListener('pointerdown', (e) => e.preventDefault()); // giữ con trỏ trong ô công thức
+  $('#kbClose').onclick = () => { kbHide(); mf.focus(); };
+  addEventListener('resize', () => { if (document.body.classList.contains('kb-open')) kbSync(); });
 
   function showTab(ti) {
     fTab = ti;
@@ -571,7 +590,7 @@
     const v = fxValue();
     dlg.close();
     $('#fxback').hidden = true;
-    try { if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.hide(); } catch (e) { /* không có bàn phím ảo */ }
+    kbHide();
     const d = fxDone; fxDone = null;
     if (d) d(ok ? thFix(v) : null);
   }
