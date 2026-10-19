@@ -652,7 +652,7 @@
       tpl = 'lucgiac'; notes.push('lục giác đều ' + base.name);
     } else if (base.k === 'seg') {
       const l = getL(base.a, base.b) || 6;
-      P[base.a] = [0, 0]; P[base.b] = [l, 0]; edge(base.a, base.b);
+      P[base.a] = [0, 0]; P[base.b] = [l, 0]; edge(base.a, base.b); dots.add(base.a); dots.add(base.b); // đoạn thẳng: chấm hai đầu mút để phân biệt với đường thẳng (lớp 6)
       tpl = 'doan'; notes.push('đoạn thẳng ' + base.a + base.b);
     } else if (base.k === 'cir2') {
       // (O) bán kính 3 ở gốc, (O') bán kính nhỏ hơn bên phải, khoảng cách tâm theo vị trí tương đối
@@ -668,13 +668,16 @@
       tpl = 'duongtron';
     } else if (base.k === 'free') {
       const g = base.g, ext = [];
+      // đường thẳng đặt tên bằng hai điểm (AB, CD): vẽ kéo dài quá hai điểm, chấm hai điểm — phân biệt với đoạn thẳng như
+      // SGK lớp 6; đường thẳng tên chữ thường (a, b, d, xy) vẽ như cũ, tên ở cuối nét
+      const lineCmd = (a, b) => (lcLabel[a] || lcLabel[b] || lcHide.includes(a) || lcHide.includes(b) ? 'doan' : (dots.add(a), dots.add(b), 'duongthang'));
       if (base.f === 'coll' || base.f === 'btw') {
         // thứ tự trên đường thẳng: điểm nằm giữa ở giữa ("B nằm giữa A và C" có thể ở câu khác)
         let ord = base.f === 'btw' ? [g[1], g[0], g[2]] : g.slice();
         const bw = re('(PN)\\s+nằm giữa\\s+(?:hai\\s+điểm\\s+)?(PN)\\s+và\\s+(PN)').exec(t);
         if (base.f === 'coll' && bw && [bw[1], bw[2], bw[3]].every((c) => ord.includes(c))) ord = [bw[2], bw[1], bw[3]];
         [[0, 0], [3.2, 0], [7.5, 0]].forEach((p, i) => { P[ord[i]] = p; dots.add(ord[i]); });
-        ext.push('doan ' + ord[0] + ord[2]); notes.push('ba điểm thẳng hàng ' + ord.join(', '));
+        ext.push('duongthang ' + ord[0] + ord[2]); // ba điểm thẳng hàng: nằm trên một đường thẳng (vẽ kéo dài, các điểm được chấm) notes.push('ba điểm thẳng hàng ' + ord.join(', '));
       } else if (base.f === 'opp') {
         const [O, X, , Y] = g; P[O] = [0, 0]; P[X] = [6, 0]; P[Y] = [-6, 0]; dots.add(O);
         ext.push('doan ' + O + X + ' ' + O + Y); notes.push('hai tia đối nhau');
@@ -682,10 +685,10 @@
         const [O, X] = g; P[O] = [0, 0]; P[X] = [8, 0]; dots.add(O); ext.push('doan ' + O + X); notes.push('tia ' + O + (lcLabel[X] || X));
       } else if (base.f === 'x2') {
         const [A, B, C, D, O] = g; P[O] = [0, 0]; P[A] = [-5, -1.6]; P[B] = [5, 1.6]; P[C] = [-1.8, 4.2]; P[D] = [1.8, -4.2];
-        ext.push('doan ' + A + B + ' ' + C + D); notes.push('hai đường thẳng cắt nhau tại ' + O);
+        ext.push(lineCmd(A, B) + ' ' + A + B, lineCmd(C, D) + ' ' + C + D); notes.push('hai đường thẳng cắt nhau tại ' + O);
       } else if (base.f === 'par') {
         const [A, B, C, D] = g; P[A] = [-5, 2]; P[B] = [5, 2]; P[C] = [-5, -1.2]; P[D] = [5, -1.2];
-        ext.push('doan ' + A + B + ' ' + C + D); notes.push('hai đường thẳng song song');
+        ext.push(lineCmd(A, B) + ' ' + A + B, lineCmd(C, D) + ' ' + C + D); notes.push('hai đường thẳng song song');
       } else if (base.f === 'out') {
         const w = base.raw, [A, X, Y] = w[0] ? [w[0], w[1], w[2]] : [w[5], w[3], w[4]];
         P[X] = [-5, 0]; P[Y] = [5, 0]; P[A] = [-0.6, 3.2]; dots.add(A);
@@ -1328,7 +1331,7 @@
         }
         // đường thẳng có điểm gốc (trung trực d qua trung điểm): đặt điểm cách gốc một khoảng vừa phải, không sát đoạn AB
         const thr = lineThrough[sg.join('')];
-        if (thr && !q[5]) add(n, sg, n + ' = chia(' + thr + ', ' + sg[0] + ', 0.75)', 'điểm trên đường thẳng');
+        if (thr && !q[5]) add(n, sg, n + ' = chia(' + thr + ', ' + (lcLabel[sg[0]] ? sg[1] : sg[0]) + ', 0.75)', 'điểm trên đường thẳng');
         else add(n, sg, n + ' = chia(' + sg.join(', ') + ', ' + r2(k) + ')', 'điểm trên cạnh');
         onSeg[n] = sg;
         if (!ok) notes.push('điểm ' + n + ' trên ' + sg.join('') + ': chưa rõ vị trí, đặt tạm');
@@ -1419,6 +1422,13 @@
       marks.push(s);
     });
     const markOk = (s) => { const g = s.replace(/=.*$/, '').trim().split(/\s+/).slice(1); return g.every((x) => namesIn(x).every((n) => made.has(n))); };
+    // góc chính có tia nằm trong (tia phân giác, tia Ot…) đã đánh dấu các góc con: bỏ cung số đo của góc lớn để không chồng
+    if (base.k === 'ang') {
+      const big = 'goc ' + base.a + base.o + base.b + ' =';
+      if (marks.some((s) => /^goc /.test(s) && !s.startsWith(big) && markOk(s) && s.slice(4).trim().split(/\s+/).some((g) => namesIn(g)[1] === base.o))) {
+        for (let i = marks.length - 1; i >= 0; i--) if (marks[i].startsWith(big)) marks.splice(i, 1);
+      }
+    }
     const vs = marks.filter((s) => /^vuong/.test(s) && markOk(s)).map((s) => s.slice(6).trim()).filter((v, i, a) => a.indexOf(v) === i);
     if (vs.length) lines.push('vuong ' + vs.join(' '));
     // ký hiệu góc: các góc bằng nhau cùng ký hiệu, các góc khác nhau khác ký hiệu (1, 2, 3… cung).

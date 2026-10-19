@@ -158,9 +158,32 @@
       const p = it.p, k = it.k, tx = it.tx, out = Math.atan2(p[1] - cen[1], p[0] - cen[0]);
       const proto = boxOf({ x: 0, y: 0, tex: tx, size }), hw = (proto[2] - proto[0]) / 2, hh = (proto[3] - proto[1]) / 2;
       let best = null;
+      // điểm chỉ nằm trên một đường (các nét qua điểm cùng phương): tên các điểm trên cùng đường ghi thống nhất một phía
+      // (phía trên; đường gần thẳng đứng: bên trái) như SGK, không chỗ trên chỗ dưới — trừ khi phía đó bị nét khác chắn
+      let pref = null;
+      {
+        const dirs = [];
+        prims.forEach((s) => {
+          const dx = s[1][0] - s[0][0], dy = s[1][1] - s[0][1], L = Math.hypot(dx, dy); if (L < 1) return;
+          const tt = ((p[0] - s[0][0]) * dx + (p[1] - s[0][1]) * dy) / (L * L), dd = Math.abs((p[0] - s[0][0]) * dy - (p[1] - s[0][1]) * dx) / L;
+          if (dd < 1 && tt > -0.01 && tt < 1.01) dirs.push([dx / L, dy / L]);
+        });
+        // điểm nằm trên đường tròn: ghi ra phía ngoài đường tròn như thường lệ, không theo quy tắc này
+        const onCirc = circs.some((cc) => Math.abs(Math.hypot(p[0] - cc.c[0], p[1] - cc.c[1]) - cc.r) < 1.5);
+        if (!onCirc && dirs.length && dirs.every((u) => Math.abs(u[0] * dirs[0][1] - u[1] * dirs[0][0]) < 0.02)) {
+          const u = dirs[0]; let nrm = [u[1], -u[0]];
+          // tâm hình ở hẳn một phía của đường (cạnh đáy của tam giác…): ghi ra phía ngoài hình, cùng phía với tên hai đỉnh;
+          // hình chỉ nằm dọc theo đường (các điểm thẳng hàng, tia đối): phía trên
+          const side = (cen[0] - p[0]) * nrm[0] + (cen[1] - p[1]) * nrm[1];
+          if (Math.abs(side) > 12) { if (side > 0) nrm = [-nrm[0], -nrm[1]]; }
+          else if (Math.abs(nrm[1]) > 0.35 ? nrm[1] > 0 : nrm[0] > 0) nrm = [-nrm[0], -nrm[1]];
+          pref = nrm;
+        }
+      }
       const score = (x, y, extra, a) => {
         const r = [x - hw - 1, y - hh - 1, x + hw + 1, y + hh + 1];
-        let pen = extra * 1.5 - 4 * Math.cos(a - out);
+        let pen = extra * 1.5 - (pref ? 0 : 4 * Math.cos(a - out));
+        if (pref) pen += 8 * (1 - (Math.cos(a) * pref[0] + Math.sin(a) * pref[1]));
         prims.forEach((s) => { if (hit(s[0], s[1], r)) pen += 100; });
         circs.forEach((cc) => { if (circHit(cc, r)) pen += 100; });
         placed.forEach((b) => { const ov = over(b, r); if (ov > 0) pen += 60 + ov; });
