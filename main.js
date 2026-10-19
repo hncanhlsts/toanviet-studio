@@ -645,5 +645,30 @@ ipcMain.handle('info', async (_e, msg) => {
   if (process.env.TVS_AUTO) { fs.appendFileSync(process.env.TVS_AUTO, 'INFO: ' + String(msg).replace(/\n+/g, ' / ') + '\n'); return true; } await dialog.showMessageBox(win, { type: 'info', buttons: ['Đóng'], message: String(msg) }); return true; });
 ipcMain.on('title', (_e, t) => { if (win) win.setTitle(t); });
 
+// Nhận chữ từ ảnh đề bài (OCR) ngay trên máy: Tesseract + dữ liệu tiếng Việt đóng gói sẵn, không cần mạng.
+// Ảnh đã được làm rõ ở cửa sổ (phóng to, xám, tương phản, chỉnh nghiêng — src/ocr-anh.js); ở đây chỉ nhận chữ,
+// trả về chữ từng dòng kèm độ tin cậy để bỏ các dòng rác (nét hình vẽ bị đọc thành chữ).
+let ocrWorker = null;
+const unpacked = (p) => p.replace(/app\.asar([\\/])/, 'app.asar.unpacked$1');
+async function ocrGet() {
+  if (ocrWorker) return ocrWorker;
+  const { createWorker } = require('tesseract.js');
+  const langPath = unpacked(path.join(path.dirname(require.resolve('@tesseract.js-data/vie/package.json')), '4.0.0_best_int'));
+  const corePath = unpacked(path.dirname(require.resolve('tesseract.js-core/package.json')));
+  ocrWorker = await createWorker('vie', 1, { langPath, corePath, cacheMethod: 'none', gzip: true });
+  await ocrWorker.setParameters({ preserve_interword_spaces: '1', user_defined_dpi: '300' });
+  return ocrWorker;
+}
+ipcMain.handle('ocr', async (_e, png, opts) => {
+  try {
+    const w = await ocrGet();
+    if (opts && opts.psm) await w.setParameters({ tessedit_pageseg_mode: String(opts.psm) });
+    const r = await w.recognize(Buffer.from(png), {}, { text: true, blocks: true });
+    const lines = [];
+    (r.data.blocks || []).forEach((b) => (b.paragraphs || []).forEach((p) => (p.lines || []).forEach((l) => lines.push({ text: l.text.replace(/\n$/, ''), conf: l.confidence, bbox: l.bbox, words: (l.words || []).map((w2) => ({ text: w2.text, conf: w2.confidence })) }))));
+    return { ok: true, text: r.data.text, conf: r.data.confidence, lines };
+  } catch (err) { return { ok: false, error: String(err && err.message || err) }; }
+});
+
 app.whenReady().then(createWindow);
 app.on('window-all-closed', () => app.quit());

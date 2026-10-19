@@ -12,7 +12,9 @@
   },
   "license": "MIT",
   "dependencies": {
-    "mathlive": "^0.111.1"
+    "@tesseract.js-data/vie": "^1.0.0",
+    "mathlive": "^0.111.1",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@electron/packager": "^20.3.0",
@@ -37,6 +39,11 @@
     "directories": {
       "output": "cai-dat"
     },
+    "asarUnpack": [
+      "node_modules/tesseract.js/**",
+      "node_modules/tesseract.js-core/**",
+      "node_modules/@tesseract.js-data/vie/**"
+    ],
     "win": {
       "target": "nsis",
       "signAndEditExecutable": false

@@ -27,6 +27,11 @@ main { flex: 1; display: flex; min-height: 0; }
 .obj.sel { outline: 1.5px solid #1f5fbf; }
 .obj > svg { display: block; overflow: visible; }
 .obj .lb { position: absolute; white-space: nowrap; line-height: 1; pointer-events: none; font-family: KaTeX_Main, "Times New Roman", serif; }
+/* sơ đồ: chữ trong ô canh giữa, tự xuống dòng; đường nối không có ô kéo cỡ, không viền chọn hình chữ nhật */
+.obj .shtext { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px 10px; line-height: 1.25; font-family: "Times New Roman", serif; overflow: hidden; pointer-events: none; white-space: pre-wrap; word-break: break-word; }
+.obj.editing .shtext { pointer-events: auto; cursor: text; outline: none; background: rgba(255, 255, 255, .6); }
+.obj.sh-conn > .handle { display: none; }
+.obj.sh-conn.sel { outline-style: dashed; }
 .obj .lb.bg { background: rgba(255, 255, 255, .82); padding: 1px 3px; border-radius: 3px; }
 .obj.formula { white-space: nowrap; line-height: 1.2; padding: 2px 4px; }
 .obj.formula .empty { color: #9aa5b1; font: italic 14px "Segoe UI"; }

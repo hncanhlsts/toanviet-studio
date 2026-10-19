@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('api', {
   save: (data, file) => ipcRenderer.invoke('save', { data, file }),
   open: () => ipcRenderer.invoke('open'),
   copyText: (t) => ipcRenderer.invoke('copyText', t),
+  ocr: (png, opts) => ipcRenderer.invoke('ocr', png, opts || {}), // nhận chữ từ ảnh đề bài, chạy trên máy
   confirm: (msg) => ipcRenderer.invoke('confirm', msg),
   setTitle: (t) => ipcRenderer.send('title', t),
   setDirty: (v) => ipcRenderer.send('dirty', !!v),

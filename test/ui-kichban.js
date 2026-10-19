@@ -335,5 +335,47 @@
     __clear();
   });
 
+  await step('Sơ đồ tư duy: mẫu, thêm nhánh (Tab), nối hai ô, kéo ô thì đường nối chạy theo, xoá ô xoá đường nối', async () => {
+    __clear(); await w(100);
+    __run('ins-mindmap'); await w(300);
+    const conns = () => document.querySelectorAll('#page .sh-conn').length, objs = () => document.querySelectorAll('#page .obj').length;
+    ok('mẫu có chủ đề, 4 nhánh, 4 đường nối', objs() === 9 && conns() === 4, objs() + ' / ' + conns());
+    const box = document.querySelector('#page .sh-box');
+    box.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: box.getBoundingClientRect().x + 5, clientY: box.getBoundingClientRect().y + 5 }));
+    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); await w(100);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true })); await w(300);
+    if (document.activeElement && document.activeElement.classList.contains('shtext')) document.activeElement.blur(); await w(100);
+    ok('Tab thêm một nhánh con và một đường nối', objs() === 11 && conns() === 5, objs() + ' / ' + conns());
+    // kéo ô chủ đề bằng chuột: các đường nối gắn với nó dời theo
+    const root0 = [...document.querySelectorAll('#page .sh-ellipse')][0];
+    const pos = () => [...document.querySelectorAll('#page .sh-conn')].map((e) => e.style.left + ',' + e.style.top).join(' ');
+    const before = pos(), rb = root0.getBoundingClientRect(), cx = rb.x + rb.width / 2, cy = rb.y + rb.height / 2;
+    await window.api.testMouse([{ t: 'move', x: cx, y: cy }, { t: 'down', x: cx, y: cy }, { t: 'move', x: cx + 30, y: cy + 20, drag: true }, { t: 'move', x: cx + 60, y: cy + 45, drag: true }, { t: 'up', x: cx + 60, y: cy + 45 }]); await w(300);
+    ok('kéo ô thì đường nối dời theo', pos() !== before, before + ' → ' + pos());
+    // xoá ô chủ đề: các đường nối gắn với nó bị xoá theo
+    window.__unselect(); await w(50);
+    root0.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: root0.getBoundingClientRect().x + 30, clientY: root0.getBoundingClientRect().y + 30 }));
+    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); await w(100);
+    __run('del'); await w(200);
+    ok('xoá ô chủ đề xoá luôn 4 đường nối gắn với nó', conns() === 1, conns());
+    __clear();
+  });
+  await step('Bài giải AI: dán ảnh đề bài (Ctrl+V) thì đọc chữ trong ảnh trên máy và vẽ hình', async () => {
+    __clear(); await w(100);
+    window.__baigiai.open(); await w(400);
+    const c = document.createElement('canvas'); c.width = 760; c.height = 70; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.fillStyle = '#111'; x.font = '17px "Times New Roman"'; x.textBaseline = 'top';
+    x.fillText('Cho tam giác ABC vuông tại A, đường cao AH. Gọi M là trung điểm của BC.', 12, 22);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/png'));
+    const dt = new DataTransfer(); dt.items.add(new File([blob], 'de.png', { type: 'image/png' }));
+    const src = document.getElementById('bgsrc');
+    src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+    for (let i = 0; i < 60 && !/trung điểm/.test(src.value); i++) await w(250);
+    ok('đọc được chữ trong ảnh', /tam giác ABC vuông tại A/.test(src.value) && /trung điểm của BC/.test(src.value), src.value.slice(0, 120));
+    ok('đề đọc từ ảnh được vẽ hình', /#FIG/.test(src.value), src.value.slice(0, 200));
+    document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
+    __clear();
+  });
+
   console.log('UI-DONE ' + pass + ' ' + fail);
 })();

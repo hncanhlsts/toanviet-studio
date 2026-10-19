@@ -175,11 +175,15 @@
     const w = o.w, h = o.h, sw = o.sw || 1.5;
     const st = `stroke="${o.color || '#111'}" stroke-width="${sw}"${o.dash ? ' stroke-dasharray="7 4"' : ''}`;
     const fill = o.nofill === false ? (o.fill || '#aed6f1') : 'none';
-    if (o.kind === 'rect') return `<rect x="0" y="0" width="${w}" height="${h}" fill="${fill}" ${st}/>`;
-    if (o.kind === 'ellipse') return `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}" fill="${fill}" ${st}/>`;
-    const y1 = o.flip ? h : 0, y2 = o.flip ? 0 : h;
-    const mk = o.kind === 'arrow' ? `<defs><marker id="sa${o.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${o.color || '#111'}"/></marker></defs>` : '';
-    return `${mk}<line x1="0" y1="${y1}" x2="${w}" y2="${y2}" ${st}${mk ? ` marker-end="url(#sa${o.id})"` : ''}/><line x1="0" y1="${y1}" x2="${w}" y2="${y2}" stroke="transparent" stroke-width="12"/>`;
+    const i = sw / 2; // nét nằm trọn trong khung (không bị cắt ở mép)
+    if (o.kind === 'rect') return `<rect x="${i}" y="${i}" width="${w - sw}" height="${h - sw}" fill="${fill}" ${st}/>`;
+    if (o.kind === 'box') return `<rect x="${i}" y="${i}" width="${w - sw}" height="${h - sw}" rx="${Math.min(14, h / 3)}" fill="${fill}" ${st}/>`;
+    if (o.kind === 'ellipse') return `<ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2 - i}" ry="${h / 2 - i}" fill="${fill}" ${st}/>`;
+    if (o.kind === 'diamond') return `<polygon points="${w / 2},${i} ${w - i},${h / 2} ${w / 2},${h - i} ${i},${h / 2}" fill="${fill}" ${st}/>`;
+    if (o.kind === 'conn') return sodo.connSvg(o);
+    const y1 = o.flip ? h : 0, y2 = o.flip ? 0 : h, both = o.kind === 'arrow' && o.head === 'both';
+    const mk = o.kind === 'arrow' ? `<defs><marker id="sa${o.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${o.color || '#111'}"/></marker></defs>` : '';
+    return `${mk}<line x1="0" y1="${y1}" x2="${w}" y2="${y2}" ${st}${mk ? ` marker-end="url(#sa${o.id})"` : ''}${both ? ` marker-start="url(#sa${o.id})"` : ''}/><line x1="0" y1="${y1}" x2="${w}" y2="${y2}" stroke="transparent" stroke-width="12"/>`;
   }
   // Tách khối chữ thành đoạn chữ và công thức: $…$ trong dòng, $$…$$ đứng riêng một dòng (canh giữa như SGK).
   // Trước đây chỉ tách theo từng dấu $ nên $$A$$ hiện nguyên mã LaTeX. s, e: vị trí trong chuỗi gốc (để sửa đúng chỗ).
@@ -201,11 +205,15 @@
   }
   // ---------- Kéo điểm (toạ độ, thông số), chọn điểm / mặt phẳng, xoay hình không gian: src/mod/keodiem.js ----------
   let ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag;
+  // ---------- Sơ đồ, sơ đồ tư duy (ô chữ, đường nối bám ô, thêm nhánh): src/mod/sodo.js ----------
+  let sodo = { CLOSED: [], isConn: () => false, connSvg: () => "", refreshConns() {}, refreshAll() {} };
   function renderObj(o) {
     let el = page.querySelector(`[data-id="${o.id}"]`);
     if (!el) { el = document.createElement('div'); el.dataset.id = o.id; page.appendChild(el); }
     if (el.classList.contains('editing')) return el;
-    el.className = 'obj ' + o.type + (isSel(o.id) ? ' sel' + (many() ? ' msel' : '') : '');
+    el.className = 'obj ' + o.type + (o.type === 'shape' ? ' sh-' + o.kind : '') + (isSel(o.id) ? ' sel' + (many() ? ' msel' : '') : '');
+    let connSvg = '';
+    if (o.type === 'shape' && o.kind === 'conn') connSvg = sodo.connSvg(o); // đường nối: tính lại khung theo hai ô trước khi đặt vị trí
     el.style.cssText = `left:${o.x}px;top:${o.y}px;`;
     o._err = '';
     let html = '';
@@ -233,9 +241,11 @@
         else if (o.type === 'venn') res = NumLine.renderVenn(o, o.w, o.h);
         else if (o.type === 'dattinh') { res = TieuHoc.renderDatTinh(o); o.w = res.w; o.h = res.h; }
         else if (o.type === 'minhhoa') res = MinhHoa.render(o, o.w, o.h);
-        else res = { svg: shapeSvg(o), labels: [], errors: [] };
+        else res = { svg: connSvg || shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
+        // chữ trong ô (sơ đồ, sơ đồ tư duy): canh giữa, tự xuống dòng, có công thức $…$
+        if (o.type === 'shape' && sodo.CLOSED.includes(o.kind) && o.text) html += `<div class="shtext" style="font-size:${o.tsize || 16}px;color:${o.tcolor || '#111'};font-weight:${o.bold ? 700 : 400};${o.kind === 'diamond' ? 'padding:0 22%;' : o.kind === 'ellipse' ? 'padding:0 12%;' : ''}">${textHtml(o)}</div>`;
         o._err = res.errors.join('\n');
         if (res.pts && (o.type === 'plane' || o.type === 'space')) { o._res = res; html += pointHandles(o, res); }
         if (res.planes) { const on = plSel(o); html += Object.keys(res.planes).map((n) => `<div class="plh${on.includes(n) ? ' on' : ''}" data-pl="${esc(n)}" style="left:${Math.round(res.planes[n][0])}px;top:${Math.round(res.planes[n][1])}px" title="Mặt phẳng ${esc(n)} — nhấp để chọn (dựng nhanh)"></div>`).join(''); }
@@ -251,6 +261,7 @@
   function renderAll() {
     page.innerHTML = '';
     S.objs.forEach(renderObj);
+    sodo.refreshAll(); // đường nối vẽ lại khi các ô đã có trên trang (ô chữ thường đo theo phần tử đã vẽ)
   }
   function select(id) {
     const g = id ? groupOf(id) : [];
@@ -286,7 +297,12 @@
       case 'dattinh': return Object.assign({ kind, expr: '356 + 278', size: 26, an: 'none', nan: 3, seed: 1, dapan: false, nho: false, kieuchia: 'day', thapphan: 0, color: '#111111', acolor: '#d62728', w: 100, h: 100 }, TieuHoc.DT_KINDS[kind][1]);
       case 'baitap': return Object.assign({ kind, de: '', text: '', size: 20, cols: 1, dapan: false, seed: 1, head: false, headcol: false, nrow: 4, color: '#111111', acolor: '#d62728', w: 640 }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[kind][1])));
       case 'minhhoa': return Object.assign({ kind, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[kind][1])));
-      case 'shape': return { kind, w: kind === 'line' || kind === 'arrow' ? 160 : 140, h: kind === 'line' || kind === 'arrow' ? 60 : 100, color: '#111111', sw: 1.5, dash: false, nofill: true, fill: '#aed6f1', flip: false };
+      case 'shape':
+        // ô chữ (sơ đồ): nền trắng, chữ ở giữa; đường nối: cong, mũi tên một đầu
+        if (kind === 'box') return { kind, w: 160, h: 56, color: '#2e86c1', sw: 1.8, dash: false, nofill: false, fill: '#ffffff', text: 'Ô chữ', tsize: 16, tcolor: '#111111', bold: false };
+        if (kind === 'diamond') return { kind, w: 150, h: 90, color: '#111111', sw: 1.5, dash: false, nofill: false, fill: '#fef9e7', text: 'Điều kiện?', tsize: 15, tcolor: '#111111', bold: false };
+        if (kind === 'conn') return { kind, w: 160, h: 60, color: '#555555', sw: 2, dash: false, style: 'cong', head: 'end' };
+        return { kind, w: kind === 'line' || kind === 'arrow' ? 160 : 140, h: kind === 'line' || kind === 'arrow' ? 60 : 100, color: '#111111', sw: 1.5, dash: false, nofill: true, fill: '#aed6f1', flip: false, text: '', tsize: 16, tcolor: '#111111', bold: false };
     }
   }
   function autoBBT(o) {
@@ -610,6 +626,23 @@
       o.latex = v; renderObj(o); buildProps(); commit();
     }, o, OFFICE && OFFICE.auto ? 'Chèn vào ' + officeName() : null);
   }
+  // gõ chữ ngay trong ô (sơ đồ): hiện chữ gốc (kể cả $…$), Enter / Esc / nhấp ra ngoài để xong, Shift+Enter xuống dòng;
+  // selAll: chọn hết chữ để gõ đè (ô vừa tạo bằng Tab)
+  function editShapeText(o, selAll) {
+    const el = page.querySelector(`[data-id="${o.id}"]`); if (!el) return;
+    let t = el.querySelector('.shtext');
+    if (!t) { t = document.createElement('div'); t.className = 'shtext'; t.style.cssText = `font-size:${o.tsize || 16}px;color:${o.tcolor || '#111'};font-weight:${o.bold ? 700 : 400}`; el.appendChild(t); }
+    el.classList.add('editing'); t.contentEditable = 'true'; t.textContent = o.text || ''; t.focus();
+    const r = document.createRange(); r.selectNodeContents(t); if (!selAll) r.collapse(false);
+    const s = document.getSelection(); s.removeAllRanges(); s.addRange(r);
+    const done = () => {
+      t.removeEventListener('blur', done); t.removeEventListener('keydown', key);
+      o.text = t.innerText.replace(/\n+$/, ''); el.classList.remove('editing'); t.contentEditable = 'false';
+      renderObj(o); sodo.refreshConns([o.id]); commit(); buildProps();
+    };
+    const key = (e) => { e.stopPropagation(); if ((e.key === 'Enter' && !e.shiftKey) || e.key === 'Escape') { e.preventDefault(); t.blur(); } else if (e.key === 'Tab') { e.preventDefault(); t.blur(); const n = sodo.addBranch(o); if (n) setTimeout(() => editShapeText(n, true), 0); } };
+    t.addEventListener('blur', done); t.addEventListener('keydown', key);
+  }
   function editText(o) {
     const el = page.querySelector(`[data-id="${o.id}"]`);
     el.classList.add('editing');
@@ -677,7 +710,17 @@
       moved = true;
       if (!resizing) {
         [dx, dy] = sn.snap(dx, dy, ev.altKey);
-        moving.forEach((t) => { t.o.x = Math.round(t.sx + dx); t.o.y = Math.round(t.sy + dy); if (t.el) { t.el.style.left = t.o.x + 'px'; t.el.style.top = t.o.y + 'px'; } });
+        moving.forEach((t) => {
+          if (sodo.isConn(t.o)) {
+            // đường nối: đầu mút gắn với ô thì đi theo ô; đầu mút tự do dời theo chuột
+            if (!t.p) t.p = { p1: t.o.p1 && Object.assign({}, t.o.p1), p2: t.o.p2 && Object.assign({}, t.o.p2) };
+            if (!t.o.from && t.p.p1) t.o.p1 = { x: Math.round(t.p.p1.x + dx), y: Math.round(t.p.p1.y + dy) };
+            if (!t.o.to && t.p.p2) t.o.p2 = { x: Math.round(t.p.p2.x + dx), y: Math.round(t.p.p2.y + dy) };
+            renderObj(t.o); return;
+          }
+          t.o.x = Math.round(t.sx + dx); t.o.y = Math.round(t.sy + dy); if (t.el) { t.el.style.left = t.o.x + 'px'; t.el.style.top = t.o.y + 'px'; }
+        });
+        sodo.refreshConns(moving.map((t) => t.o.id));
         return;
       }
       if (o.type === 'formula') o.size = Math.max(8, Math.min(96, Math.round(st.size * (st.bw + dx) / st.bw)));
@@ -688,6 +731,7 @@
         o.h = Math.max(o.type === 'shape' ? 2 : 50, Math.round(st.h + dy));
       }
       renderObj(o);
+      sodo.refreshConns([o.id]);
     };
     const up = () => {
       window.removeEventListener('pointermove', mv);
@@ -706,6 +750,7 @@
     if (!el) { newTextAt(pagePt(e)); return; } // nhấp đúp vào chỗ trống: gõ chữ ngay tại đó
     if (el.classList.contains('editing')) return;
     const o = get(el.dataset.id);
+    if (o.type === 'shape' && sodo.CLOSED.includes(o.kind)) { editShapeText(o); return; }
     if (o.type === 'formula') editFormula(o);
     else if (o.type === 'text') {
       const fx = e.target.closest('.ifx');
@@ -728,7 +773,7 @@
     }
     const add = (el) => { props.appendChild(el); return el; };
     const mk = (tag, cls, html) => { const el = document.createElement(tag); if (cls) el.className = cls; if (html !== undefined) el.innerHTML = html; return el; };
-    const onEdit = (k, v, rebuild) => { o[k] = v; renderObj(o); if (rebuild) buildProps(); };
+    const onEdit = (k, v, rebuild) => { o[k] = v; renderObj(o); sodo.refreshConns([o.id]); if (rebuild) buildProps(); };
     function field(k, label, kind, opt) {
       const wrap = mk('div');
       if (kind === 'chk') {
@@ -1094,10 +1139,23 @@
       add(field('color', 'Màu chữ, màu nét', 'color'));
       help('Kéo ô vuông ở góc để đổi kích thước. Hình được vẽ lại bằng nét, in rõ ở mọi cỡ.');
     } else if (o.type === 'shape') {
+      if (sodo.CLOSED.includes(o.kind)) {
+        // chữ trong ô (sơ đồ): nhấp đúp vào ô để gõ ngay trên trang
+        add(field('text', 'Chữ trong ô (công thức giữa hai dấu $)', 'area', { rows: 2 }));
+        row(field('tsize', 'Cỡ chữ', 'num'), field('tcolor', 'Màu chữ', 'color'));
+        add(field('bold', 'Chữ đậm', 'chk'));
+      }
       row(field('color', 'Màu nét', 'color'), field('sw', 'Độ dày', 'num', 0.5));
       add(field('dash', 'Nét đứt', 'chk'));
-      if (o.kind === 'line' || o.kind === 'arrow') add(field('flip', 'Đảo hướng chéo', 'chk'));
-      else { add(field('nofill', 'Không tô nền', 'chk')); add(field('fill', 'Màu nền', 'color')); }
+      if (o.kind === 'conn') {
+        add(field('style', 'Kiểu đường nối', 'sel', { thang: 'Thẳng', cong: 'Cong (sơ đồ tư duy)', gap: 'Gấp khúc (sơ đồ khối)' }));
+        add(field('head', 'Mũi tên', 'sel', { end: 'Một đầu', both: 'Hai đầu', none: 'Không có' }));
+        help(o.from || o.to ? 'Đường nối gắn với ô: kéo ô thì đường nối chạy theo.' : 'Mũi tên cong tự do: kéo để dời. Muốn nối hai ô: chọn hai ô (giữ Ctrl) rồi bấm Nối.');
+      } else if (o.kind === 'line' || o.kind === 'arrow') {
+        add(field('flip', 'Đảo hướng chéo', 'chk'));
+        if (o.kind === 'arrow') add(field('head', 'Mũi tên', 'sel', { end: 'Một đầu', both: 'Hai đầu' }));
+      } else { add(field('nofill', 'Không tô nền', 'chk')); add(field('fill', 'Màu nền', 'color')); }
+      if (sodo.CLOSED.includes(o.kind)) btn('⊕ Thêm nhánh con (Tab)', () => sodo.addBranch(o));
     }
     h4('Vị trí' + (o.w && o.type !== 'formula' ? ' và kích thước' : ''));
     row(field('x', 'X', 'num'), field('y', 'Y', 'num'));
@@ -1182,9 +1240,17 @@
     'ins-arrow': () => { insert('shape', 'arrow'); commit(); },
     'ins-rect': () => { insert('shape', 'rect'); commit(); },
     'ins-ellipse': () => { insert('shape', 'ellipse'); commit(); },
+    // sơ đồ, sơ đồ tư duy
+    'ins-box': () => { insert('shape', 'box'); commit(); },
+    'ins-diamond': () => { insert('shape', 'diamond'); commit(); },
+    'ins-darrow': () => { insert('shape', 'arrow', { head: 'both' }); commit(); },
+    'ins-curve': () => { const o = insert('shape', 'conn', { style: 'cong', head: 'end', color: '#111111', sw: 1.6 }); o.p1 = { x: o.x, y: o.y + 60 }; o.p2 = { x: o.x + 170, y: o.y }; renderObj(o); commit(); buildProps(); },
+    'ins-connect': () => sodo.connectSelected(),
+    'ins-mindmap': () => sodo.mindmap(),
+    'add-branch': () => sodo.addBranch(get(S.sel)),
     undo: () => restore(S.hpos - 1),
     redo: () => restore(S.hpos + 1),
-    del: () => { if (!S.multi.length) return; const ids = new Set(S.multi); S.objs = S.objs.filter((o) => !ids.has(o.id)); S.sel = null; S.multi = []; renderAll(); buildProps(); commit(); },
+    del: () => { if (!S.multi.length) return; const ids = new Set(S.multi); S.objs = S.objs.filter((o) => !ids.has(o.id) && !(sodo.isConn(o) && (ids.has(o.from) || ids.has(o.to)))); /* xoá ô thì xoá luôn đường nối gắn với ô */ S.sel = null; S.multi = []; renderAll(); buildProps(); commit(); },
     dup: () => { if (!S.multi.length) return; pasteMany(selObjs().map(cleanObj)); },
     front: () => { if (!S.multi.length) return; const ids = new Set(S.multi); S.objs = S.objs.filter((t) => !ids.has(t.id)).concat(selObjs()); renderAll(); commit(); },
     back: () => { if (!S.multi.length) return; const ids = new Set(S.multi); S.objs = selObjs().concat(S.objs.filter((t) => !ids.has(t.id))); renderAll(); commit(); },
@@ -1302,7 +1368,10 @@
     if (e.key === 'Escape' && S.placing) { S.placing = false; page.classList.remove('placing'); msg('Sẵn sàng'); return; }
     if (typing()) return;
     const o = cur(), k = e.key.toLowerCase();
-    if (o && e.key === 'F2') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); return; }
+    if (o && e.key === 'F2') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); else if (o.type === 'shape' && sodo.CLOSED.includes(o.kind)) editShapeText(o); return; }
+    // sơ đồ tư duy: Tab thêm nhánh con cho ô đang chọn; Enter gõ chữ trong ô
+    if (o && e.key === 'Tab' && !many() && o.type === 'shape' && sodo.CLOSED.includes(o.kind)) { e.preventDefault(); const n = sodo.addBranch(o); if (n) setTimeout(() => editShapeText(n, true), 0); return; }
+    if (o && e.key === 'Enter' && !many() && o.type === 'shape' && sodo.CLOSED.includes(o.kind)) { e.preventDefault(); editShapeText(o); return; }
     if (e.ctrlKey && k === 'm') { e.preventDefault(); run('ins-formula'); return; }
     if (e.ctrlKey && k === 'v' && S.clip) { e.preventDefault(); const c = JSON.parse(S.clip); if (Array.isArray(c)) pasteMany(c); else paste(c); return; }
     if (e.ctrlKey && k === 'a') { e.preventDefault(); run('selall'); return; }
@@ -1434,6 +1503,7 @@
   // nạp các mô-đun (src/mod/*.js) trước lần vẽ đầu tiên
   ({ isSel, selObjs, many, cleanObj, paintSel, groupOf, setSel, toggleSel, elOf, boxOf, groupData, pasteGroup, pasteMany, multiProps, rubberBand, snapper } = TVM.chonnhieu({ page, props, S, msg, get, commit, title, renderObj, pagePt, buildProps, run }));
   ({ ptSel, plSel, togglePlane, rotateDrag, pointHandles, freshName, pointDrag } = TVM.keodiem({ $, S, msg, cur, commit, title, renderObj, buildProps }));
+  sodo = TVM.sodo({ S, get, renderObj, commit, select, setSel, buildProps, msg, insert, elOf });
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
   ({ openBaiGiai, makeBaiGiai } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults }));
