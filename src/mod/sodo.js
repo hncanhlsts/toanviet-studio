@@ -123,6 +123,6 @@
       msg('Sơ đồ tư duy: nhấp đúp vào ô để sửa chữ; chọn một ô rồi bấm Tab để thêm nhánh con; kéo ô thì đường nối chạy theo');
       return root0;
     }
-    return { isConn, connSvg, refreshConns, refreshAll, connect, connectSelected, addBranch, mindmap, CLOSED };
+    return { isConn, connSvg, ends, refreshConns, refreshAll, connect, connectSelected, addBranch, mindmap, CLOSED };
   };
 })(this);

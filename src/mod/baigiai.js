@@ -134,7 +134,7 @@
       body.innerHTML =
         '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
         'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào. ' +
-        'Hình học phẳng vẽ đúng ý đề nhất khi AI viết sẵn hình: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button>, dán vào đầu cuộc trò chuyện với AI (hoặc phần hướng dẫn riêng / Gem / GPT), AI sẽ viết kèm khối <b>[HÌNH TOANVIET]</b>.</p>' +
+        'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối <b>[HÌNH TOANVIET]</b>) dán vào ô bên trái: hình từng câu được thay.</p>' +
         '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
@@ -144,7 +144,13 @@
         '<span id="bgstat" class="bgstat"></span><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
       const src = $('#bgsrc'), view = $('#bgview');
       // chép lời nhắc vẽ hình (src/loi-nhac-ai.js) vào bộ nhớ tạm để dán cho ChatGPT, Gemini, Copilot…
-      $('#bgnhac').onclick = () => { if (window.LoiNhacAI) chep(LoiNhacAI.text()).then(() => msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài')); };
+      // chép lệnh nhờ AI dựng hình, gắn sẵn đề đang có trong ô (không cần lời giải); ô trống: chỉ chép lời nhắc
+      $('#bgnhac').onclick = () => {
+        if (!window.LoiNhacAI) return;
+        const de = deCaBai(src.value);
+        if (de) chep(LoiNhacAI.nhoDung(de)).then(() => msg('Đã chép lệnh kèm đề — dán (Ctrl+V) cho ChatGPT / Gemini; chép câu trả lời (các khối hình) rồi dán vào ô bên trái: hình từng câu được thay'));
+        else chep(LoiNhacAI.text()).then(() => msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài'));
+      };
       let tmr = 0;
       const refresh = () => {
         view.innerHTML = previewHtml(src.value);
@@ -164,19 +170,63 @@
           if (!sp) { msg('Chưa thấy khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] — dán đúng phần AI trả về', true); return; }
           const er = BaiGiai.loiKhoi(sp);
           if (er.length) { msg('Kịch bản AI viết còn lỗi: ' + er[0] + ' — nhờ AI sửa lại dòng đó', true); return; }
-          const L0 = src.value.split('\n');
-          if (/^tv\d+$/.test(key)) { const i = L0.findIndex((l) => l.startsWith('#FIG ' + key + ' ')); if (i >= 0) L0[i] = '#FIG ' + key + ' ' + JSON.stringify(sp); }
-          else {
-            const i = L0.findIndex((l) => l.startsWith('[FIG ' + key + '|'));
-            if (i < 0) { msg('Không tìm thấy chỗ đặt hình của câu này — bấm Dựng lại hình rồi thử lại', true); return; }
-            const n = 1 + Math.max(0, ...L0.map((l) => { const m = /^#FIG tv(\d+) /.exec(l); return m ? +m[1] : 0; }));
-            L0.splice(i, 1, '#FIG tv' + n + ' ' + JSON.stringify(sp), '[FIG tv' + n + '|Hình]');
-          }
+          // dòng đặt hình "[FIG key|…]" nằm trong câu (dòng khai báo "#FIG hN" của hình tự đọc đề nằm ở đầu nội dung)
+          const L0 = src.value.split('\n'), i = L0.findIndex((l) => l.startsWith('[FIG ' + key + '|'));
+          const c = cauCua(L0).find((x) => i >= x.start && i < x.end);
+          if (!c) { msg('Không tìm thấy chỗ đặt hình của câu này — bấm Dựng lại hình rồi thử lại', true); return; }
+          thayHinh(L0, c, sp);
           const f = rebuildFigures(L0.join('\n')); src.value = f.markup; refresh();
           msg('Đã thay bằng hình AI dựng theo kịch bản');
           return;
         }
       });
+      // các câu trong nội dung: "#C Câu 2." … tới câu sau (không có nhãn câu: cả bài là một câu)
+      function cauCua(L0) {
+        const out = [];
+        L0.forEach((l, i) => { const m = /^#C\s+(.*)$/.exec(l); if (m) { if (out.length) out[out.length - 1].end = i; out.push({ nhan: m[1], so: ((/(\d+[a-z]?)/i.exec(m[1]) || [])[1] || '').toLowerCase(), start: i, end: L0.length }); } });
+        return out.length ? out : [{ nhan: '', so: '', start: 0, end: L0.length }];
+      }
+      // đặt hình theo kịch bản cho một câu: thay hình đang có (tự đọc đề hoặc kịch bản cũ), chưa có thì đặt trước Lời giải
+      function thayHinh(L0, c, sp) {
+        const n = 1 + Math.max(0, ...L0.map((l) => { const m = /^#FIG tv(\d+) /.exec(l); return m ? +m[1] : 0; }));
+        let i = L0.findIndex((l, k) => k >= c.start && k < c.end && /^#FIG tv\d+ /.test(l));
+        if (i >= 0) { L0[i] = L0[i].replace(/^(#FIG tv\d+ ).*$/, (m0, p) => p + JSON.stringify(sp)); return; }
+        i = L0.findIndex((l, k) => k >= c.start && k < c.end && /^\[FIG /.test(l));
+        if (i >= 0) { L0.splice(i, 1, '#FIG tv' + n + ' ' + JSON.stringify(sp), '[FIG tv' + n + '|Hình]'); return; }
+        const g = L0.findIndex((l, k) => k > c.start && k < c.end && /^#G/.test(l));
+        L0.splice(g >= 0 ? g : c.end, 0, '#FIG tv' + n + ' ' + JSON.stringify(sp), '[FIG tv' + n + '|Hình]');
+      }
+      // đề của cả nội dung (bỏ lời giải, dòng hình): để gắn kèm lệnh nhờ AI dựng hình
+      function deCaBai(markup) {
+        const out = []; let giai = false;
+        String(markup).split('\n').forEach((l) => {
+          if (/^#C\s/.test(l)) { giai = false; out.push('', l.replace(/^#C\s+/, '')); return; }
+          if (/^#G/.test(l)) { giai = true; return; }
+          if (/^#(H1|H2|D)\s/.test(l)) giai = false;
+          if (giai || /^#FIG |^\[FIG |^#(TAB|ENDTAB|T|PAGE)\b/.test(l)) return;
+          out.push(l.replace(/^#\w+\s+/, '').replace(/ \(Hình \d+\)(?=[.:;]?\s*$)/, ''));
+        });
+        return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+      }
+      // câu trả lời AI chỉ gồm các khối hình (kèm "Câu n."): đặt hình cho từng câu, giữ nguyên đề đang có
+      function ganKhoi(raw) {
+        const t = String(raw).replace(/\r\n?/g, '\n');
+        const rx = /\[\s*H[ÌI]NH\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\][\s\S]*?\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
+        const ks = []; let m, last = 0;
+        while ((m = rx.exec(t))) { const truoc = t.slice(last, m.index), so = (/c[âa]u\s*(\d+[a-z]?)\b[^\n]*$/i.exec(truoc.trim()) || [])[1]; const sp = BaiGiai.docKhoi(m[0])[0]; if (sp) ks.push({ so: (so || '').toLowerCase(), sp }); last = m.index + m[0].length; }
+        // phần còn lại (ngoài khối, nhãn câu) gần như trống: đây là câu trả lời chỉ có hình
+        const du = t.replace(rx, '').replace(/c[âa]u\s*\d+[a-z]?\s*[.:)]?/gi, '').replace(/[`*#\s.:-]+/g, '');
+        if (!ks.length || du.length > 60) return false;
+        const L0 = src.value.split('\n'), cs = cauCua(L0), coHinh = cs.filter((c) => L0.slice(c.start, c.end).some((l) => /^\[FIG /.test(l)));
+        const loi2 = [];
+        // đặt từ câu cuối lên (chèn dòng không làm lệch vị trí câu phía trên)
+        const viec = ks.map((k, i) => ({ k, c: k.so ? cs.find((c) => c.so === k.so) : (ks.length === coHinh.length ? coHinh[i] : ks.length === cs.length ? cs[i] : null) }));
+        viec.filter((v) => v.c).sort((a, b) => b.c.start - a.c.start).forEach((v) => { const er = BaiGiai.loiKhoi(v.k.sp); if (er.length) loi2.push((v.c.nhan || 'Hình') + ': ' + er[0]); else thayHinh(L0, v.c, v.k.sp); });
+        const f = rebuildFigures(L0.join('\n')); src.value = f.markup; refresh();
+        const khong = viec.filter((v) => !v.c).length;
+        msg('Đã đặt ' + (viec.length - khong - loi2.length) + ' hình theo kịch bản AI' + (khong ? '; ' + khong + ' khối không rõ của câu nào (ghi "Câu n." trên khối)' : '') + (loi2.length ? '; lỗi: ' + loi2.join(' · ') : ''), !!(khong || loi2.length));
+        return true;
+      }
       // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường
       src.addEventListener('paste', (e) => {
         const html = e.clipboardData.getData('text/html'), text = e.clipboardData.getData('text/plain');
@@ -184,6 +234,7 @@
         e.preventDefault();
         let raw = text;
         try { if (html && /<(p|div|span|h\d|li|math|annotation|table)\b/i.test(html)) raw = BaiGiai.fromHtml(html); } catch (err) { raw = text; }
+        if (src.value.trim() && ganKhoi(raw)) return; // câu trả lời AI chỉ có các khối hình: đặt vào từng câu
         if (!src.value.trim()) src.value = convert(raw);
         else { const r = BaiGiai.fromText(raw); mergeNotes(r.notes); src.setRangeText(r.markup, src.selectionStart, src.selectionEnd, 'end'); }
         refresh();

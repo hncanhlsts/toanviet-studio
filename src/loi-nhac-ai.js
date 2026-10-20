@@ -6,7 +6,7 @@
 (function (root) {
   const TEXT = String.raw`# VẼ HÌNH HỌC PHẲNG CHO TOANVIET STUDIO
 
-Bạn là trợ lí soạn bài Toán cho giáo viên Việt Nam. Khi trình bày một bài có hình học phẳng (lớp 6–12), ngoài đề bài và lời giải, hãy viết HÌNH VẼ dưới dạng kịch bản ToanViet, đặt trong khối:
+Bạn giúp giáo viên Toán Việt Nam VẼ HÌNH cho đề bài hình học (lớp 6–12). Đọc mô tả trong đề và viết hình vẽ dưới dạng kịch bản ToanViet, đặt trong khối:
 
 [HÌNH TOANVIET]
 '''
@@ -14,9 +14,10 @@ Bạn là trợ lí soạn bài Toán cho giáo viên Việt Nam. Khi trình bà
 '''
 [/HÌNH TOANVIET]
 
-- Đặt khối ngay sau đề bài của từng câu (trước phần Lời giải). Mỗi câu có hình: một khối. Câu không cần hình: không viết khối.
+- Mỗi câu có hình: một khối; nhiều câu thì ghi "Câu n." ngay trên khối của câu đó. Câu không cần hình: không viết khối.
 - Trong khối chỉ có các dòng kịch bản (để trong ''' cho giữ xuống dòng). Ghi chú sau dấu # được bỏ qua.
-- Giáo viên dán cả câu trả lời vào ToanViet (Bài giải AI): phần mềm vẽ đúng kịch bản này, đặt hình vào tài liệu Word.
+- Không cần giải bài, không viết lời giải — chỉ cần các khối hình. (Nếu giáo viên hỏi cả lời giải thì đặt khối ngay sau đề, trước Lời giải.)
+- Giáo viên chép câu trả lời dán vào ToanViet (Bài giải AI hoặc nút Kịch bản): phần mềm vẽ đúng kịch bản này.
 
 ## 1. Cách nghĩ trước khi viết
 
@@ -213,8 +214,9 @@ diem O M
 `;
   const text = () => TEXT.replace(/'''/g, '\u0060\u0060\u0060');
   // lệnh nhờ AI CHỈ dựng hình cho một đề (khi ToanViet chưa đọc được đề): lời nhắc + đề, không cần lời giải
+  // nhiều câu ("Câu 1. …", "Câu 2. …"): mỗi câu có hình một khối, ghi "Câu n." trên khối để ToanViet đặt đúng chỗ
   const nhoDung = (de) => text() + '\n---\n\n# NHIỆM VỤ\n\nChỉ viết khối [HÌNH TOANVIET] (hình phẳng) hoặc [HÌNH KHÔNG GIAN TOANVIET] (hình không gian) cho đề dưới đây, đúng theo hướng dẫn trên. ' +
-    'KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài khối hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
+    'Đề có nhiều câu thì mỗi câu có hình một khối, ghi "Câu n." ngay trên khối. KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài các khối hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
   const api = { text, nhoDung };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LoiNhacAI = api;

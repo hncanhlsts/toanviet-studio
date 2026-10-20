@@ -252,6 +252,8 @@
         if (o.type === 'space' || o.type === 'solid') html += '<div class="roth" title="Kéo để xoay hình (nhấp đúp: về góc nhìn SGK)">⟳</div>';
       }
     } catch (e) { o._err = e.message; html = `<span class="empty" style="color:#b03a2e">${esc(e.message)}</span>`; }
+    // đoạn, mũi tên, đường nối: hai nút tròn ở hai đầu mút — kéo đầu mút về hướng cần chỉ (thả vào ô chữ thì gắn với ô)
+    if (o.type === 'shape' && o.kind === 'conn' && sodo.ends) html += sodo.ends(o).map((p, i) => `<div class="eph" data-ep="${i + 1}" title="Kéo đầu mút: xoay, kéo dài (Shift: góc tròn 15°)" style="left:${Math.round(p.x - o.x)}px;top:${Math.round(p.y - o.y)}px"></div>`).join('');
     el.innerHTML = html + '<div class="handle"></div>';
     if (S.sel === o.id) { const er = $('#perr'); if (er) er.textContent = o._err; }
     return el;
@@ -687,6 +689,43 @@
     const o = insert('text', null, { x: Math.max(0, p.x - 4), y: Math.max(0, p.y - 14), text: '', w: Math.max(160, Math.min(460, 794 - p.x - 24)) });
     setTimeout(() => editText(o), 0);
   }
+  // chèn đoạn / mũi tên (đường nối tự do hai đầu mút): thẳng thì nằm ngang, cong thì chéo nhẹ
+  function insLine(head, style) {
+    const o = insert('shape', 'conn', { style: style || 'thang', head, color: '#111111', sw: 1.5 });
+    o.p1 = { x: o.x, y: o.y + (style ? 60 : 30) }; o.p2 = { x: o.x + 170, y: o.y + (style ? 0 : 30) };
+    renderObj(o); commit(); buildProps();
+  }
+  // kéo một đầu mút của đoạn / mũi tên / đường nối: đầu kia đứng yên; gần nằm ngang / thẳng đứng thì tự bắt thẳng,
+  // giữ Shift: góc tròn bội 15°; thả lên ô chữ (sơ đồ) thì gắn đầu mút vào ô, thả ra ngoài thì đầu mút tự do
+  function endDrag(e, o, k) {
+    e.preventDefault(); e.stopPropagation();
+    const [a, b] = sodo.ends(o), fixed = k === 1 ? b : a;
+    let moved = false;
+    const mv = (ev) => {
+      moved = true;
+      let p = pagePt(ev);
+      const dx = p.x - fixed.x, dy = p.y - fixed.y, L = Math.hypot(dx, dy);
+      if (L > 4) {
+        let ang = Math.atan2(dy, dx) * 180 / Math.PI;
+        const step = ev.shiftKey ? 15 : 90, r = Math.round(ang / step) * step;
+        if (ev.shiftKey || Math.abs(ang - r) < 6) { ang = r * Math.PI / 180; p = { x: Math.round(fixed.x + L * Math.cos(ang)), y: Math.round(fixed.y + L * Math.sin(ang)) }; }
+      }
+      // thả lên ô chữ / hình thoi / elip: gắn vào ô
+      const box = S.objs.find((x) => x.type === 'shape' && sodo.CLOSED.includes(x.kind) && x.id !== o.id && p.x >= x.x && p.x <= x.x + x.w && p.y >= x.y && p.y <= x.y + x.h);
+      const key = k === 1 ? 'from' : 'to', pk = k === 1 ? 'p1' : 'p2';
+      if (box && !ev.altKey) { o[key] = box.id; delete o[pk]; }
+      else { delete o[key]; o[pk] = p; }
+      // đầu kia đang tự do: giữ nguyên toạ độ
+      const ok = k === 1 ? 'p2' : 'p1', okey = k === 1 ? 'to' : 'from';
+      if (!o[okey]) o[ok] = { x: fixed.x, y: fixed.y };
+      renderObj(o);
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
+      if (moved) { commit(); buildProps(); }
+    };
+    window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+  }
   page.addEventListener('pointerdown', (e) => {
     if (S.placing) { e.preventDefault(); e.stopPropagation(); if (document.activeElement) document.activeElement.blur(); newTextAt(pagePt(e)); return; }
     const el = e.target.closest('.obj');
@@ -699,6 +738,7 @@
     if (e.target.classList.contains('pth') && !many()) return pointDrag(e, o, el, e.target.dataset.pt);
     if (e.target.classList.contains('roth') && !many()) return rotateDrag(e, o);
     if (e.target.classList.contains('plh') && !many()) { e.preventDefault(); return togglePlane(o, e.target.dataset.pl); }
+    if (e.target.classList.contains('eph') && !many()) return endDrag(e, o, +e.target.dataset.ep);
     const resizing = e.target.classList.contains('handle') && !many();
     const p0 = { x: e.clientX, y: e.clientY }, st = { x: o.x, y: o.y, w: o.w, h: o.h, size: o.size, bw: el.offsetWidth };
     const moving = selObjs().map((x) => ({ o: x, sx: x.x, sy: x.y, b: boxOf(x), el: elOf(x.id) }));
@@ -1148,9 +1188,10 @@
       row(field('color', 'Màu nét', 'color'), field('sw', 'Độ dày', 'num', 0.5));
       add(field('dash', 'Nét đứt', 'chk'));
       if (o.kind === 'conn') {
-        add(field('style', 'Kiểu đường nối', 'sel', { thang: 'Thẳng', cong: 'Cong (sơ đồ tư duy)', gap: 'Gấp khúc (sơ đồ khối)' }));
-        add(field('head', 'Mũi tên', 'sel', { end: 'Một đầu', both: 'Hai đầu', none: 'Không có' }));
-        help(o.from || o.to ? 'Đường nối gắn với ô: kéo ô thì đường nối chạy theo.' : 'Mũi tên cong tự do: kéo để dời. Muốn nối hai ô: chọn hai ô (giữ Ctrl) rồi bấm Nối.');
+        add(field('style', 'Kiểu đường', 'sel', { thang: 'Thẳng', cong: 'Cong (sơ đồ tư duy)', gap: 'Gấp khúc (sơ đồ khối)' }));
+        add(field('head', 'Mũi tên', 'sel', { end: 'Một đầu', both: 'Hai đầu', none: 'Không có (đoạn thẳng)' }));
+        help('Kéo nút tròn ở một đầu để xoay, kéo dài về hướng cần chỉ (gần nằm ngang / thẳng đứng thì tự bắt thẳng; giữ Shift: góc tròn 15°). ' +
+          (o.from || o.to ? 'Đầu gắn với ô: kéo ô thì đường chạy theo; kéo đầu mút ra ngoài ô để gỡ.' : 'Thả đầu mút lên ô chữ để gắn vào ô. Kéo thân đường để dời cả đường.'));
       } else if (o.kind === 'line' || o.kind === 'arrow') {
         add(field('flip', 'Đảo hướng chéo', 'chk'));
         if (o.kind === 'arrow') add(field('head', 'Mũi tên', 'sel', { end: 'Một đầu', both: 'Hai đầu' }));
@@ -1238,15 +1279,16 @@
     present: () => startPresent(false),
     'present-step': () => startPresent(true),
     tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
-    'ins-line': () => { insert('shape', 'line'); commit(); },
-    'ins-arrow': () => { insert('shape', 'arrow'); commit(); },
+    // đoạn, mũi tên: nằm ngang khi chèn; kéo hai đầu mút (nút tròn) để xoay về hướng cần chỉ
+    'ins-line': () => insLine('none'),
+    'ins-arrow': () => insLine('end'),
     'ins-rect': () => { insert('shape', 'rect'); commit(); },
     'ins-ellipse': () => { insert('shape', 'ellipse'); commit(); },
     // sơ đồ, sơ đồ tư duy
     'ins-box': () => { insert('shape', 'box'); commit(); },
     'ins-diamond': () => { insert('shape', 'diamond'); commit(); },
-    'ins-darrow': () => { insert('shape', 'arrow', { head: 'both' }); commit(); },
-    'ins-curve': () => { const o = insert('shape', 'conn', { style: 'cong', head: 'end', color: '#111111', sw: 1.6 }); o.p1 = { x: o.x, y: o.y + 60 }; o.p2 = { x: o.x + 170, y: o.y }; renderObj(o); commit(); buildProps(); },
+    'ins-darrow': () => insLine('both'),
+    'ins-curve': () => insLine('end', 'cong'),
     'ins-connect': () => sodo.connectSelected(),
     'ins-mindmap': () => sodo.mindmap(),
     'add-branch': () => sodo.addBranch(get(S.sel)),
@@ -1351,6 +1393,26 @@
     if (CMD[cmd]) CMD[cmd]();
   }
   $('#ribbon').addEventListener('click', (e) => { const b = e.target.closest('button[data-cmd]'); if (b) run(b.dataset.cmd); });
+  // Thanh công cụ luôn nằm trên một hàng: cửa sổ hẹp thì thu gọn dần — bớt khoảng đệm, rồi lần lượt chuyển các nhóm ít dùng
+  // sang dạng biểu tượng nhỏ hai hàng (tên nút hiện khi rê chuột), giống Word / PowerPoint
+  function fitRibbon() {
+    const rb = $('#ribbon');
+    const grps = [...rb.querySelectorAll(':scope > .grp')];
+    const lbl = (g) => (g.querySelector(':scope > span') || {}).textContent || '';
+    // thứ tự thu gọn: nhóm ít dùng trước
+    const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo'];
+    const seq = ORDER.map((t) => grps.find((g) => lbl(g) === t)).filter(Boolean);
+    const wraps = () => { const vis = grps.filter((g) => g.offsetParent !== null); return vis.length > 1 && vis.some((g) => g.offsetTop > vis[0].offsetTop + 4); };
+    rb.classList.remove('gon'); grps.forEach((g) => g.classList.remove('ic'));
+    if (!wraps()) return;
+    rb.classList.add('gon');
+    for (const g of seq) { if (!wraps()) break; g.classList.add('ic'); }
+  }
+  let fitT = 0;
+  addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitRibbon, 80); });
+  new MutationObserver(() => fitRibbon()).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  window.__fitRibbon = fitRibbon; // kiểm thử
+  fitRibbon();
   $('#modeBadge').onclick = () => run('tieuhoc');
   if (api) api.onMenu(run);
   if (api && api.onLibFile) api.onLibFile(async (r) => {

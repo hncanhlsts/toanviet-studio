@@ -387,6 +387,66 @@
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });
 
+  await step('Chép lời nhắc vẽ hình: gắn sẵn đề (không lời giải); dán câu trả lời chỉ có khối hình → thay hình từng câu, giữ đề', async () => {
+    __clear(); await w(50);
+    window.__baigiai.open(); await w(300);
+    const src = document.getElementById('bgsrc');
+    const paste = async (t) => { const dt = new DataTransfer(); dt.setData('text/plain', t); src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500); };
+    src.value = ''; await paste('Câu 1. Cho tam giác ABC có M là trung điểm của BC.\nLời giải\nTa có $BM = MC$.\n\nCâu 2. Cho tam giác MNP vuông tại M, đường cao MH.\nLời giải\nXét tam giác vuông.');
+    let chepDuoc = '';
+    const goc = navigator.clipboard.writeText; navigator.clipboard.writeText = async (t) => { chepDuoc = t; };
+    document.getElementById('bgnhac').click(); await w(100);
+    navigator.clipboard.writeText = goc;
+    ok('lệnh chép kèm đề hai câu, không có lời giải, yêu cầu chỉ vẽ hình', /Câu 1\.\nCho tam giác ABC có M là trung điểm của BC/.test(chepDuoc) && /Câu 2\./.test(chepDuoc) && !/Ta có \$BM = MC\$|Xét tam giác vuông/.test(chepDuoc) && /KHÔNG giải bài/.test(chepDuoc), chepDuoc.slice(-400));
+    src.setSelectionRange(src.value.length, src.value.length);
+    await paste('Câu 2.\n[HÌNH TOANVIET]\n```\nM = (0, 0)\nN = (0, 4)\nP = (6, 0)\ndagiac MNP\nH = chan(M, N, P)\ndoan MH\n```\n[/HÌNH TOANVIET]\n\nCâu 1.\n[HÌNH TOANVIET]\nB = (0, 0)\nC = (7, 0)\nA = (1, 5)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n[/HÌNH TOANVIET]');
+    const L = src.value.split('\n'), c1 = L.findIndex((l) => /^#C Câu 1/.test(l)), c2 = L.findIndex((l) => /^#C Câu 2/.test(l));
+    const fig1 = L.slice(c1, c2).join('\n'), fig2 = L.slice(c2).join('\n');
+    ok('hình mỗi câu thay đúng chỗ, giữ đề và lời giải', /#FIG tv\d+ .*C = \(7, 0\)/.test(fig1) && /#FIG tv\d+ .*H = chan\(M, N, P\)/.test(fig2) && /Ta có \$BM = MC\$/.test(src.value) && /Xét tam giác vuông/.test(src.value) && !/^#FIG h\d/m.test(src.value), src.value.slice(0, 500));
+    document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
+  });
+
+  await step('Thanh công cụ một hàng; đoạn / mũi tên nằm ngang, kéo đầu mút để xoay (bắt thẳng, Shift 15°, gắn vào ô)', async () => {
+    __clear(); await w(50);
+    const grps = [...document.querySelectorAll('#ribbon > .grp')].filter((g) => g.offsetParent !== null);
+    ok('thanh công cụ nằm trên một hàng (cửa sổ ' + innerWidth + ' px)', grps.every((g) => g.offsetTop === grps[0].offsetTop), grps.map((g) => g.offsetTop).join(','));
+    __run('ins-arrow'); await w(150);
+    const el = document.querySelector('#page .obj.sel'), o = __get(el.dataset.id);
+    ok('mũi tên chèn vào nằm ngang, có hai nút đầu mút', o.kind === 'conn' && o.head === 'end' && o.p1.y === o.p2.y && el.querySelectorAll('.eph').length === 2, JSON.stringify([o.p1, o.p2]));
+    // kéo nút đầu mút tới điểm (px, py) trên trang
+    const dragTo = async (k, px, py, opt) => {
+      const h = document.querySelector('#page .obj.sel .eph[data-ep="' + k + '"]'), r = h.getBoundingClientRect(), pg = document.getElementById('page'), pr = pg.getBoundingClientRect(), z = pr.width / pg.offsetWidth || 1;
+      h.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
+      window.dispatchEvent(new PointerEvent('pointermove', Object.assign({ bubbles: true, clientX: pr.left + px * z, clientY: pr.top + py * z }, opt || {})));
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); await w(100);
+    };
+    const p1 = Object.assign({}, o.p1);
+    await dragTo(2, p1.x + 90, p1.y - 110);
+    ok('kéo đầu mũi tên lên trên: đuôi đứng yên, đầu đổi hướng', o.p1.x === p1.x && o.p1.y === p1.y && o.p2.x === p1.x + 90 && o.p2.y === p1.y - 110, JSON.stringify([o.p1, o.p2]));
+    await dragTo(2, p1.x + 5, p1.y - 120);
+    ok('gần thẳng đứng thì tự bắt thẳng đứng', o.p2.x === p1.x && o.p2.y === p1.y - 120, JSON.stringify([o.p1, o.p2]));
+    await dragTo(1, p1.x - 100, p1.y + 3);
+    ok('kéo đuôi: gần nằm ngang thì tự bắt ngang (so với đầu kia)', o.p1.y === o.p2.y || Math.abs(Math.atan2(o.p2.y - o.p1.y, o.p2.x - o.p1.x)) > 0, JSON.stringify([o.p1, o.p2]));
+    const L0 = Math.hypot(o.p2.x - o.p1.x, o.p2.y - o.p1.y);
+    await dragTo(2, o.p1.x + 100, o.p1.y - 40, { shiftKey: true });
+    const ang = Math.atan2(o.p1.y - o.p2.y, o.p2.x - o.p1.x) * 180 / Math.PI;
+    ok('giữ Shift: góc tròn bội 15°', Math.abs(ang / 15 - Math.round(ang / 15)) < 0.05, ang + ' ' + L0);
+    // thả đầu mút lên ô chữ: gắn vào ô
+    __run('ins-box'); await w(100);
+    const bx = __get(document.querySelector('#page .obj.sel').dataset.id);
+    const ar = __get(el.dataset.id);
+    el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 1, clientY: 1 })); window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); await w(50);
+    __unselect(); document.querySelector('[data-id="' + ar.id + '"]').classList.add('sel'); window.__select && window.__select(ar.id); await w(50);
+    if (document.querySelector('[data-id="' + ar.id + '"] .eph')) {
+      const h = document.querySelector('[data-id="' + ar.id + '"] .eph[data-ep="2"]'), r = h.getBoundingClientRect(), pg = document.getElementById('page'), pr = pg.getBoundingClientRect(), z = pr.width / pg.offsetWidth || 1;
+      h.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.left + 6, clientY: r.top + 6 }));
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: pr.left + (bx.x + bx.w / 2) * z, clientY: pr.top + (bx.y + bx.h / 2) * z }));
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true })); await w(100);
+    }
+    ok('thả đầu mũi tên lên ô chữ: gắn vào ô (kéo ô thì mũi tên chạy theo)', ar.to === bx.id, JSON.stringify({ to: ar.to, box: bx.id }));
+    __clear();
+  });
+
   await step('Chèn hình theo kịch bản (nút Kịch bản): hình không gian, hình phẳng; kịch bản lỗi không chèn', async () => {
     __clear(); await w(50);
     const S_count = () => document.querySelectorAll('#page .obj').length;
