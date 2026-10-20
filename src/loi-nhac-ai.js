@@ -1,5 +1,5 @@
 // Lời nhắc cho trợ lí AI (ChatGPT, Gemini, Copilot, Claude…): viết hình học phẳng thành kịch bản ToanViet trong khối
-// [HÌNH TOANVIET] … [/HÌNH TOANVIET]. Hộp Bài giải AI vẽ đúng kịch bản đó, không phải đọc lời văn để đoán hình.
+// khối mã ```toanviet (hình không gian: ```toanviet-khonggian). Hộp Bài giải AI vẽ đúng kịch bản đó, không phải đọc lời văn để đoán hình.
 // Cùng một nội dung dùng cho: nút "Chép lời nhắc vẽ hình cho AI", skill Claude "toanviet-ve-hinh" (build/dong-goi-skill.js),
 // kiểm thử (test/07-loinhac.test.js: mọi kịch bản ví dụ dựng không lỗi và đúng quan hệ).
 // Viết ''' thay cho ba dấu nháy ngược (đổi lại khi dùng).
@@ -8,16 +8,16 @@
 
 Bạn giúp giáo viên Toán Việt Nam VẼ HÌNH cho đề bài hình học (lớp 6–12). Đọc mô tả trong đề và viết hình vẽ dưới dạng kịch bản ToanViet, đặt trong khối:
 
-[HÌNH TOANVIET]
-'''
+'''toanviet
 ...các dòng kịch bản...
 '''
-[/HÌNH TOANVIET]
 
-- Mỗi câu có hình: một khối; nhiều câu thì ghi "Câu n." ngay trên khối của câu đó. Câu không cần hình: không viết khối.
-- Trong khối chỉ có các dòng kịch bản (để trong ''' cho giữ xuống dòng). Ghi chú sau dấu # được bỏ qua.
+QUAN TRỌNG — cách trả lời:
+- Trả lời bằng CHỮ. KHÔNG tự vẽ hình, không tạo ảnh / biểu đồ / canvas, không chạy Python hay công cụ vẽ nào: ToanViet sẽ vẽ từ kịch bản.
+- Kịch bản đặt trong KHỐI MÃ (code block) có nhãn ngôn ngữ toanviet như trên — mỗi lệnh MỘT DÒNG, giữ nguyên xuống dòng. Không đặt kịch bản trong công thức toán, không dùng dấu [ ] hay $ bao quanh.
+- Mỗi câu có hình: một khối mã; nhiều câu thì ghi "Câu n." ngay trên khối của câu đó. Câu không cần hình: không viết khối. Ghi chú sau dấu # được bỏ qua.
 - Không cần giải bài, không viết lời giải — chỉ cần các khối hình. (Nếu giáo viên hỏi cả lời giải thì đặt khối ngay sau đề, trước Lời giải.)
-- Giáo viên chép câu trả lời dán vào ToanViet (Bài giải AI hoặc nút Kịch bản): phần mềm vẽ đúng kịch bản này.
+- Giáo viên chép câu trả lời (hoặc nút Copy của khối mã) dán vào ToanViet (Bài giải AI hoặc nút Kịch bản): phần mềm vẽ đúng kịch bản này.
 
 ## 1. Cách nghĩ trước khi viết
 
@@ -95,8 +95,7 @@ Tên điểm: một chữ in hoa, có thể thêm ' hoặc chữ số: A, B', H1
 
 Đề: Cho ΔABC nhọn (AB < AC) có D là trung điểm của BC. Trên nửa mặt phẳng bờ BC không chứa A, vẽ tia Bx // AC, Bx cắt tia AD tại E. Trên tia đối của tia AC lấy F sao cho AF = AC. Gọi I là giao điểm của AB và EF.
 
-[HÌNH TOANVIET]
-'''
+'''toanviet
 B = (0, 0)
 C = (6, 0)
 A = (2.3, 3.8)
@@ -114,12 +113,10 @@ bang BD DC = 1
 bang AF AC = 2
 diem D E F I
 '''
-[/HÌNH TOANVIET]
 
 Đề: Cho tam giác ABC vuông tại A, đường cao AH. Gọi M là trung điểm của AC, K là hình chiếu của H trên AB.
 
-[HÌNH TOANVIET]
-'''
+'''toanviet
 A = (0, 0)
 B = (0, 4)
 C = (6, 0)
@@ -133,12 +130,10 @@ vuong AHB
 vuong HKA
 bang AM MC
 '''
-[/HÌNH TOANVIET]
 
 Đề: Từ điểm A nằm ngoài đường tròn (O; R) kẻ hai tiếp tuyến AB, AC (B, C là tiếp điểm). Gọi H là giao điểm của OA và BC. Kẻ đường kính BD, AD cắt đường tròn tại điểm thứ hai E.
 
-[HÌNH TOANVIET]
-'''
+'''toanviet
 r = 3
 O = (0, 0)
 A = (7, 0)
@@ -153,12 +148,10 @@ vuong OBA
 vuong OCA
 diem O
 '''
-[/HÌNH TOANVIET]
 
 Đề (lớp 6): Vẽ đường thẳng xy. Lấy điểm O thuộc xy, điểm A thuộc tia Ox, điểm B thuộc tia Oy sao cho OA = 3 cm, OB = 2 cm.
 
-[HÌNH TOANVIET]
-'''
+'''toanviet
 X = (-5, 0)
 Y = (5, 0)
 O = (0, 0)
@@ -171,11 +164,10 @@ ghi OA = 3\,cm
 ghi OB = 2\,cm
 diem O A B
 '''
-[/HÌNH TOANVIET]
 
 ## 6. Hình không gian
 
-Dùng khối [HÌNH KHÔNG GIAN TOANVIET] … [/HÌNH KHÔNG GIAN TOANVIET]. Cách viết giống hình phẳng nhưng toạ độ có ba số (x, y, z): x sang phải, y ra phía sau (vào trong trang), z lên trên. Nét khuất ToanViet tự vẽ đứt.
+Dùng khối mã có nhãn toanviet-khonggian ('''toanviet-khonggian … '''). Cách viết giống hình phẳng nhưng toạ độ có ba số (x, y, z): x sang phải, y ra phía sau (vào trong trang), z lên trên. Nét khuất ToanViet tự vẽ đứt.
 
 - Đặt đáy nằm ngang (z = 0), đỉnh / mặt trên có z > 0. Thông số đặt tên chữ thường: a = 4, h = 4.5.
 - Phép dựng điểm: trungdiem, chia, tinhtien, hbh, doixung, trongtam, giao(A, B, C, D) (hai đường thẳng cắt nhau), chan(M, A, B) (chân vuông góc xuống đường AB), tron(O, r, góc) (đường tròn nằm ngang), và các phép dựng với mặt phẳng ở dưới.
@@ -186,8 +178,7 @@ Dùng khối [HÌNH KHÔNG GIAN TOANVIET] … [/HÌNH KHÔNG GIAN TOANVIET]. Cá
 
 Ví dụ: Cho hình chóp S.ABCD có đáy ABCD là hình chữ nhật, SA ⊥ (ABCD). Gọi M là trung điểm của SC, O là giao điểm của AC và BD.
 
-[HÌNH KHÔNG GIAN TOANVIET]
-'''
+'''toanviet-khonggian
 a = 4.4
 b = 3.6
 h = 4
@@ -203,7 +194,6 @@ doan AC BD OM
 vuong SAB SAD
 diem O M
 '''
-[/HÌNH KHÔNG GIAN TOANVIET]
 
 ## 7. Trước khi gửi, tự kiểm tra
 
@@ -215,8 +205,8 @@ diem O M
   const text = () => TEXT.replace(/'''/g, '\u0060\u0060\u0060');
   // lệnh nhờ AI CHỈ dựng hình cho một đề (khi ToanViet chưa đọc được đề): lời nhắc + đề, không cần lời giải
   // nhiều câu ("Câu 1. …", "Câu 2. …"): mỗi câu có hình một khối, ghi "Câu n." trên khối để ToanViet đặt đúng chỗ
-  const nhoDung = (de) => text() + '\n---\n\n# NHIỆM VỤ\n\nChỉ viết khối [HÌNH TOANVIET] (hình phẳng) hoặc [HÌNH KHÔNG GIAN TOANVIET] (hình không gian) cho đề dưới đây, đúng theo hướng dẫn trên. ' +
-    'Đề có nhiều câu thì mỗi câu có hình một khối, ghi "Câu n." ngay trên khối. KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài các khối hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
+  const nhoDung = (de) => text() + '\n---\n\n# NHIỆM VỤ\n\nChỉ viết khối mã toanviet (hình phẳng) hoặc toanviet-khonggian (hình không gian) cho đề dưới đây, đúng theo hướng dẫn trên. Trả lời bằng chữ, không tự vẽ hình, không tạo ảnh. ' +
+    'Đề có nhiều câu thì mỗi câu có hình một khối, ghi "Câu n." ngay trên khối. KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài các khối mã hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
   const api = { text, nhoDung };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LoiNhacAI = api;

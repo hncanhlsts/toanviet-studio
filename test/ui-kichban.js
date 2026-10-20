@@ -375,7 +375,7 @@
     await paste('Câu 3. Cho ΔABC nhọn (AB < AC) có D là trung điểm của BC. Trên nửa mặt phẳng bờ BC không chứa điểm A, vẽ tia Bx // AC, Bx cắt tia AD tại E. Trên tia đối của tia AC lấy điểm F sao cho AF = AC. Gọi I là giao điểm của AB và EF.');
     ok('đề tia Bx // AC vẽ đủ E, F, I', !box.querySelector('.bgloi') && /E = giao\(B, X, A, D\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
     // AI viết sẵn hình theo lời nhắc: khối [HÌNH TOANVIET] được vẽ đúng kịch bản
-    ok('có nút "Chép lời nhắc vẽ hình cho AI", lời nhắc có khối [HÌNH TOANVIET]', !!document.getElementById('bgnhac') && /\[HÌNH TOANVIET\]/.test(LoiNhacAI.text()));
+    ok('có nút "Chép lời nhắc vẽ hình cho AI", lời nhắc dùng khối mã toanviet', !!document.getElementById('bgnhac') && /```toanviet\n/.test(LoiNhacAI.text()));
     await paste('Câu 4. Cho tam giác ABC có M là trung điểm của BC.\n[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\nbang BM MC\n```\n[/HÌNH TOANVIET]\nLời giải\nTa có $BM = MC$.');
     ok('dán câu trả lời có khối [HÌNH TOANVIET]: hình đúng kịch bản, có trong phần xem trước', /#FIG tv1 .*M = trungdiem\(B, C\)/.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value) && !!document.querySelector('#bgview svg, #bgview img'), src.value.slice(0, 300));
     // nhờ AI dựng lại hình một câu: chép lệnh (không cần lời giải), dán khối AI trả về → thay hình của câu

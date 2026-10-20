@@ -1266,7 +1266,7 @@
     'ins-region': () => { insert('region'); commit(); },
     'ins-solid': () => { const v = $('#solidKind').value; if (v.startsWith('sp:')) insert('space', v.slice(3)); else insert('solid', v); commit(); },
     'ins-plane': () => { insert('plane', $('#planeKind').value); commit(); },
-    // chèn hình theo kịch bản (khối [HÌNH TOANVIET] AI trả về) — hình phẳng hoặc không gian
+    // chèn hình theo kịch bản (khối mã ```toanviet AI trả về) — hình phẳng hoặc không gian
     'ins-kichban': () => openKichBan(),
     'ins-sym': () => { insert('sym', $('#symKind').value); commit(); },
     'ins-numline': () => { insert('numline', document.body.classList.contains('tieuhoc') ? 'tiaso' : 'bpt'); commit(); },

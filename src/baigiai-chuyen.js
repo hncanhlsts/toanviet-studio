@@ -46,26 +46,67 @@
     return t.trim();
   }
 
-  // ---------- Khối kịch bản hình do AI viết: [HÌNH TOANVIET] / [HÌNH KHÔNG GIAN TOANVIET] … [/…] ----------
-  const KHOI_RE = () => /\[\s*H[ÌI]NH\s+(KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
-  // nội dung khối → đối tượng hình ToanViet (phẳng / không gian: theo thẻ, hoặc toạ độ có ba số)
+  // ---------- Khối kịch bản hình do AI viết ----------
+  // Dạng chính: khối mã ```toanviet … ``` (hình không gian: ```toanviet-khonggian) — AI nào cũng giữ xuống dòng, có nút Copy.
+  // Vẫn đọc: dạng cũ [HÌNH TOANVIET] … [/HÌNH TOANVIET] (kể cả mất dấu "[" đầu), khối mã không nhãn mà nội dung là kịch bản,
+  // kịch bản bị dồn thành một dòng (Copilot) — tự tách lại từng lệnh.
+  const LENH = 'doan|netdut|netlien|duongthang|tia|vecto|dagiac|duongtron|ngoaitiep|noitiep|cung|quat|vuong|goc|bang|ssong|to|ghi|diem|an|nhan|nhanmp|thanghang|truc|mp|chop|langtru|tudien|khoi|tru|non|noncut|cau|oxyz';
+  const DONG_KB = new RegExp("^(?:#|[A-Z](?:'{1,2}|_?\\d+)?\\s*=|[a-z][a-z0-9_]*\\s*=|(?:" + LENH + ")(?:\\s|$))");
+  // tách các lệnh bị dồn trên một dòng: trước "X = …", "r = …" (không phải nhãn "nhan X = x") và trước tên lệnh
+  // (phần ghi chú sau dấu # giữ nguyên, không tách)
+  function tachDong(script) {
+    return String(script || '').split('\n').map((l) => {
+      const h = l.indexOf('#'), code = h < 0 ? l : l.slice(0, h), note = h < 0 ? '' : l.slice(h);
+      return code
+        .replace(/(?<!\bnhan)(?<!\bnhanmp)\s+(?=(?:[A-Z](?:'{1,2}|_?\d+)?|[a-z][a-z0-9_]*)\s*=\s*[-\w(.√])/g, '\n')
+        .replace(new RegExp('\\s+(?=(?:' + LENH + ")\\s+[A-Z(])", 'g'), '\n') + note;
+    }).join('\n');
+  }
+  const coKB = (lines) => lines.length >= 2 && lines.filter((l) => DONG_KB.test(l)).length >= 0.8 * lines.length && lines.some((l) => /^[A-Z](?:'{1,2}|_?\d+)?\s*=\s*\(/.test(l));
+  // nội dung khối → đối tượng hình ToanViet (phẳng / không gian: theo nhãn, hoặc toạ độ có ba số)
   function khoiSpec(kg, body) {
-    const script = String(body || '').replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean).join('\n');
+    const lines = tachDong(String(body || '').replace(/^\s*`{3,}.*$/gm, '').replace(/`+/g, '')).split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean);
+    const script = lines.join('\n');
     if (!script || !/=/.test(script)) return null; // khối trống / chỉ có "…" (lời nhắc mẫu)
     const kgian = !!kg || /^[A-Z][^=\n]*=\s*\(\s*[^,()]+,[^,()]+,[^,()]+\)\s*(?:#.*)?$/m.test(script);
     return kgian ? { type: 'space', kind: 'k_tudien', script, w: 360, h: 320, scale: 0.75 } : { type: 'plane', kind: 'tamgiac', script, w: 340, h: 300, scale: 0.75 };
   }
-  // các khối trong một đoạn chữ (câu trả lời AI dán vào); không có thẻ mà cả đoạn là kịch bản thì coi là một khối
-  function docKhoi(text) {
-    const t = String(text || '').replace(/\r\n?/g, '\n'), out = [];
-    let m; const rx = KHOI_RE();
-    while ((m = rx.exec(t))) { const sp = khoiSpec(m[1], m[2]); if (sp) out.push(sp); }
+  // tìm các khối trong một đoạn chữ: [{ start, end, kg, body }] theo thứ tự xuất hiện
+  function timKhoi(t) {
+    const out = [], taken = [];
+    const add = (s, e, kg, body) => { if (taken.some(([a, b]) => s < b && e > a)) return; taken.push([s, e]); out.push({ start: s, end: e, kg, body }); };
+    let m;
+    // khối mã ```toanviet / ```toanviet-khonggian / ``` không nhãn (nội dung là kịch bản)
+    // nhãn ngôn ngữ: "toanviet…" (kể cả khi kịch bản dồn cùng dòng) hoặc một từ đứng riêng trên dòng mở khối
+    const rf = /`{3,}[ \t]*(toanviet[\w-]*|[A-Za-z][\w-]*(?=[ \t]*\n))?[ \t]*\n?([\s\S]*?)`{3,}/gi;
+    while ((m = rf.exec(t))) {
+      const lang = (m[1] || '').toLowerCase(), tv = /^toanviet/.test(lang), kg = /kh[oô]ng|gian|kg|3d/.test(lang);
+      if (tv) { add(m.index, m.index + m[0].length, kg, m[2]); continue; }
+      if (!lang || /^(text|plaintext|txt|plain|code)$/.test(lang)) { const ls = tachDong(m[2]).split('\n').map((l) => l.trim()).filter(Boolean); if (coKB(ls)) add(m.index, m.index + m[0].length, false, m[2]); }
+    }
+    // dạng cũ [HÌNH TOANVIET] … [/HÌNH TOANVIET]
+    const rb = /\[?\s*H[ÌI]NH\s+(KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
+    while ((m = rb.exec(t))) add(m.index, m.index + m[0].length, !!m[1], m[2]);
+    return out.sort((a, b) => a.start - b.start);
+  }
+  // các hình trong câu trả lời AI dán vào (kèm số câu "Câu n." ghi ngay trên khối); không có khối mà cả đoạn là kịch bản → một hình
+  function khoiCau(text) {
+    const t = String(text || '').normalize('NFC').replace(/\r\n?/g, '\n'), out = [];
+    let last = 0;
+    timKhoi(t).forEach((k) => {
+      const sp = khoiSpec(k.kg, k.body);
+      // nhãn "Câu n" gần nhất phía trên khối (sau khối trước)
+      const nh = [...t.slice(last, k.start).matchAll(/c[âa]u\s*(\d+[a-z]?)\b/gi)], so = nh.length ? nh[nh.length - 1][1] : '';
+      if (sp) out.push({ so: (so || '').toLowerCase(), sp, start: k.start, end: k.end });
+      last = k.end;
+    });
     if (!out.length) {
-      const lines = t.replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.trim()).filter(Boolean);
-      if (lines.length && lines.every((l) => /^#|^[A-Za-z][A-Za-z0-9_']*\s*=|^[a-z]+(?:\s|$)/.test(l))) { const sp = khoiSpec('', lines.join('\n')); if (sp) out.push(sp); }
+      const ls = tachDong(t.replace(/^\s*`{3,}.*$/gm, '')).split('\n').map((l) => l.trim()).filter(Boolean);
+      if (coKB(ls)) { const sp = khoiSpec('', ls.join('\n')); if (sp) out.push({ so: '', sp, start: 0, end: t.length }); }
     }
     return out;
   }
+  const docKhoi = (text) => khoiCau(text).map((k) => k.sp);
   // dòng kịch bản lỗi của một hình (dùng bộ dựng hình của phần mềm)
   function loiKhoi(sp) {
     const M = sp.type === 'space' ? (root.Space || (typeof globalThis !== 'undefined' && globalThis.Space)) : (root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane));
@@ -76,23 +117,30 @@
   function fromText(input) {
     const notes = {};
     const note = (k, n) => { notes[k] = (notes[k] || 0) + (n || 1); };
-    let s = String(input || '').replace(/\r\n?/g, '\n').replace(/[\u200b\u200c\u200d\ufeff]/g, '').replace(/\u00a0/g, ' ');
+    // chữ có dấu tách rời (I + dấu huyền) từ một số trang AI: gộp lại (NFC)
+    let s = String(input || '').normalize('NFC').replace(/\r\n?/g, '\n').replace(/[\u200b\u200c\u200d\ufeff]/g, '').replace(/\u00a0/g, ' ');
     // trích dẫn, đánh dấu nguồn của trợ lí AI
     const s0 = s;
     s = s.replace(/\[cite(?:_start|_end)?(?::[^\]]*)?\]/gi, '').replace(/【[^】]*】/g, '').replace(/\[\d+(?:,\s*\d+)*\](?=\s|$|[.,;])/g, '');
     if (s !== s0) note('bỏ đánh dấu trích dẫn của AI ([cite…])');
     // biểu tượng cảm xúc
     const s1 = s; s = s.replace(/\p{Extended_Pictographic}\ufe0f?/gu, ''); if (s !== s1) note('bỏ biểu tượng cảm xúc');
-    // hình AI viết sẵn bằng kịch bản ToanViet (theo skill / lời nhắc "toanviet-ve-hinh"):
-    //   [HÌNH TOANVIET] … các dòng kịch bản hình phẳng … [/HÌNH TOANVIET]  → vẽ đúng kịch bản, không đọc đề đoán hình
-    //   [HÌNH KHÔNG GIAN TOANVIET] … [/HÌNH KHÔNG GIAN TOANVIET]  → hình không gian
+    // hình AI viết sẵn bằng kịch bản ToanViet (lời nhắc / skill "toanviet-ve-hinh"): khối mã ```toanviet … ```
+    // (hình không gian: ```toanviet-khonggian), dạng cũ [HÌNH TOANVIET] … [/HÌNH TOANVIET] → vẽ đúng kịch bản, không đọc đề đoán hình
     let ktv = 0;
-    s = s.replace(KHOI_RE(), (m0, kg, body) => {
-      const sp = khoiSpec(kg, body);
-      if (!sp) return '\n';
-      ktv++; note('hình theo kịch bản ToanViet do AI viết');
-      return '\n#FIG tv' + ktv + ' ' + JSON.stringify(sp) + '\n[FIG tv' + ktv + '|Hình]\n';
-    });
+    {
+      const ks = timKhoi(s);
+      for (let i = ks.length - 1; i >= 0; i--) {
+        const k = ks[i], sp = khoiSpec(k.kg, k.body);
+        let r = '\n';
+        if (sp) { ktv++; r = '\n#FIG tv@ ' + JSON.stringify(sp) + '\n[FIG tv@|Hình]\n'; }
+        s = s.slice(0, k.start) + r + s.slice(k.end);
+      }
+      if (ktv) note('hình theo kịch bản ToanViet do AI viết', ktv);
+      // đánh số tv1, tv2… theo thứ tự trong bài
+      let n = 0;
+      s = s.replace(/^(#FIG|\[FIG) tv@/gm, (m0, p) => p + ' tv' + (p === '#FIG' ? ++n : n));
+    }
     // khối mã ```…```: bỏ dấu rào, giữ nội dung
     s = s.replace(/^```[a-z]*\s*$/gim, '');
     // \[ … \] và $$ … $$ (có thể nhiều dòng) → một dòng $$…$$ riêng; \( … \) → $…$
@@ -211,7 +259,7 @@
       const kids = () => [...n.childNodes].map(walk).join('');
       if (tag === 'BR') return '\n';
       // khối mã (kịch bản hình ToanViet…): giữ nguyên xuống dòng; chỉ lấy phần <code>, bỏ thanh tên ngôn ngữ của trang AI
-      if (tag === 'PRE') { const c = n.querySelector('code'); return '\n' + (c || n).textContent.replace(/\r\n?/g, '\n') + '\n'; }
+      if (tag === 'PRE') { const c = n.querySelector('code'), lang = ((/language-([\w-]+)/.exec((c && c.className) || n.className || '') || [])[1] || ''); return '\n```' + lang + '\n' + (c || n).textContent.replace(/\r\n?/g, '\n').replace(/\n$/, '') + '\n```\n'; }
       if (tag === 'HR') return '\n';
       if (/^H[1-6]$/.test(tag)) return '\n' + '#'.repeat(+tag[1]) + ' ' + kids().replace(/\n+/g, ' ').trim() + '\n';
       if (tag === 'STRONG' || tag === 'B') { const k = kids(); return k.trim() ? '**' + k.trim() + '**' + (/\s$/.test(k) ? ' ' : '') : k; }
@@ -586,7 +634,7 @@
     return { markup: (specs.length ? specs.join('\n') + '\n' : '') + out.join('\n'), notes, count: fig, loi };
   }
 
-  const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES, docKhoi, loiKhoi };
+  const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES, docKhoi, khoiCau, loiKhoi };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BaiGiai = api;
 })(this);

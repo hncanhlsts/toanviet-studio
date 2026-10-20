@@ -99,10 +99,10 @@
       catch (err) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
     };
     window.TVSChep = chep;
-    // nhờ AI dựng hình cho một câu: chép lệnh (lời nhắc + đề, không cần lời giải), dán khối [HÌNH TOANVIET] AI trả về
+    // nhờ AI dựng hình cho một câu: chép lệnh (lời nhắc + đề, không cần lời giải), dán khối mã ```toanviet AI trả về
     const aiRow = (L) => (L.key && L.de ? '<div class="bgai" data-key="' + esc(L.key) + '" data-de="' + esc(L.de) + '">' +
       '<button type="button" class="bgaicopy">🤖 Chép lệnh nhờ AI dựng hình câu này</button> <span>dán cho ChatGPT / Gemini… — AI chỉ trả về khối hình (không giải bài); chép khối đó dán vào ô dưới:</span>' +
-      '<div class="bglin"><textarea class="bgaiin" rows="2" spellcheck="false" placeholder="Dán khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] AI trả về"></textarea><button type="button" class="primary bgaiok">Dùng hình này</button></div></div>' : '');
+      '<div class="bglin"><textarea class="bgaiin" rows="2" spellcheck="false" placeholder="Dán câu trả lời của AI (khối mã ```toanviet … ```, hoặc bấm Copy ở khối mã rồi dán)"></textarea><button type="button" class="primary bgaiok">Dùng hình này</button></div></div>' : '');
     // khung hình chưa vẽ đủ: báo gọn câu nào, điểm nào (chưa dựng được / đặt tạm) — kèm nhờ AI dựng hình câu đó
     function loiHtml() {
       let h = '';
@@ -134,7 +134,7 @@
       body.innerHTML =
         '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
         'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào. ' +
-        'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối <b>[HÌNH TOANVIET]</b>) dán vào ô bên trái: hình từng câu được thay.</p>' +
+        'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối mã <b>```toanviet</b>) dán vào ô bên trái: hình từng câu được thay.</p>' +
         '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
@@ -167,7 +167,7 @@
         if (aiCopy) { chep(LoiNhacAI.nhoDung(aiCopy.closest('.bgai').dataset.de)).then(() => msg('Đã chép lệnh nhờ AI dựng hình — dán (Ctrl+V) cho ChatGPT / Gemini, rồi chép khối hình AI trả về vào ô bên dưới')); return; }
         if (aiOk) {
           const box = aiOk.closest('.bgai'), key = box.dataset.key, sp = BaiGiai.docKhoi(box.querySelector('.bgaiin').value)[0];
-          if (!sp) { msg('Chưa thấy khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] — dán đúng phần AI trả về', true); return; }
+          if (!sp) { msg('Chưa thấy kịch bản hình (khối mã ```toanviet) — dán đúng phần AI trả về', true); return; }
           const er = BaiGiai.loiKhoi(sp);
           if (er.length) { msg('Kịch bản AI viết còn lỗi: ' + er[0] + ' — nhờ AI sửa lại dòng đó', true); return; }
           // dòng đặt hình "[FIG key|…]" nằm trong câu (dòng khai báo "#FIG hN" của hình tự đọc đề nằm ở đầu nội dung)
@@ -210,13 +210,12 @@
       }
       // câu trả lời AI chỉ gồm các khối hình (kèm "Câu n."): đặt hình cho từng câu, giữ nguyên đề đang có
       function ganKhoi(raw) {
-        const t = String(raw).replace(/\r\n?/g, '\n');
-        const rx = /\[\s*H[ÌI]NH\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\][\s\S]*?\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
-        const ks = []; let m, last = 0;
-        while ((m = rx.exec(t))) { const truoc = t.slice(last, m.index), so = (/c[âa]u\s*(\d+[a-z]?)\b[^\n]*$/i.exec(truoc.trim()) || [])[1]; const sp = BaiGiai.docKhoi(m[0])[0]; if (sp) ks.push({ so: (so || '').toLowerCase(), sp }); last = m.index + m[0].length; }
-        // phần còn lại (ngoài khối, nhãn câu) gần như trống: đây là câu trả lời chỉ có hình
-        const du = t.replace(rx, '').replace(/c[âa]u\s*\d+[a-z]?\s*[.:)]?/gi, '').replace(/[`*#\s.:-]+/g, '');
-        if (!ks.length || du.length > 60) return false;
+        const t = String(raw).normalize('NFC').replace(/\r\n?/g, '\n');
+        const ks = BaiGiai.khoiCau(t);
+        // phần còn lại (ngoài các khối, nhãn câu, lời dẫn ngắn của AI) gần như trống: đây là câu trả lời chỉ có hình
+        let du = t; ks.slice().sort((a, b) => b.start - a.start).forEach((k) => { du = du.slice(0, k.start) + du.slice(k.end); });
+        du = du.replace(/c[âa]u\s*\d+[a-z]?\s*[.:)]?/gi, '').replace(/[`*#\s.:,-]+/g, '');
+        if (!ks.length || du.length > 120) return false;
         const L0 = src.value.split('\n'), cs = cauCua(L0), coHinh = cs.filter((c) => L0.slice(c.start, c.end).some((l) => /^\[FIG /.test(l)));
         const loi2 = [];
         // đặt từ câu cuối lên (chèn dòng không làm lệch vị trí câu phía trên)
@@ -302,7 +301,7 @@
     }
 
     // ---------- Chèn hình theo kịch bản (nút "Kịch bản" cạnh Hình phẳng / Hình không gian) ----------
-    // dán khối [HÌNH TOANVIET] / [HÌNH KHÔNG GIAN TOANVIET] AI trả về (hoặc các dòng kịch bản) → chèn đúng hình đó;
+    // dán khối mã ```toanviet / ```toanviet-khonggian AI trả về (hoặc các dòng kịch bản) → chèn đúng hình đó;
     // chưa có kịch bản: nhập đề, chép lệnh nhờ AI dựng hình (không cần lời giải)
     function openKichBan() {
       const d = modal('kbdlg', 'Chèn hình theo kịch bản');
@@ -311,8 +310,8 @@
         '<p class="bghint"><b>1.</b> Chưa có kịch bản: nhập (hoặc dán) đề bài, bấm <b>Chép lệnh nhờ AI dựng hình</b>, dán cho ChatGPT / Gemini / Copilot. AI chỉ trả về khối hình, không giải bài.</p>' +
         '<textarea id="kbde" rows="3" spellcheck="false" placeholder="Đề bài (ví dụ: Cho hình chóp S.ABCD có đáy là hình vuông, SA ⊥ (ABCD)…)"></textarea>' +
         '<div class="kbbar"><button type="button" id="kbchep">🤖 Chép lệnh nhờ AI dựng hình</button></div>' +
-        '<p class="bghint"><b>2.</b> Dán khối <b>[HÌNH TOANVIET]</b> … (hoặc <b>[HÌNH KHÔNG GIAN TOANVIET]</b> …) AI trả về — hoặc tự viết các dòng kịch bản:</p>' +
-        '<textarea id="kbsrc" rows="10" spellcheck="false" placeholder="[HÌNH TOANVIET]\nB = (0, 0)\nC = (6, 0)\nA = (2.3, 3.8)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n[/HÌNH TOANVIET]"></textarea>' +
+        '<p class="bghint"><b>2.</b> Dán câu trả lời của AI (khối mã <b>```toanviet</b> / <b>```toanviet-khonggian</b>, hoặc bấm Copy ở khối mã rồi dán) — hoặc tự viết các dòng kịch bản:</p>' +
+        '<textarea id="kbsrc" rows="10" spellcheck="false" placeholder="```toanviet\nB = (0, 0)\nC = (6, 0)\nA = (2.3, 3.8)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n[/HÌNH TOANVIET]"></textarea>' +
         '<div class="kbbar"><span id="kbstat" class="bgstat"></span><button type="button" id="kbok" class="primary">Chèn hình</button></div>';
       const src = $('#kbsrc'), stat = $('#kbstat');
       const doc = () => BaiGiai.docKhoi(src.value)[0]; // phẳng / không gian: theo thẻ hoặc toạ độ ba số
@@ -331,7 +330,7 @@
       };
       $('#kbok').onclick = () => {
         const sp = doc();
-        if (!sp) { msg('Chưa thấy kịch bản hình — dán khối [HÌNH TOANVIET] … AI trả về', true); return; }
+        if (!sp) { msg('Chưa thấy kịch bản hình — dán khối mã ```toanviet AI trả về', true); return; }
         const er = BaiGiai.loiKhoi(sp);
         if (er.length) { msg('Kịch bản còn lỗi: ' + er[0], true); return; }
         C.insert(sp.type, sp.kind, { script: sp.script, w: sp.w, h: sp.h });

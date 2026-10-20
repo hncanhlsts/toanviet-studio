@@ -1,6 +1,5 @@
 // Lời nhắc vẽ hình cho AI (src/loi-nhac-ai.js) và khối [HÌNH TOANVIET] trong Bài giải AI (src/baigiai-chuyen.js)
-nhom('Lời nhắc vẽ hình cho AI, khối [HÌNH TOANVIET]');
-const khoiTV = (s) => [...s.matchAll(/\[HÌNH TOANVIET\]([\s\S]*?)\[\/HÌNH TOANVIET\]/g)].map((m) => m[1].replace(/^\s*```.*$/gm, '').trim());
+nhom('Lời nhắc vẽ hình cho AI, khối mã toanviet (và dạng cũ [HÌNH TOANVIET])');
 thu('mọi kịch bản ví dụ trong lời nhắc (phẳng và không gian) dựng không lỗi', () => {
   const ks = BaiGiai.docKhoi(LoiNhacAI.text());
   dung(ks.filter((k) => k.type === 'plane').length >= 4 && ks.filter((k) => k.type === 'space').length >= 1, 'số ví dụ: ' + ks.map((k) => k.type).join());
@@ -8,7 +7,7 @@ thu('mọi kịch bản ví dụ trong lời nhắc (phẳng và không gian) d�
 });
 thu('lệnh nhờ AI chỉ dựng hình: có lời nhắc, đề bài, yêu cầu không giải', () => {
   const t = LoiNhacAI.nhoDung('Cho tam giác ABC có M là trung điểm BC.');
-  dung(/\[HÌNH TOANVIET\]/.test(t) && /KHÔNG giải bài/.test(t) && /Cho tam giác ABC có M là trung điểm BC\.\s*$/.test(t), t.slice(-300));
+  dung(/```toanviet\n/.test(t) && /không tự vẽ hình/.test(t) && /KHÔNG giải bài/.test(t) && /Cho tam giác ABC có M là trung điểm BC\.\s*$/.test(t), t.slice(-300));
 });
 thu('đọc khối từ câu trả lời AI: thẻ không gian, kịch bản không có thẻ (toạ độ ba số → không gian), chữ thường không phải kịch bản', () => {
   bang(BaiGiai.docKhoi('[HÌNH KHÔNG GIAN TOANVIET]\nA = (0, 0, 0)\nB = (4, 0, 0)\nC = (0, 3, 0)\nS = (0, 0, 4)\nchop S ABC\n[/HÌNH KHÔNG GIAN TOANVIET]')[0].type, 'space');
@@ -17,7 +16,7 @@ thu('đọc khối từ câu trả lời AI: thẻ không gian, kịch bản kh�
   bang(BaiGiai.docKhoi('xin chào thầy').length, 0);
 });
 thu('ví dụ tia Bx // AC: đúng quan hệ của đề (song song, D nằm giữa A và E, AF = AC, I trên AB và EF)', () => {
-  const P = Plane.points(khoiTV(LoiNhacAI.text())[1]);
+  const P = Plane.points(BaiGiai.docKhoi(LoiNhacAI.text())[0].script);
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1]], cr = (u, v) => u[0] * v[1] - u[1] * v[0], d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   dung(Math.abs(cr(sub(P.E, P.B), sub(P.C, P.A))) < 1e-9, 'BE // AC');
   dung(Math.abs(d(P.A, P.D) + d(P.D, P.E) - d(P.A, P.E)) < 1e-9, 'D nằm giữa A và E');
@@ -31,6 +30,19 @@ thu('khối [HÌNH TOANVIET] (có hoặc không có ```) thành hình đúng k�
   dung(!/^#FIG h\d/m.test(f.markup), 'không đọc đề vẽ thêm hình khác');
   bang(f.loi.filter((L) => L.loiKB).length, 0);
   bang(BaiGiai.figures(f.markup).markup, f.markup);
+});
+thu('khối mã ```toanviet (nhiều câu, không gian), kịch bản bị dồn một dòng (Copilot), chỉ Copy khối mã; khối mã python không phải hình', () => {
+  const k = BaiGiai.khoiCau('Câu 1.\n```toanviet\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\n```\nCâu 2.\n```toanviet-khonggian\nA = (0, 0, 0)\nB = (4, 0, 0)\nC = (0, 3, 0)\nS = (0, 0, 4)\nchop S ABC\n```');
+  dung(k.length === 2 && k[0].so === '1' && k[0].sp.type === 'plane' && k[1].so === '2' && k[1].sp.type === 'space', JSON.stringify(k.map((x) => [x.so, x.sp.type])));
+  // chuỗi thầy chép từ Copilot (20/10/2026): rác công thức + kịch bản dồn một dòng, chữ Ì tách dấu
+  const cp = BaiGiai.docKhoi('HÌNHTOANVIET]‘‘‘‘A=(0,0)B=(8,0)M=chia(A,B,0.3)‘‘‘[/HÌNHTOANVIET]‘‘‘‘HÌNH TOANVIET] ```` A = (0, 0) B = (8, 0) M = chia(A, B, 0.3) N = chia(A, B, 0.7) O = trungdiem(A, B) O1 = trungdiem(A, M) duongtron O A duongtron O1 A doan AB diem A B M N ``` [/HÌNH TOANVIET] ````');
+  dung(cp.length === 1 && !BaiGiai.loiKhoi(cp[0]).length && cp[0].script.split('\n').length === 10, JSON.stringify(cp.map((x) => x.script)));
+  const mot = BaiGiai.docKhoi('```toanviet A = (0, 0) B = (6, 0) C = (2, 3) dagiac ABC nhan C = x goc BAC = 60^{\\circ} ```')[0];
+  bang(mot.script, 'A = (0, 0)\nB = (6, 0)\nC = (2, 3)\ndagiac ABC\nnhan C = x\ngoc BAC = 60^{\\circ}');
+  bang(BaiGiai.docKhoi('A = (0, 0)\nB = (10, 0)\nO = trungdiem(A, B)\nduongtron O A\ndoan AB')[0].type, 'plane');
+  bang(BaiGiai.docKhoi('```python\nx = (1, 2)\nprint(x)\n```').length, 0);
+  const h = BaiGiai.fromText(BaiGiai.fromHtml('<p>Câu 1. Cho tam giác ABC.</p><pre><div>toanviet</div><code class="language-toanviet">B = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC</code></pre>')).markup;
+  dung(/^#FIG tv1 .*dagiac ABC/m.test(h), h);
 });
 thu('kịch bản AI viết sai: báo dòng lỗi', () => {
   const r = BaiGiai.fromText('Câu 1. Cho tam giác MNP.\n[HÌNH TOANVIET]\nM = (0, 0)\nN = trungdiem(M, Q)\n[/HÌNH TOANVIET]');
