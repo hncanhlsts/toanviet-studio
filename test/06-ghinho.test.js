@@ -91,3 +91,8 @@ thu('đặt tạm: điểm ∈ tia (A ∈ Ox), chân vuông góc chưa đọc đ
   bang(r2.thieu.length, 0);
   dung(r2.tam[0].ten === 'D' && /chỗ trống/.test(r2.tam[0].cach), JSON.stringify(r2.tam));
 });
+thu('nhiều điểm đặt tạm ở chỗ trống: không đặt trùng nhau', () => {
+  const r = DeHinh.plane('Cho tam giác ABC và hai điểm D, E ở phía ngoài tam giác. Gọi M là trung điểm của DE.');
+  const P = Plane.points(r.script);
+  dung(P.D && P.E && Math.hypot(P.D[0] - P.E[0], P.D[1] - P.E[1]) > 1, r.script);
+});

@@ -497,6 +497,10 @@
             else if (!base.type || base.type === 'nhọn') { base.type = 'cân'; base.at = v; }
           }
         }
+        // "có Â = 90° và AB = AC": vuông cân tại A; "có Â = 90°" (không nói chữ vuông): vuông tại A
+        const v90 = base.name.split('').find((c) => ANG[c] === 90);
+        if (v90 && base.type === 'cân' && base.at === v90) base.type = 'vuông cân';
+        else if (v90 && !base.type) { base.type = 'vuông'; base.at = v90; }
       }
       const ns = base.name.split(''), [n0, n1, n2] = ns, ty = base.type;
       baseNames = ns; cyc(ns);
@@ -1114,6 +1118,21 @@
         if (w2 && !isDef(w2[3])) add(w2[3], [n, w2[1], w2[2]], w2[3] + ' = giao(' + M + ', ' + n + ', ' + w2[1] + ', ' + w2[2] + ')', 'giao điểm', ['doan ' + M + w2[3] + ' ' + n + w2[3] + ' ' + w2[1] + w2[3] + ' ' + w2[2] + w2[3]]);
         hit = true;
       }
+      // "Từ A và D kẻ đường thẳng vuông góc (song song) với BE cắt BC lần lượt tại M và N": mỗi điểm một đường
+      const rq2d = re('(?:từ|qua)\\s+(?:các\\s+|hai\\s+)?(?:điểm\\s+)?(PN)\\s*(?:,|và)\\s*(PN)\\s*,?\\s*(?:lần lượt\\s+)?(?:kẻ|vẽ|dựng)\\s+(?:các\\s+|hai\\s+)?(?:đường thẳng|đường|tia)\\s+(vuông góc|song song|⊥|∥|//)\\s*(?:với\\s+)?(?:đường thẳng\\s+|cạnh\\s+|đoạn thẳng\\s+)?(PN)(PN)\\s*,?\\s*(?:chúng\\s+|và\\s+)?cắt\\s+(?:cạnh\\s+|đường thẳng\\s+|đoạn thẳng\\s+|tia\\s+)?(PN)(PN)\\s+(?:lần lượt\\s+|theo thứ tự\\s+|tương ứng\\s+)?tại\\s+(?:các\\s+điểm\\s+|hai\\s+điểm\\s+|điểm\\s+)?(PN)\\s*(?:,|và)\\s*(PN)', 'g');
+      while ((q = rq2d.exec(snt))) {
+        const vg = !/song|∥|\/\//.test(q[3]), [X, Y, U, W] = [q[4], q[5], q[6], q[7]];
+        [[q[1], q[8]], [q[2], q[9]]].forEach(([P0, n]) => {
+          if (isDef(n)) return;
+          const h = helper(), h2 = helper(); hidden.push(h, h2);
+          const line = h + ' = tinhtien(' + P0 + ', ' + X + ', ' + Y + ')\n' + (vg ? h2 + ' = quay(' + h + ', ' + P0 + ', 90)' : h2 + ' = chia(' + P0 + ', ' + h + ', 1)') + '\n' + n + ' = giao(' + P0 + ', ' + h2 + ', ' + U + ', ' + W + ')';
+          const more = ['doan ' + P0 + n];
+          // góc vuông tại chân đường vuông góc trên XY (chân phụ, ẩn tên)
+          if (vg) { const f = helper(); hidden.push(f); more.push('vuong ' + P0 + f + X); cons.push({ name: f, need: [P0, X, Y], line: f + ' = chan(' + P0 + ', ' + X + ', ' + Y + ')', src: '', more: [] }); }
+          add(n, [P0, X, Y, U, W], line, vg ? 'đường vuông góc' : 'đường song song', more);
+        });
+        hit = true;
+      }
       // giao điểm: "O là giao điểm của AC và BD", "giao điểm O của …", "AC cắt BD tại O", "hai đường chéo cắt nhau tại O"
       const rg = re('(?:(PN)\\s+là\\s+giao điểm|giao điểm\\s+(PN))\\s+(?:của\\s+)?(?:hai\\s+)?(?:đường thẳng\\s+|đường chéo\\s+|tia\\s+)?((?:PN){2})\\s+(?:và|với)\\s+(?:đường thẳng\\s+|tia\\s+)?((?:PN){2})', 'g');
       while ((q = rg.exec(snt))) { const n = q[1] || q[2], a = namesIn(q[3]), b = namesIn(q[4]); add(n, a.concat(b), n + ' = giao(' + a.concat(b).join(', ') + ')', 'giao điểm', ['doan ' + a.join('') + ' ' + b.join('')]); hit = true; }
@@ -1216,7 +1235,7 @@
       }
       // trên tia (đối của tia) OX lấy điểm N sao cho ON = PQ; "N thuộc tia đối của tia OX sao cho …"
       // trên các cạnh AB, BC, CA lấy các điểm D, E, F (sao cho AD = BE = CF)
-      const rcl = re('trên\\s+(?:các\\s+)?(?:cạnh|đoạn thẳng|đoạn)\\s+((?:PN){2}(?:\\s*(?:,|và)\\s*(?:PN){2})+)\\s*,?\\s*(?:lần lượt\\s+)?lấy\\s+(?:các\\s+|hai\\s+|ba\\s+)?(?:điểm\\s+)?((?:PN)(?:\\s*(?:,|và)\\s*PN)+)(?:\\s+sao cho\\s+([^.;]+))?', 'g');
+      const rcl = re('trên\\s+(?:các\\s+)?(?:cạnh|đoạn thẳng|đoạn)\\s+((?:PN){2}(?:\\s*(?:,|và)\\s*(?:PN){2})+)\\s*,?\\s*(?:(?:lần lượt|tương ứng|theo thứ tự)\\s+)?lấy\\s+(?:(?:lần lượt|tương ứng|theo thứ tự)\\s+)?(?:các\\s+|hai\\s+|ba\\s+)?(?:điểm\\s+)?((?:PN)(?:\\s*(?:,|và)\\s*PN)+)(?:\\s+sao cho\\s+([^.;]+))?', 'g');
       while ((q = rcl.exec(snt))) {
         const sgs = listPairs(q[1]).map(namesIn), ns = listNames(q[2]);
         const terms = (q[3] || '').split('=').map((x) => namesIn(x)).filter((x) => x.length === 2);
@@ -1457,7 +1476,7 @@
     // điểm có trong giả thiết mà đề không cho đủ cách dựng (không có phép dựng nào): đặt TẠM ở vị trí hợp lý —
     // trên đường / tia / đoạn đề nói nó thuộc, nếu không thì chỗ trống của hình — để các điểm dựng từ nó vẽ tiếp được.
     // Giáo viên xem lại / mô tả lại điểm đặt tạm trong khung "Hình chưa vẽ đủ".
-    const tam = [];
+    const tam = [], tamXY = []; // tamXY: toạ độ các điểm tự do đã đặt tạm (điểm sau không đặt trùng chỗ)
     {
       const gtTxt = sentences.map((s) => s.replace(/#[A-Z]+\d*\b[^.]*\.?/g, ' ')).map((s) => { const c = s.search(/(?:^|\s)(?:chứng minh|chứng tỏ|suy ra|từ đó|tính|so sánh|tìm|xác định)(?=\s|$)/i); return c < 0 ? s : s.slice(0, c); }).join(' . ');
       const ten = [...new Set(namesIn(gtTxt.replace(re('(?<![A-Za-zÀ-ỹ])(?:PN){2,}', 'g'), (m0) => ' ' + m0 + ' ')))].filter((n) => !lcLabel[n] && !lcHide.includes(n) && !made.has(n) && !cons.some((c) => c.name === n))
@@ -1486,7 +1505,7 @@
           // chỗ trống: trong khung hình (nới rộng), xa các điểm đã có nhất
           let Q = {};
           try { Q = PLx.points(lines.join('\n')); } catch (e) { Q = {}; }
-          const pts = Object.keys(Q).filter((k) => !hidden.includes(k)).map((k) => Q[k]);
+          const pts = Object.keys(Q).filter((k) => !hidden.includes(k)).map((k) => Q[k]).concat(tamXY);
           if (!pts.length) pts.push([0, 0]);
           const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
           const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(x1 - x0, 4), h = Math.max(y1 - y0, 4);
@@ -1495,7 +1514,7 @@
             const p = [x0 - 0.15 * w + 1.3 * w * i / 8, y0 - 0.15 * h + 1.3 * h * j / 8], d = Math.min(...pts.map((a) => Math.hypot(a[0] - p[0], a[1] - p[1])));
             if (!best || d > best[1] + 1e-9) best = [p, d];
           }
-          line = n + ' = (' + r2(best[0][0]) + ', ' + r2(best[0][1]) + ')'; cach = 'chỗ trống của hình';
+          tamXY.push(best[0]); line = n + ' = (' + r2(best[0][0]) + ', ' + r2(best[0][1]) + ')'; cach = 'chỗ trống của hình';
         }
         if (!line) return;
         cons.push({ name: n, need: namesIn(line.replace(/^[^=]*=/, '')).filter((x) => x !== n), line, src: 'đặt tạm', more: [] });
