@@ -793,16 +793,8 @@ vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74
   <li>Trên trang soạn thảo: nút <b>Kịch bản</b> cạnh <b>Hình phẳng</b> / <b>Hình không gian</b> (bên phải thanh công cụ). Nhập đề, bấm <b>Chép lệnh nhờ AI dựng hình</b>; dán khối AI trả về vào ô thứ hai, bấm <b>Chèn hình</b>. Phần mềm tự nhận hình phẳng hay không gian (khối <b>[HÌNH KHÔNG GIAN TOANVIET]</b>, toạ độ ba số) và báo dòng kịch bản lỗi trước khi chèn.</li>
 </ul>
 <p>Thầy cô dùng <b>Claude</b>: tải gói skill <b>toanviet-ve-hinh.zip</b> (thư mục <i>skill</i> trong kho GitHub của ToanViet Studio) rồi thêm vào Claude (Cài đặt → Năng lực → Skills). Claude sẽ tự viết khối [HÌNH TOANVIET] khi gặp đề hình học phẳng, và kiểm tra kịch bản bằng chính bộ dựng hình của ToanViet trước khi trả lời.</p>
-<h3>Khi hình chưa vẽ đủ: sửa từng điểm và ghi nhớ cách vẽ</h3>
-<p>Sau khi dán đề vào <b>🤖 Bài giải AI</b>, nếu có điểm ToanViet chưa xác định được, khung vàng <b>Hình chưa vẽ đủ</b> hiện ngay dưới phần xem trước. Thầy cô chỉ cần <b>mô tả lại từng điểm</b>, không phải viết lại cả câu:</p>
-<ul>
-  <li><b>Chưa xác định được điểm E</b> — kèm câu đề nói tới E, các <b>Gợi ý</b> (ví dụ <i>giao điểm của Bx và AD</i>, <i>qua B kẻ đường thẳng song song với AC cắt AD</i>) và ô <b>E là:</b>. Bấm một gợi ý hoặc tự gõ ngắn gọn: <i>giao điểm của AB và CD</i>, <i>trung điểm của BC</i>, <i>điểm đối xứng của A qua M</i>, <i>hình chiếu của A trên BC</i>, <i>ABEC là hình bình hành</i>…</li>
-  <li>Bấm <b>Vẽ điểm E và ghi nhớ</b> (hoặc <kbd>Enter</kbd>): E được vẽ ngay, các điểm dựng từ E (dòng <b>Điểm I sẽ tự vẽ khi có E</b>) tự vẽ tiếp. Nếu mô tả chưa vẽ được, ToanViet báo để thử gợi ý khác.</li>
-  <li><b>Điểm đề chưa cho đủ vị trí</b> (ví dụ "điểm D ở ngoài tam giác", "A ∈ Ox"): ToanViet <b>đặt tạm</b> ở vị trí hợp lý — trên đường / tia đề nói điểm đó thuộc, chân đường vuông góc, hoặc chỗ trống của hình — để các điểm dựng từ nó vẽ tiếp được. Khung vàng ghi rõ điểm nào đặt tạm, đặt ở đâu; chưa đúng ý thì mô tả lại điểm đó.</li>
-  <li><b>Có điểm vẽ sai vị trí?</b> Mở mục này, bấm tên điểm (D, E, F…), mô tả lại điểm đó: cách mô tả của thầy cô được ưu tiên hơn cách ToanViet tự đọc đề, các điểm phụ thuộc vẽ lại theo.</li>
-  <li>ToanViet <b>ghi nhớ cách vẽ</b> trên máy theo câu đề: lần sau gặp câu cùng dạng — kể cả khi tên điểm khác (ABEC → MNQP) — tự vẽ đúng. Câu ToanViet chưa hiểu mà không gắn với điểm nào (hình không gian…) vẫn có ô viết lại cả câu và nút <b>Vẽ lại và ghi nhớ</b>.</li>
-  <li><b>Cách vẽ đã ghi nhớ (n)</b>: mở để xem các cách vẽ đã dạy; bấm ✕ để xoá cách vẽ không dùng nữa.</li>
-</ul>
+<h3>Khi hình chưa vẽ đủ ý đề</h3>
+<p>Sau khi dán đề vào <b>🤖 Bài giải AI</b>, ToanViet luôn vẽ phần đọc được. Điểm đề không cho đủ vị trí (ví dụ "điểm D ở ngoài tam giác", "A ∈ Ox") được <b>đặt tạm</b> ở chỗ hợp lý — trên đường / tia đề nói điểm đó thuộc, chân đường vuông góc, hoặc chỗ trống của hình — để các điểm dựng từ nó vẽ tiếp được. Khung vàng <b>Hình chưa vẽ đủ ý đề</b> ghi gọn câu nào còn điểm đặt tạm hoặc chưa dựng được, kèm nút <b>🤖 Chép lệnh nhờ AI dựng hình câu này</b> (xem mục dưới) để có hình đúng hẳn.</p>
 <h3>Bài giải AI → tài liệu Word mới (nút Bài giải AI)</h3>
 <p>Dùng khi muốn có ngay một tài liệu Word trình bày gọn theo SGK từ bài giải của ChatGPT, Gemini, Copilot… Không cần tài khoản AI nào; mọi việc làm ngay trong máy.</p>
 <ol>

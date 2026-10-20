@@ -361,32 +361,21 @@
     __clear();
   });
 
-  await step('Bài giải AI: hình chưa vẽ đủ — mô tả lại từng điểm, các điểm dựng từ nó tự vẽ tiếp, ghi nhớ; sửa điểm vẽ sai', async () => {
-    __clear(); localStorage.removeItem('tvs-cach-ve'); await w(50);
+  await step('Bài giải AI: hình chưa vẽ đủ — báo gọn điểm đặt tạm, nhờ AI dựng hình câu đó; đề đọc được thì vẽ đủ', async () => {
+    __clear(); await w(50);
     window.__baigiai.open(); await w(300);
     const src = document.getElementById('bgsrc');
     const paste = async (t) => { src.value = ''; const dt = new DataTransfer(); dt.setData('text/plain', t); src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500); };
     await paste('Câu 1. Cho tam giác ABC. Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song. Gọi I là giao điểm của AE và BC.');
     const box = document.getElementById('bgloi');
-    ok('hiện khung: E đề chưa cho đủ vị trí — đã đặt tạm, có ô mô tả riêng cho E; I vẽ được ngay', !!box.querySelector('.bgloi') && !!box.querySelector('.bgdrow[data-ten="E"]') && /E — đề chưa cho đủ vị trí, đã đặt tạm/.test(box.innerText) && /I = giao/.test(src.value), box.innerText.slice(0, 200));
-    const chip = [...box.querySelectorAll('.bgdrow[data-ten="E"] .bgchip')].find((b) => /hình bình hành/.test(b.textContent));
-    ok('có gợi ý "ABEC là hình bình hành"', !!chip, [...box.querySelectorAll('.bgchip')].map((b) => b.textContent).join(' | '));
-    if (chip) { chip.click(); box.querySelector('.bgdok').click(); await w(500); }
-    ok('vẽ được E, I tự vẽ tiếp, khung lỗi biến mất, đã ghi nhớ 1 cách vẽ điểm', !box.querySelector('.bgloi') && /E = hbh/.test(src.value) && /I = giao/.test(src.value) && JSON.parse(localStorage.getItem('tvs-cach-ve') || '[]').filter((r) => r.diem === 'E').length === 1, src.value.slice(0, 300));
-    await paste('Câu 2. Cho tam giác MNP. Lấy điểm Q sao cho tứ giác MNQP có hai cạnh đối song song.');
-    ok('đề khác cùng dạng (tên điểm khác) tự vẽ đúng nhờ cách vẽ đã nhớ', !box.querySelector('.bgloi') && /Q = hbh\(/.test(src.value), src.value.slice(0, 300));
-    // hình đã vẽ đủ: chọn điểm F vẽ sai, mô tả lại
+    ok('khung hình chưa vẽ đủ: báo gọn "đặt tạm điểm E", có mục nhờ AI dựng hình; I vẽ được ngay; không còn ô sửa từng điểm', !!box.querySelector('.bgloi') && /đặt tạm điểm E/.test(box.innerText) && !!box.querySelector('.bgloi .bgai') && /I = giao/.test(src.value) && !box.querySelector('.bgdrow, .bgchip, .bgnho'), box.innerText.slice(0, 200));
+    const ai1 = box.querySelector('.bgloi .bgai');
+    if (ai1) { ai1.querySelector('.bgaiin').value = '[HÌNH TOANVIET]\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\nE = hbh(C, A, B)\nI = giao(A, E, B, C)\ndoan BE EC AE\n[/HÌNH TOANVIET]'; ai1.querySelector('.bgaiok').click(); await w(400); }
+    ok('dùng hình AI dựng: khung lỗi biến mất, hình theo kịch bản', !box.querySelector('.bgloi') && /#FIG tv1 .*E = hbh\(C, A, B\)/.test(src.value), src.value.slice(0, 300));
     await paste('Câu 3. Cho ΔABC nhọn (AB < AC) có D là trung điểm của BC. Trên nửa mặt phẳng bờ BC không chứa điểm A, vẽ tia Bx // AC, Bx cắt tia AD tại E. Trên tia đối của tia AC lấy điểm F sao cho AF = AC. Gọi I là giao điểm của AB và EF.');
     ok('đề tia Bx // AC vẽ đủ E, F, I', !box.querySelector('.bgloi') && /E = giao\(B, X, A, D\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
-    const pick = box.querySelector('.bgpick[data-ten="F"]');
-    if (pick) { box.querySelector('.bgsua').open = true; pick.click(); await w(50); }
-    const inp = box.querySelector('.bgsrow .bgdrow[data-ten="F"] input');
-    ok('chọn điểm F: hiện ô mô tả lại F', !!inp);
-    if (inp) { inp.value = 'trung điểm của AC'; inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(500); }
-    ok('F vẽ lại theo mô tả (trung điểm AC), I dựng lại theo F mới', /F = trungdiem\(A, C\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
     // AI viết sẵn hình theo lời nhắc: khối [HÌNH TOANVIET] được vẽ đúng kịch bản
     ok('có nút "Chép lời nhắc vẽ hình cho AI", lời nhắc có khối [HÌNH TOANVIET]', !!document.getElementById('bgnhac') && /\[HÌNH TOANVIET\]/.test(LoiNhacAI.text()));
-    localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     await paste('Câu 4. Cho tam giác ABC có M là trung điểm của BC.\n[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\nbang BM MC\n```\n[/HÌNH TOANVIET]\nLời giải\nTa có $BM = MC$.');
     ok('dán câu trả lời có khối [HÌNH TOANVIET]: hình đúng kịch bản, có trong phần xem trước', /#FIG tv1 .*M = trungdiem\(B, C\)/.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value) && !!document.querySelector('#bgview svg, #bgview img'), src.value.slice(0, 300));
     // nhờ AI dựng lại hình một câu: chép lệnh (không cần lời giải), dán khối AI trả về → thay hình của câu
@@ -395,7 +384,6 @@
     ok('câu đã vẽ: có mục nhờ AI dựng hình (lệnh có đề, yêu cầu không giải)', !!ai && /Cho tam giác ABC có M là trung điểm của BC/.test(LoiNhacAI.nhoDung(ai.dataset.de)) && /KHÔNG giải bài/.test(LoiNhacAI.nhoDung(ai.dataset.de)));
     if (ai) { ai.querySelector('.bgaiin').value = '[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (7, 0)\nA = (1, 5)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n```\n[/HÌNH TOANVIET]'; ai.querySelector('.bgaiok').click(); await w(400); }
     ok('"Dùng hình này": hình của câu thay bằng kịch bản AI, không còn hình tự đọc đề', /#FIG tv1 .*C = \(7, 0\)/.test(src.value) && !/^#FIG h\d/m.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value), src.value.slice(0, 300));
-    localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });
 

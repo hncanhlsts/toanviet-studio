@@ -35,7 +35,7 @@
   const fx = (v) => String(Math.round(v * 1000) / 1000);
 
   function space(text) {
-    const t = apRules(norm(text)); // cách vẽ giáo viên đã dạy (ghi nhớ)
+    const t = norm(text);
     const notes = [], unknown = [];
     let m;
     // ---------- 1. Khối chính ----------
@@ -349,7 +349,7 @@
   }
 
   function plane(text) {
-    let t = apRules(norm(text)); // cách vẽ giáo viên đã dạy (ghi nhớ) đổi câu trước khi đọc
+    let t = norm(text);
     const notes = [], unknown = [], chuaHieu = [];
     // câu / tên hiển thị cho giáo viên: tên tia, đường thẳng viết thường như trong đề (OZ → Oz, XOY → xOy, XU → d)
     const hien = (s) => String(s).replace(/(?<![A-Za-zÀ-ỹ])[A-Z][A-Z']*(?![a-zà-ỹ])/g, (w) => w.split('').filter((c) => !lcHide.includes(c)).map((c) => lcLabel[c] || c).join(''));
@@ -753,7 +753,7 @@
     const onSeg = {}; // điểm lấy trên một đoạn / tia → hai đầu (để quyết định có chấm điểm hay không)
     const rArg = base.k === 'cir' || base.k === 'cir2' ? 'r' : baseNames[0];
     const isDef = (n) => made.has(n) || cons.some((c) => c.name === n);
-    const add = (name, need, line, src, more) => { if (!isDef(name) && !(uuTien.has(name) && !curUser)) cons.push({ name, need, line, src, more: more || [] }); };
+    const add = (name, need, line, src, more) => { if (!isDef(name)) cons.push({ name, need, line, src, more: more || [] }); };
     let hid = 0;
     const helper = () => 'Z' + (++hid);
     const hidden = [];
@@ -764,12 +764,7 @@
     const listNames = (s) => namesIn(String(s).replace(/\s+(?:và|,)\s+/g, ','));
     const listPairs = (s) => String(s).split(/\s*(?:,|và)\s*/).map((x) => x.replace(/^(?:cạnh|đoạn|các cạnh|đoạn thẳng)\s+/, '').trim()).filter(Boolean);
     const foot = (n, src, ps, srcTxt) => { add(n, [src].concat(ps), n + ' = chan(' + src + ', ' + ps.join(', ') + ')', srcTxt, ['doan ' + src + n, 'vuong ' + src + n + ps[0]]); };
-    // câu mô tả lại một điểm do giáo viên viết (ghi nhớ theo từng điểm): "⁂E: E là giao điểm của Bx và AD"
-    // — điểm E chỉ dựng theo câu này, bỏ cách đọc khác của đề cho E
-    const uuTien = new Set(), userSi = new Set();
-    const sentences = t.split(/(?<=[.;])\s+|\.\s*$/).filter(Boolean).map((s0, si) => s0.replace(re('^\\s*⁂(PN):\\s*'), (m0, n) => { uuTien.add(n); userSi.add(si); return ''; }));
-    t = t.replace(re('⁂(PN):\\s*', 'g'), '');
-    let curUser = false;
+    const sentences = t.split(/(?<=[.;])\s+|\.\s*$/).filter(Boolean);
     const used = new Set();
     const onCirc = [], chordFirst = []; // dây cung cho trước (dây BC cố định): hai đầu nằm dưới, điểm khác trên cung lớn
     const lineThrough = {}, linePts = {}; // đường thẳng (hai điểm phụ) → điểm nó đi qua; số điểm đã lấy trên đó
@@ -785,7 +780,6 @@
     const cOf = (s) => { const m2 = re('\\(\\s*(PN)\\s*(?:;[^)]*)?\\)').exec(s || ''); return m2 && circReg[m2[1]] !== undefined ? m2[1] : lastC; };
     sentences.forEach((snt0, si) => {
       let hit = false, tanDone = false;
-      curUser = userSi.has(si);
       // dữ kiện để dựng hình: bỏ phần "chứng minh / suy ra / từ đó…" (đó là điều phải chứng minh, không phải dữ kiện),
       // nhưng giữ các chú thích "(với AD là đường kính…)"
       const cutAt = snt0.search(/(?:^|\s)(?:chứng minh|suy ra|từ đó|chứng tỏ)(?:\s|$)/i);
@@ -1594,7 +1588,6 @@
     // câu có vẻ là dựng hình nhưng chưa hiểu
     sentences.forEach((snt, si) => {
       if (used.has(si)) return;
-      if (userSi.has(si + 1) && !userSi.has(si)) return; // điểm của câu này đã được giáo viên mô tả lại ngay sau
       if (/(chứng minh|chứng tỏ|tính|tìm|xác định|hỏi|so sánh|giải thích|vì sao|có bằng|có song song|có vuông góc)/i.test(snt)) return;
       if (base.i != null && t.indexOf(snt) <= base.i && t.indexOf(snt) + snt.length >= base.end) return;
       if (re('(PN)\\s+(?:là|thuộc)\\s+|kẻ\\s+|vẽ\\s+|sao cho|lấy điểm|dựng\\s+').test(snt)) { unknown.push(snt.trim()); chuaHieu.push(hien(snt.trim())); }
@@ -1662,127 +1655,9 @@
     return { kind: tpl || 'tamgiac', script: lines.join('\n'), notes, unknown, chuaHieu, thieu, diem, tam };
   }
 
-  // ---------- Cách vẽ do giáo viên dạy (ghi nhớ) ----------
-  // Câu phần mềm chưa hiểu được giáo viên viết lại theo cách phần mềm hiểu; cặp (câu gốc → câu viết lại) được ghi nhớ
-  // thành mẫu chung: tên điểm thay bằng {1}, {2}… — lần sau gặp câu cùng dạng (tên điểm khác) thì tự đổi rồi mới đọc.
-  let RULES = [];
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  function ruleRe(from) {
-    const seen = {};
-    let src = escRe(from).replace(/\\\{(\d+)\\\}/g, (m0, n) => { if (seen[n]) return '\\' + seen[n]; seen[n] = Object.keys(seen).length + 1; return '(' + PN + ')'; });
-    src = src.replace(/\s+/g, '\\s*');
-    return { rx: new RegExp(src, 'gi'), order: Object.keys(seen).sort((a, b) => seen[a] - seen[b]) };
-  }
-  function setRules(list) { RULES = (list || []).filter((r) => r && r.from && r.to).map((r) => Object.assign({}, r, ruleRe(r.from))); }
-  function apRules(t) {
-    RULES.forEach((r) => { r.rx.lastIndex = 0; t = t.replace(r.rx, (...g) => { const vals = g.slice(1, 1 + r.order.length); return r.to.replace(/\{(\d+)\}/g, (m0, n) => { const i = r.order.indexOf(n); return i >= 0 ? vals[i] : m0; }); }); });
-    return t;
-  }
-  // tạo mẫu từ câu gốc và câu viết lại: tên điểm (A, B, A', G1) theo thứ tự xuất hiện trong câu gốc → {1}, {2}…
-  function hocMau(goc, moi) {
-    const a = norm(goc).replace(/[.;]\s*$/, ''), b = norm(moi).replace(/[.;]\s*$/, '');
-    const map = {}; let k = 0;
-    const gen = (s, add) => s.replace(re('(?<![A-Za-zÀ-ỹ])((?:PN)+)(?![a-zà-ỹ])', 'g'), (m0) => namesIn(m0).map((n) => { if (!map[n] && add) map[n] = '{' + (++k) + '}'; return map[n] || n; }).join(''));
-    const from = gen(a, true), to = gen(b, false);
-    if (!k || from === to) return null;
-    return { from, to, goc: a, moi: b };
-  }
-  // gợi ý cách viết mà phần mềm hiểu, theo từ khoá trong câu; điền sẵn tên điểm của chính câu đó
-  function goiY(cau) {
-    const s = norm(cau);
-    const tok = (rx) => { const m0 = re(rx).exec(s); return m0 ? m0[1] : ''; };
-    // vai trò của tên điểm trong câu: điểm sau "qua", đường sau "song song / vuông góc (với)", đường sau "cắt", điểm sau "tại"
-    // tên đường: hai điểm (BC) hoặc tia / đường viết thường (Oy, Ox, d)
-    const LN = '((?:PN){2}|[A-Z][a-z]|[a-z])';
-    const qua = tok('qua\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])'), voi = tok('(?:song song|vuông góc|⊥|∥|//)\\s*(?:với\\s+)?(?:đường thẳng\\s+|cạnh\\s+|tia\\s+)?' + LN + '(?![A-Za-z])');
-    const cat = tok('cắt\\s+(?:cạnh\\s+|đường thẳng\\s+|đoạn thẳng\\s+|tia\\s+)?' + LN + '(?![A-Za-z])'), tai = tok('tại\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])');
-    const pairs = s.match(re('(?<![A-Za-zÀ-ỹ])(?:PN){2}(?![A-Za-z])', 'g')) || [], quad = tok('(?:tứ giác|hình)\\s+(?:\\S+\\s+)?([A-Z]{4})(?![A-Za-z])'), tri = tok('(?:tam giác|góc)\\s+([A-Z]{3})(?![A-Za-z])');
-    const singles = (s.match(re('(?<![A-Za-zÀ-ỹ])(PN)(?![A-Za-z\'])', 'g')) || []);
-    const sub = tok('^\\s*(?:gọi|lấy|cho)?\\s*(?:điểm\\s+)?(PN)\\s+(?:là|thuộc|nằm|trên)') || singles[0] || '';
-    const P = (x, d) => x || d, out = [], add = (x) => { if (!out.includes(x)) out.push(x); };
-    if (/song song|∥|\/\//.test(s)) {
-      if (quad && /cạnh đối|song song/.test(s)) add(quad + ' là hình bình hành.');
-      add('Qua ' + P(qua, P(sub, 'M')) + ' kẻ đường thẳng song song với ' + P(voi, 'BC') + ' cắt ' + P(cat, 'AC') + ' tại ' + P(tai, 'N') + '.');
-    }
-    if (/vuông góc|⊥/.test(s)) {
-      const ab = pairs[0] || 'AH', cd = voi || pairs[1] || 'BC';
-      if (!qua) add('Kẻ ' + ab + ' ⊥ ' + cd + ' tại ' + P(tai, ab[ab.length - 1]) + '.');
-      add('Qua ' + P(qua, ab[0]) + ' kẻ đường thẳng vuông góc với ' + cd + ' cắt ' + P(cat, 'AB') + ' tại ' + P(tai, 'N') + '.');
-    }
-    if (/trung điểm/.test(s)) add(P(sub, 'M') + ' là trung điểm của ' + P(pairs[0], 'BC') + '.');
-    if (/phân giác/.test(s)) add('Tia phân giác của góc ' + P(tri, 'BAC') + ' cắt ' + P(cat, 'BC') + ' tại ' + P(tai, 'D') + '.');
-    if (/giao|cắt nhau/.test(s) || (/cắt/.test(s) && !/song song|vuông góc|∥|⊥|\/\//.test(s))) { add(P(tai, P(sub, 'I')) + ' là giao điểm của ' + P(pairs[0], 'AB') + ' và ' + P(pairs[1], 'CD') + '.'); }
-    if (/đối xứng/.test(s)) add(P(sub, 'D') + ' đối xứng với ' + P(singles[1], 'A') + ' qua ' + P(singles[2], 'M') + '.');
-    if (/tia đối/.test(s)) add('Trên tia đối của tia ' + P(pairs[0], 'MA') + ' lấy điểm ' + P(sub, 'D') + ' sao cho ' + (pairs[0] ? pairs[0][0] : 'M') + P(sub, 'D') + ' = ' + P(pairs[0], 'MA') + '.');
-    if (/lấy|thuộc|nằm trên/.test(s) && !/tia đối/.test(s) && !qua) add('Trên cạnh ' + P(pairs[0], 'BC') + ' lấy điểm ' + P(sub, 'M') + '.');
-    if (/đường cao|trung tuyến/.test(s)) add('Kẻ đường cao ' + P(pairs[0], 'AH') + ' của tam giác ' + P(tri, 'ABC') + '.');
-    if (/hình chiếu|chân/.test(s)) add(P(sub, 'H') + ' là hình chiếu của ' + P(singles[1], 'A') + ' trên ' + P(pairs[0], 'BC') + '.');
-    if (/tiếp tuyến/.test(s)) add('Tiếp tuyến tại ' + P(singles[0], 'A') + ' của đường tròn (O) cắt ' + P(cat, 'BC') + ' tại ' + P(tai, 'M') + '.');
-    if (/đường tròn/.test(s) && !/tiếp tuyến/.test(s)) add(P(pairs[0], 'AB') + ' cắt đường tròn (O) tại điểm thứ hai ' + P(tai, 'C') + '.');
-    if (/thẳng hàng/.test(s)) add('Ba điểm ' + (singles.slice(0, 3).join(', ') || 'A, B, C') + ' thẳng hàng.');
-    if (!out.length) { add(P(sub, 'M') + ' là trung điểm của ' + P(pairs[0], 'BC') + '.'); add(P(sub, 'I') + ' là giao điểm của ' + P(pairs[0], 'AB') + ' và ' + P(pairs[1], 'CD') + '.'); }
-    // câu mẫu viết hoa đầu câu
-    return out.slice(0, 4).map((x) => x[0].toUpperCase() + x.slice(1));
-  }
 
-
-  // ---------- sửa từng điểm ----------
-  // mô tả ngắn của giáo viên cho một điểm → câu đầy đủ ToanViet đọc được
-  // ("giao điểm của Bx và AD" → "E là giao điểm của Bx và AD"; "qua B kẻ đường thẳng song song với AC cắt AD" → "… tại E")
-  function cauDiem(ten, moTa) {
-    const T = escRe(ten);
-    let m = norm(moTa).replace(/[.;]\s*$/, '').trim().replace(re('^(?:điểm\\s+)?' + T + '\\s*(?::\\s*|là\\s+)'), '').trim();
-    if (!m) return '';
-    m = m.replace(/^giao\s+(?!điểm)(?:của\s+)?/, 'giao điểm của ');
-    if (re('(?<![A-Za-z])' + T + '(?![a-z\'\\d])').test(m)) return m; // đã là câu có tên điểm
-    if (/^(?:qua|từ|vẽ|kẻ|dựng)\s/.test(m) && /cắt/.test(m)) return m.replace(/\s+tại\s*$/, '') + ' tại ' + ten;
-    if (/^trên\s/.test(m)) return /lấy/.test(m) ? m.replace(/lấy(?:\s+(?:một\s+)?điểm)?/, 'lấy điểm ' + ten) : m + ' lấy điểm ' + ten;
-    if (/^(?:thuộc|nằm|đối xứng)/.test(m)) return ten + ' ' + m;
-    return ten + ' là ' + m;
-  }
-  // gợi ý mô tả cho điểm `ten` theo câu đề nói tới điểm đó (điền sẵn tên đường, tên điểm của câu)
-  function goiYDiem(ten, cau) {
-    // bỏ gợi ý trùng nghĩa ("qua A … cắt Oz" và "Qua A … cắt Oz tại M" cùng một câu đầy đủ)
-    const s = norm(cau || ''), T = escRe(ten), out = [], full = (x) => cauDiem(ten, x).toLowerCase(), add = (x) => { if (x && !out.some((o) => full(o) === full(x))) out.push(x); };
-    const LN = '((?:PN){2}|[A-Z][a-z]|[a-z])', VE = '(?:tia\\s+|đường thẳng\\s+|cạnh\\s+|đoạn thẳng\\s+|đoạn\\s+)?';
-    const tok = (rx, i) => { const m0 = re(rx).exec(s); return m0 ? m0[i || 1] : ''; };
-    const cat = tok('cắt\\s+' + VE + LN + '\\s+(?:lần lượt\\s+)?tại\\s+(?:điểm\\s+)?' + T + '(?![A-Za-z\'])');
-    // "Bx cắt tia AD tại E" (không lấy "… song song với Oy cắt Oz tại M": Oy là đường so sánh)
-    const subj = tok('(?<![A-Za-zÀ-ỹ])(?<!(?:song song|vuông góc|∥|⊥|//)\\s*(?:với\\s+)?' + VE + ')' + LN + '\\s+cắt\\s+' + VE + LN + '\\s+tại\\s+(?:điểm\\s+)?' + T + '(?![A-Za-z\'])');
-    const voi = tok('(?:song song|vuông góc|⊥|∥|//)\\s*(?:với\\s+)?' + VE + LN + '(?![A-Za-z])');
-    const qua = tok('qua\\s+(?:điểm\\s+)?(PN)(?![A-Za-z])') || tok('(?:tia|đường thẳng)\\s+(PN)[a-z](?![A-Za-zÀ-ỹ])');
-    const pairs = (s.match(re('(?<![A-Za-zÀ-ỹ])(?:PN){2}(?![A-Za-z])', 'g')) || []).filter((p) => !namesIn(p).includes(ten));
-    const lines = (s.match(re('(?<![A-Za-zÀ-ỹ])(?:(?:PN){2}|[A-Z][xyztmn])(?![A-Za-z])', 'g')) || []).filter((p) => !namesIn(p).includes(ten));
-    { const qd = tok('(?:tứ giác|hình)\\s+(?:\\S+\\s+)?([A-Z]{4})(?![A-Za-z])'); if (qd && qd.includes(ten) && /song song|cạnh đối|hình bình hành/.test(s)) add(qd + ' là hình bình hành'); }
-    if (subj && cat) add('giao điểm của ' + subj + ' và ' + cat);
-    { const g = re('giao điểm\\s+(?:của\\s+)?' + VE + LN + '\\s+(?:và|với)\\s+' + VE + LN).exec(s); if (g) add('giao điểm của ' + g[1] + ' và ' + g[2]); }
-    if (voi && (cat || pairs.length) && qua) add('qua ' + qua + ' kẻ đường thẳng ' + (/vuông góc|⊥/.test(s) ? 'vuông góc' : 'song song') + ' với ' + (/^[A-Z][a-z]$/.test(voi) ? (pairs[0] || voi) : voi) + ' cắt ' + (cat || pairs.find((p) => p !== voi) || 'BC'));
-    { const g = re('tia đối\\s+của\\s+tia\\s+(PN)(PN)').exec(s); if (g) add('trên tia đối của tia ' + g[1] + g[2] + ' lấy điểm sao cho ' + g[1] + ten + ' = ' + g[1] + g[2]); }
-    if (/trung điểm/.test(s) && pairs.length) add('trung điểm của ' + pairs[0]);
-    if (/đối xứng/.test(s)) { const g = re('đối xứng\\s+(?:của\\s+|với\\s+)?(?:điểm\\s+)?(PN)\\s+qua\\s+(?:điểm\\s+)?(PN)').exec(s); add('điểm đối xứng của ' + (g ? g[1] + ' qua ' + g[2] : 'A qua M')); }
-    if (/vuông góc|⊥|hình chiếu|chân|đường cao/.test(s) && pairs.length) { const a = (s.match(re('(?<![A-Za-zÀ-ỹ])(PN)(?![A-Za-z\'])', 'g')) || []).find((x) => x !== ten) || 'A'; add('hình chiếu của ' + a + ' trên ' + (pairs.find((p) => !p.includes(a)) || pairs[0])); }
-    // hai đường bất kì của câu không chung điểm (Ox, Oy chung O: giao là O — không gợi ý)
-    { const ls = [...new Set(lines)], nm = (x) => x.replace(/[a-z]/g, '').split(''); let pr = null;
-      for (let i = 0; i < ls.length && !pr; i++) for (let j = i + 1; j < ls.length && !pr; j++) if (!nm(ls[i]).some((c) => nm(ls[j]).includes(c))) pr = [ls[i], ls[j]];
-      if (pr) add('giao điểm của ' + pr[0] + ' và ' + pr[1]); }
-    if (pairs.length) add('trung điểm của ' + pairs[0]);
-    // câu mẫu của goiY dựng chính điểm này (… tại E, E là …, lấy điểm E, ABEC là hình …)
-    goiY(s).forEach((g) => { if (re('(?:tại|lấy điểm)\\s+' + T + '(?![A-Za-z\'])|^' + T + '\\s+là\\s|^[A-Z]*' + T + '[A-Z]*\\s+là\\s+hình', 'i').test(g)) add(g.replace(/\.$/, '')); });
-    return out.slice(0, 4);
-  }
-  // ghi nhớ cách vẽ một điểm: câu đề gốc (tên điểm → {1}, {2}…) giữ nguyên, thêm câu mô tả điểm, đánh dấu ưu tiên cho điểm đó
-  function hocDiem(cau, ten, moTa) {
-    const moi = cauDiem(ten, moTa);
-    if (!moi) return null;
-    const a = norm(cau).replace(/[.;]\s*$/, ''), b = norm(moi).replace(/[.;]\s*$/, '');
-    const map = {}; let k = 0;
-    const gen = (s, add) => s.replace(re('(?<![A-Za-zÀ-ỹ])((?:PN)+)(?=[b-df-hj-np-tv-z]?(?![a-zà-ỹ]))', 'g'), (m0) => namesIn(m0).map((n) => { if (!map[n] && add) map[n] = '{' + (++k) + '}'; return map[n] || n; }).join(''));
-    const from = gen(a, true), to = gen(b, false);
-    if (!map[ten]) return null;
-    return { from, to: from + ' . ⁂' + map[ten] + ': ' + to, goc: a, moi: b, diem: ten };
-  }
-
-  const api = { space, plane, norm, lenVal, setRules, hocMau, goiY, apRules: (t) => apRules(norm(t)), cauDiem, goiYDiem, hocDiem };
+  const api = { space, plane, norm, lenVal };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.DeHinh = api;
 })(this);
