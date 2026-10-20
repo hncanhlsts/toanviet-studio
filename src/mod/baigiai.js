@@ -117,11 +117,13 @@
       kid = 0;
       const sai = loi.filter((L) => !L.du);
       if (sai.length) {
-        h += '<div class="bgloi"><b>Hình chưa vẽ đủ</b> — mô tả lại <b>từng điểm</b> chưa xác định (bấm một gợi ý để điền), rồi bấm <b>Vẽ điểm … và ghi nhớ</b>. Vẽ được điểm đó thì các điểm dựng từ nó tự vẽ tiếp; lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
+        h += '<div class="bgloi"><b>Hình chưa vẽ đủ / có điểm đặt tạm</b> — mô tả lại <b>từng điểm</b> chưa xác định (bấm một gợi ý để điền), rồi bấm <b>Vẽ điểm … và ghi nhớ</b>. Vẽ được điểm đó thì các điểm dựng từ nó tự vẽ tiếp; lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
         sai.forEach((L) => {
           h += '<div class="bgloic">' + esc(L.cau || 'Hình') + ' <span>(hình ' + esc(L.loai) + ')</span></div>';
           if (L.loiKB) { h += '<div class="bgthieu">Kịch bản hình do AI viết bị lỗi: ' + esc(L.loiKB) + ' — sửa dòng đó trong khối #FIG ở ô bên trái, hoặc nhờ AI viết lại kịch bản.</div>'; return; }
-          const th = L.thieu || [], ten = th.map((t) => t.ten);
+          const th = L.thieu || [], ten = th.map((t) => t.ten).concat((L.tam || []).map((t) => t.ten));
+          // điểm đề chưa cho đủ vị trí: ToanViet đã đặt tạm (vẽ tiếp được các điểm khác); mô tả lại nếu chưa đúng ý
+          (L.tam || []).forEach((t) => { h += '<div class="bgcho">Điểm <b>' + esc(t.ten) + '</b> — đề chưa cho đủ vị trí, đã đặt tạm ' + esc(t.cach) + '. Chưa đúng ý thì mô tả lại:</div>' + diemRow(t.ten, t.cau || ''); });
           th.forEach((t) => {
             const cho = (t.can || []).filter((c) => ten.includes(c));
             if (cho.length) h += '<div class="bgcho">Điểm <b>' + esc(t.ten) + '</b> sẽ tự vẽ khi có ' + cho.map((c) => '<b>' + esc(c) + '</b>').join(', ') + '</div>';

@@ -270,7 +270,8 @@
       const key = 'h' + fig, cap = 'Hình ' + fig;
       specs.push('#FIG ' + key + ' ' + JSON.stringify(Object.assign({ type }, props, { scale })));
       // nhắc tới hình trong đoạn: "… (Hình n)."
-      if (at >= 0 && !/\[FIG|^#|^\$\$/.test(blk[at])) blk[at] = blk[at].replace(/([.:;]?)\s*$/, (m, p) => ' (' + cap + ')' + (p || '.'));
+      // (đề đã ghi sẵn "(Hình 1)" thì không thêm lần nữa)
+      if (at >= 0 && !/\[FIG|^#|^\$\$/.test(blk[at]) && !/\(\s*Hình\s+\d+\s*\)/i.test(blk[at])) blk[at] = blk[at].replace(/([.:;]?)\s*$/, (m, p) => ' (' + cap + ')' + (p || '.'));
       blk.splice(at + 1, 0, '[FIG ' + key + '|' + (caption || cap) + ']');
     };
     for (const blk of blocks) {
@@ -541,8 +542,8 @@
           addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
           notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
           // mọi hình phẳng: kèm danh sách điểm đã dựng (giáo viên mô tả lại được điểm vẽ sai); du = vẽ đủ
-          const du = !(pl.chuaHieu || []).length && !(pl.thieu || []).length;
-          loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [], diem: pl.diem || [], du });
+          const du = !(pl.chuaHieu || []).length && !(pl.thieu || []).length && !(pl.tam || []).length;
+          loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [], diem: pl.diem || [], tam: pl.tam || [], du });
           pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }

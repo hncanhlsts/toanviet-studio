@@ -1318,6 +1318,22 @@
         });
         hit = true;
       }
+      // "lấy các điểm A, B theo thứ tự thuộc Ox và Oy sao cho OA = OB", "M, N lần lượt thuộc cạnh AB, AC sao cho AM = AN"
+      const rlst = re('(?:(?:lấy|cho|vẽ)\\s+)?(?:các\\s+|hai\\s+|ba\\s+)?(?:điểm\\s+)?(?<![A-Za-z])((?:PN)(?:\\s*(?:,|và)\\s*PN)+)\\s+(?:theo thứ tự|lần lượt|tương ứng)\\s+(?:thuộc|nằm trên|trên|là điểm (?:thuộc|trên))\\s+(?:các\\s+|hai\\s+)?(tia\\s+|cạnh\\s+|đoạn thẳng\\s+|đoạn\\s+|đường thẳng\\s+)?((?:PN){2}(?:\\s*(?:,|và)\\s*(?:tia\\s+|cạnh\\s+|đoạn thẳng\\s+|đường thẳng\\s+)?(?:PN){2})+)(?:\\s*\\([^)]*\\))?(?:\\s*,?\\s*sao cho\\s+([^;.]+))?', 'g');
+      while ((q = rlst.exec(snt))) {
+        const ns = listNames(q[1]), sgs = q[3].split(/\s*(?:,|và)\s*/).map((x) => namesIn(x.replace(/^(?:tia|cạnh|đoạn thẳng|đường thẳng)\s+/, ''))).filter((x) => x.length === 2);
+        if (ns.length !== sgs.length || ns.some((n) => isDef(n))) continue;
+        const eqs = (q[4] || '').replace(/\s+/g, '').split(/[,;]|và/).map((c) => re('^(PN)(PN)=(PN)(PN)$').exec(c)).filter(Boolean);
+        ns.forEach((n, i) => {
+          const [U, V] = sgs[i], ray = /tia/.test(q[2] || '') || lcLabel[V];
+          // độ dài bằng một đoạn đã có (OB = OA, AN = AM): đặt trên tia UV cách U đúng đoạn đó
+          const e = eqs.map((w) => ([w[1], w[2]].sort().join() === [U, n].sort().join() ? [w[3], w[4]] : [w[3], w[4]].sort().join() === [U, n].sort().join() ? [w[1], w[2]] : null)).find((sd) => sd && !sd.includes(n) && sd.every((x) => ns.indexOf(x) < i));
+          const line = e ? n + ' = dat(' + U + ', ' + V + ', ' + e.join(', ') + ')' : n + ' = chia(' + U + ', ' + V + ', ' + (ray ? 0.6 : 0.4 + 0.2 * (i % 2)) + ')';
+          add(n, e ? [U, V].concat(e) : [U, V], line, ray ? 'điểm trên tia' : 'điểm trên đoạn', ['doan ' + U + n].concat(e ? ['bang ' + U + n + ' ' + e.join('') + ' = #'] : []));
+          onSeg[n] = [U, V]; dots.add(n);
+        });
+        hit = true;
+      }
       const rtia = re('(?:trên\\s+tia\\s+(?:phân giác\\s+)?(đối\\s+của\\s+tia\\s+)?(PN)(PN)\\s*,?\\s*lấy\\s+(?:một\\s+)?(?:điểm\\s+)?(PN)|(PN)\\s+(?:là\\s+(?:một\\s+)?điểm\\s+)?(?:bất k[ìỳ]\\s+)?(?:thuộc|nằm trên|trên)\\s+tia\\s+(?:phân giác\\s+)?(đối\\s+của\\s+tia\\s+)?(PN)(PN))(?:\\s+sao cho\\s+([^,;.]+))?', 'g');
       while ((q = rtia.exec(snt))) {
         const opp = !!(q[1] || q[6]), O = q[2] || q[7], X = q[3] || q[8], n = q[4] || q[5];
@@ -1427,13 +1443,66 @@
     // dựng theo thứ tự phụ thuộc
     const after = [], built = [];
     let guard = 0;
-    while (cons.length && guard++ < 80) {
-      const i = cons.findIndex((c) => c.need.every((n) => made.has(n)));
-      if (i < 0) break;
-      const c = cons.splice(i, 1)[0];
-      if (c.line) { lines.push(c.line); c.line.split('\n').forEach((l) => { const d = /^([A-Z]\d*)\s*=/.exec(l); if (d) made.add(d[1]); }); }
-      if (c.name) { made.add(c.name); built.push(c.name); }
-      c.more.forEach((x) => after.push(x));
+    const dung = () => {
+      while (cons.length && guard++ < 120) {
+        const i = cons.findIndex((c) => c.need.every((n) => made.has(n)));
+        if (i < 0) break;
+        const c = cons.splice(i, 1)[0];
+        if (c.line) { lines.push(c.line); c.line.split('\n').forEach((l) => { const d = /^([A-Z]\d*)\s*=/.exec(l); if (d) made.add(d[1]); }); }
+        if (c.name) { made.add(c.name); built.push(c.name); }
+        c.more.forEach((x) => after.push(x));
+      }
+    };
+    dung();
+    // điểm có trong giả thiết mà đề không cho đủ cách dựng (không có phép dựng nào): đặt TẠM ở vị trí hợp lý —
+    // trên đường / tia / đoạn đề nói nó thuộc, nếu không thì chỗ trống của hình — để các điểm dựng từ nó vẽ tiếp được.
+    // Giáo viên xem lại / mô tả lại điểm đặt tạm trong khung "Hình chưa vẽ đủ".
+    const tam = [];
+    {
+      const gtTxt = sentences.map((s) => s.replace(/#[A-Z]+\d*\b[^.]*\.?/g, ' ')).map((s) => { const c = s.search(/(?:^|\s)(?:chứng minh|chứng tỏ|suy ra|từ đó|tính|so sánh|tìm|xác định)(?=\s|$)/i); return c < 0 ? s : s.slice(0, c); }).join(' . ');
+      const ten = [...new Set(namesIn(gtTxt.replace(re('(?<![A-Za-zÀ-ỹ])(?:PN){2,}', 'g'), (m0) => ' ' + m0 + ' ')))].filter((n) => !lcLabel[n] && !lcHide.includes(n) && !made.has(n) && !cons.some((c) => c.name === n))
+        // chữ O của "Oxy", "Ox" (dính chữ thường) không phải điểm cần đặt
+        .filter((n) => re('(?<![A-Za-zÀ-ỹ])(?:PN)*' + escRe(n) + '(?:PN)*(?![a-zà-ỹ\'\\d])').test(gtTxt));
+      const PLx = root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane);
+      ten.forEach((n) => {
+        const N = escRe(n);
+        const on = re('(?<![A-Za-z])' + N + '\\s*(?:∈|thuộc|nằm trên|trên|nằm trong)\\s+(?:(tia)\\s+|cạnh\\s+|đoạn thẳng\\s+|đoạn\\s+|đường thẳng\\s+)?((?:PN){2})(?![A-Za-z])').exec(gtTxt);
+        const giua = re('(?<![A-Za-z])' + N + '\\s+nằm giữa\\s+(PN)\\s+và\\s+(PN)').exec(gtTxt);
+        // "AH ⊥ Oy", "AH vuông góc với BC" (A đã có hoặc vừa đặt tạm): chân đường vuông góc
+        const vg = re('(?<![A-Za-z])(PN)' + N + '\\s*(?:⊥|vuông góc(?:\\s+với)?)\\s*(?:đường thẳng\\s+|cạnh\\s+|tia\\s+)?((?:PN){2})(?![A-Za-z])').exec(gtTxt);
+        const co = (x) => made.has(x) || cons.some((c) => c.name === x);
+        let line = '', cach = '';
+        if (vg && co(vg[1]) && namesIn(vg[2]).every(co)) {
+          const [U, V] = namesIn(vg[2]);
+          line = n + ' = chan(' + vg[1] + ', ' + U + ', ' + V + ')'; cach = 'chân đường vuông góc kẻ từ ' + vg[1] + ' xuống ' + hien(U + V);
+          after.push('doan ' + vg[1] + n + ' ' + U + n, 'vuong ' + vg[1] + n + U);
+        } else if (on && namesIn(on[2]).every(co)) {
+          const [U, V] = namesIn(on[2]), ray = on[1] || lcLabel[V];
+          line = n + ' = chia(' + U + ', ' + V + ', ' + (ray ? 0.6 : 0.4 + 0.2 * (tam.length % 2)) + ')'; cach = (ray ? 'trên tia ' : 'trên ') + hien(U + V);
+          onSeg[n] = [U, V];
+        } else if (giua && co(giua[1]) && co(giua[2])) {
+          line = n + ' = chia(' + giua[1] + ', ' + giua[2] + ', 0.4)'; cach = 'nằm giữa ' + giua[1] + ' và ' + giua[2];
+        } else if (PLx && PLx.points) {
+          // chỗ trống: trong khung hình (nới rộng), xa các điểm đã có nhất
+          let Q = {};
+          try { Q = PLx.points(lines.join('\n')); } catch (e) { Q = {}; }
+          const pts = Object.keys(Q).filter((k) => !hidden.includes(k)).map((k) => Q[k]);
+          if (!pts.length) pts.push([0, 0]);
+          const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+          const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), w = Math.max(x1 - x0, 4), h = Math.max(y1 - y0, 4);
+          let best = null;
+          for (let i = 0; i <= 8; i++) for (let j = 0; j <= 8; j++) {
+            const p = [x0 - 0.15 * w + 1.3 * w * i / 8, y0 - 0.15 * h + 1.3 * h * j / 8], d = Math.min(...pts.map((a) => Math.hypot(a[0] - p[0], a[1] - p[1])));
+            if (!best || d > best[1] + 1e-9) best = [p, d];
+          }
+          line = n + ' = (' + r2(best[0][0]) + ', ' + r2(best[0][1]) + ')'; cach = 'chỗ trống của hình';
+        }
+        if (!line) return;
+        cons.push({ name: n, need: namesIn(line.replace(/^[^=]*=/, '')).filter((x) => x !== n), line, src: 'đặt tạm', more: [] });
+        dots.add(n); tam.push({ ten: n, cach, cau: sentences.filter((x) => re('(?<![A-Za-z])' + N + '(?![a-z\'])').test(x)).map((x) => hien(x.trim()))[0] || '' });
+        notes.push('điểm ' + n + ': đề chưa cho đủ vị trí, đặt tạm ' + cach);
+      });
+      if (tam.length) dung();
     }
     cons.forEach((c) => { if (c.name && !/^Z\d+$/.test(c.name)) unknown.push('không dựng được điểm ' + c.name + ' (' + c.src + '): thiếu điểm ' + c.need.filter((n) => !made.has(n)).join(', ')); });
 
@@ -1571,7 +1640,7 @@
     const diem = built.filter((n) => !/^Z\d+$/.test(n) && !lcLabel[n] && !lcHide.includes(n) && !hidden.includes(n) && !baseNames.includes(n))
       .map((n) => ({ ten: n, cau: sentences.filter((s) => re('(?<![A-Za-z])' + escRe(n) + '(?![a-z\'])').test(s)).map((s) => hien(s.trim()))[0] || '' }))
       .filter((d, i, a) => d.cau && a.findIndex((x) => x.ten === d.ten) === i);
-    return { kind: tpl || 'tamgiac', script: lines.join('\n'), notes, unknown, chuaHieu, thieu, diem };
+    return { kind: tpl || 'tamgiac', script: lines.join('\n'), notes, unknown, chuaHieu, thieu, diem, tam };
   }
 
   // ---------- Cách vẽ do giáo viên dạy (ghi nhớ) ----------

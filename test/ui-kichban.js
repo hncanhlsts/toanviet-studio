@@ -368,7 +368,7 @@
     const paste = async (t) => { src.value = ''; const dt = new DataTransfer(); dt.setData('text/plain', t); src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500); };
     await paste('Câu 1. Cho tam giác ABC. Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song. Gọi I là giao điểm của AE và BC.');
     const box = document.getElementById('bgloi');
-    ok('hiện khung hình chưa vẽ đủ: ô mô tả riêng cho điểm E, I chờ E', !!box.querySelector('.bgloi') && !!box.querySelector('.bgdrow[data-ten="E"]') && /I sẽ tự vẽ khi có E/.test(box.innerText), box.innerText.slice(0, 200));
+    ok('hiện khung: E đề chưa cho đủ vị trí — đã đặt tạm, có ô mô tả riêng cho E; I vẽ được ngay', !!box.querySelector('.bgloi') && !!box.querySelector('.bgdrow[data-ten="E"]') && /E — đề chưa cho đủ vị trí, đã đặt tạm/.test(box.innerText) && /I = giao/.test(src.value), box.innerText.slice(0, 200));
     const chip = [...box.querySelectorAll('.bgdrow[data-ten="E"] .bgchip')].find((b) => /hình bình hành/.test(b.textContent));
     ok('có gợi ý "ABEC là hình bình hành"', !!chip, [...box.querySelectorAll('.bgchip')].map((b) => b.textContent).join(' | '));
     if (chip) { chip.click(); box.querySelector('.bgdok').click(); await w(500); }
