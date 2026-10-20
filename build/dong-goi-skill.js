@@ -1,6 +1,6 @@
 // Đóng gói skill Claude "toanviet-ve-hinh":  node build/dong-goi-skill.js   (kiểm tra đã cập nhật chưa: --kiem-tra)
 // - references/kich-ban-hinh.md: lời nhắc vẽ hình (src/loi-nhac-ai.js — cùng nội dung với nút "Chép lời nhắc vẽ hình cho AI")
-// - scripts/plane.js, scripts/mathexpr.js: bộ dựng hình của phần mềm (để scripts/kiem-tra.js kiểm tra kịch bản)
+// - scripts/plane.js, scripts/space.js, scripts/mathexpr.js: bộ dựng hình của phần mềm (để scripts/kiem-tra.js kiểm tra kịch bản)
 // - skill/toanviet-ve-hinh.zip: gói để tải lên Claude (Cài đặt → Năng lực → Skills) hoặc giải nén vào ~/.claude/skills
 // Gói .zip chỉ tạo lại khi nội dung skill đổi (không sinh thay đổi thừa trong kho).
 const fs = require('fs');
@@ -14,6 +14,7 @@ const want = {
   'references/kich-ban-hinh.md': require(path.join(root, 'src', 'loi-nhac-ai.js')).text(),
   'scripts/plane.js': fs.readFileSync(path.join(root, 'src', 'plane.js'), 'utf8'),
   'scripts/mathexpr.js': fs.readFileSync(path.join(root, 'src', 'mathexpr.js'), 'utf8'),
+  'scripts/space.js': fs.readFileSync(path.join(root, 'src', 'space.js'), 'utf8'),
 };
 const stale = Object.keys(want).filter((k) => { const f = path.join(dir, k); return !fs.existsSync(f) || fs.readFileSync(f, 'utf8') !== want[k]; });
 if (check) {

@@ -404,3 +404,11 @@ body.capturing dialog::backdrop { display: none !important; background: transpar
 .bgview .pv-cap { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 8px; }
 .bghint .bgnhac { padding: 1px 8px; border: 1px solid #c9d7ea; border-radius: 12px; background: #eef4fc; color: #1f4f8f; font-size: 12px; cursor: pointer; }
 .bghint .bgnhac:hover { background: #dbe8f8; }
+#bgloi .bgai { margin: 4px 0 8px 8px; padding: 6px 8px; border: 1px dashed #c9d7ea; border-radius: 6px; background: #f6f9fe; }
+#bgloi .bgai > span { color: #6b7785; font-size: 12px; }
+#bgloi .bgaicopy { padding: 2px 10px; border: 1px solid #c9d7ea; border-radius: 12px; background: #eef4fc; color: #1f4f8f; cursor: pointer; }
+#bgloi .bgai textarea { flex: 1; font: 12px Consolas, monospace; padding: 4px 6px; resize: vertical; }
+.kbdlg { width: min(760px, 92vw); }
+.kbdlg textarea { width: 100%; box-sizing: border-box; font: 13px Consolas, monospace; padding: 6px; }
+.kbdlg .kbbar { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.kbdlg .kbbar .bgstat { flex: 1; }

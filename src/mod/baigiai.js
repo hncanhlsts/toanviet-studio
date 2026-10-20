@@ -110,7 +110,17 @@
         '<div class="bglin"><label for="' + id + '"><b>' + esc(ten) + '</b> là:</label><input id="' + id + '" placeholder="mô tả điểm ' + esc(ten) + ', ví dụ: ' + esc(gy[0] || 'giao điểm của AB và CD') + '" spellcheck="false">' +
         '<button type="button" class="primary bgdok" data-for="' + id + '">Vẽ điểm ' + esc(ten) + ' và ghi nhớ</button></div></div>';
     };
+    // chép chữ vào bộ nhớ tạm (dán cho trợ lí AI)
+    const chep = async (t) => {
+      try { await navigator.clipboard.writeText(t); }
+      catch (err) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    };
+    window.TVSChep = chep;
     const nhacTen = (c, n) => new RegExp('(?<![A-Za-z])' + n + "(?![a-z'])").test(c);
+    // nhờ AI dựng hình cho một câu: chép lệnh (lời nhắc + đề, không cần lời giải), dán khối [HÌNH TOANVIET] AI trả về
+    const aiRow = (L) => (L.key && L.de ? '<div class="bgai" data-key="' + esc(L.key) + '" data-de="' + esc(L.de) + '">' +
+      '<button type="button" class="bgaicopy">🤖 Chép lệnh nhờ AI dựng hình câu này</button> <span>dán cho ChatGPT / Gemini… — AI chỉ trả về khối hình (không giải bài); chép khối đó dán vào ô dưới:</span>' +
+      '<div class="bglin"><textarea class="bgaiin" rows="2" spellcheck="false" placeholder="Dán khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] AI trả về"></textarea><button type="button" class="primary bgaiok">Dùng hình này</button></div></div>' : '');
     function loiHtml() {
       const rules = loadRules();
       let h = '', k = 0;
@@ -120,7 +130,8 @@
         h += '<div class="bgloi"><b>Hình chưa vẽ đủ / có điểm đặt tạm</b> — mô tả lại <b>từng điểm</b> chưa xác định (bấm một gợi ý để điền), rồi bấm <b>Vẽ điểm … và ghi nhớ</b>. Vẽ được điểm đó thì các điểm dựng từ nó tự vẽ tiếp; lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
         sai.forEach((L) => {
           h += '<div class="bgloic">' + esc(L.cau || 'Hình') + ' <span>(hình ' + esc(L.loai) + ')</span></div>';
-          if (L.loiKB) { h += '<div class="bgthieu">Kịch bản hình do AI viết bị lỗi: ' + esc(L.loiKB) + ' — sửa dòng đó trong khối #FIG ở ô bên trái, hoặc nhờ AI viết lại kịch bản.</div>'; return; }
+          if (L.loiKB) { h += '<div class="bgthieu">Kịch bản hình do AI viết bị lỗi: ' + esc(L.loiKB) + ' — sửa dòng đó trong khối #FIG ở ô bên trái, hoặc nhờ AI viết lại kịch bản.</div>' + aiRow(L); return; }
+          h += aiRow(L);
           const th = L.thieu || [], ten = th.map((t) => t.ten).concat((L.tam || []).map((t) => t.ten));
           // điểm đề chưa cho đủ vị trí: ToanViet đã đặt tạm (vẽ tiếp được các điểm khác); mô tả lại nếu chưa đúng ý
           (L.tam || []).forEach((t) => { h += '<div class="bgcho">Điểm <b>' + esc(t.ten) + '</b> — đề chưa cho đủ vị trí, đã đặt tạm ' + esc(t.cach) + '. Chưa đúng ý thì mô tả lại:</div>' + diemRow(t.ten, t.cau || ''); });
@@ -140,11 +151,14 @@
         h += '</div>';
       }
       // hình đã vẽ nhưng có điểm sai vị trí: chọn điểm rồi mô tả lại
-      const co = loi.filter((L) => (L.diem || []).length);
+      // hình đã vẽ đủ mà chưa đúng ý: nhờ AI dựng lại cả hình
+      const co = loi.filter((L) => (L.diem || []).length || (L.du && L.key));
       if (co.length) {
-        h += '<details class="bgsua"><summary>Có điểm vẽ sai vị trí? Chọn điểm rồi mô tả lại</summary>';
+        h += '<details class="bgsua"><summary>Hình chưa đúng ý? Sửa từng điểm hoặc nhờ AI dựng hình</summary>';
         co.forEach((L) => {
-          h += (co.length > 1 ? '<div class="bgloic">' + esc(L.cau || 'Hình') + '</div>' : '') + '<div class="bgsdiem">Điểm: ' + L.diem.map((d) => '<button type="button" class="bgpick" data-ten="' + esc(d.ten) + '" data-cau="' + esc(d.cau) + '">' + esc(d.ten) + '</button>').join('') + '</div><div class="bgsrow"></div>';
+          h += (co.length > 1 ? '<div class="bgloic">' + esc(L.cau || 'Hình') + '</div>' : '') +
+            ((L.diem || []).length ? '<div class="bgsdiem">Điểm: ' + L.diem.map((d) => '<button type="button" class="bgpick" data-ten="' + esc(d.ten) + '" data-cau="' + esc(d.cau) + '">' + esc(d.ten) + '</button>').join('') + '</div><div class="bgsrow"></div>' : '') +
+            (L.du ? aiRow(L) : '');
         });
         h += '</details>';
       }
@@ -170,13 +184,7 @@
         '<span id="bgstat" class="bgstat"></span><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
       const src = $('#bgsrc'), view = $('#bgview');
       // chép lời nhắc vẽ hình (src/loi-nhac-ai.js) vào bộ nhớ tạm để dán cho ChatGPT, Gemini, Copilot…
-      $('#bgnhac').onclick = async () => {
-        const t = window.LoiNhacAI ? LoiNhacAI.text() : '';
-        if (!t) return;
-        try { await navigator.clipboard.writeText(t); }
-        catch (err) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-        msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài');
-      };
+      $('#bgnhac').onclick = () => { if (window.LoiNhacAI) chep(LoiNhacAI.text()).then(() => msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài')); };
       let tmr = 0;
       const refresh = () => {
         view.innerHTML = previewHtml(src.value);
@@ -191,6 +199,26 @@
       $('#bgloi').addEventListener('click', (e) => {
         const chip = e.target.closest('.bgchip'), ok = e.target.closest('.bglok'), del = e.target.closest('.bgdel');
         if (chip) { const i = $('#' + chip.dataset.for); i.value = chip.textContent; i.focus(); return; }
+        // nhờ AI dựng hình: chép lệnh; dán khối AI trả về → thay hình của câu đó bằng hình theo kịch bản
+        const aiCopy = e.target.closest('.bgaicopy'), aiOk = e.target.closest('.bgaiok');
+        if (aiCopy) { chep(LoiNhacAI.nhoDung(aiCopy.closest('.bgai').dataset.de)).then(() => msg('Đã chép lệnh nhờ AI dựng hình — dán (Ctrl+V) cho ChatGPT / Gemini, rồi chép khối hình AI trả về vào ô bên dưới')); return; }
+        if (aiOk) {
+          const box = aiOk.closest('.bgai'), key = box.dataset.key, sp = BaiGiai.docKhoi(box.querySelector('.bgaiin').value)[0];
+          if (!sp) { msg('Chưa thấy khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] — dán đúng phần AI trả về', true); return; }
+          const er = BaiGiai.loiKhoi(sp);
+          if (er.length) { msg('Kịch bản AI viết còn lỗi: ' + er[0] + ' — nhờ AI sửa lại dòng đó', true); return; }
+          const L0 = src.value.split('\n');
+          if (/^tv\d+$/.test(key)) { const i = L0.findIndex((l) => l.startsWith('#FIG ' + key + ' ')); if (i >= 0) L0[i] = '#FIG ' + key + ' ' + JSON.stringify(sp); }
+          else {
+            const i = L0.findIndex((l) => l.startsWith('[FIG ' + key + '|'));
+            if (i < 0) { msg('Không tìm thấy chỗ đặt hình của câu này — bấm Dựng lại hình rồi thử lại', true); return; }
+            const n = 1 + Math.max(0, ...L0.map((l) => { const m = /^#FIG tv(\d+) /.exec(l); return m ? +m[1] : 0; }));
+            L0.splice(i, 1, '#FIG tv' + n + ' ' + JSON.stringify(sp), '[FIG tv' + n + '|Hình]');
+          }
+          const f = rebuildFigures(L0.join('\n')); src.value = f.markup; refresh();
+          msg('Đã thay bằng hình AI dựng theo kịch bản');
+          return;
+        }
         // chọn điểm vẽ sai: hiện ô mô tả riêng cho điểm đó
         const pick = e.target.closest('.bgpick'), dok = e.target.closest('.bgdok');
         if (pick) {
@@ -305,6 +333,49 @@
       return r;
     }
 
-    return { openBaiGiai, makeBaiGiai: make };
+    // ---------- Chèn hình theo kịch bản (nút "Kịch bản" cạnh Hình phẳng / Hình không gian) ----------
+    // dán khối [HÌNH TOANVIET] / [HÌNH KHÔNG GIAN TOANVIET] AI trả về (hoặc các dòng kịch bản) → chèn đúng hình đó;
+    // chưa có kịch bản: nhập đề, chép lệnh nhờ AI dựng hình (không cần lời giải)
+    function openKichBan() {
+      const d = modal('kbdlg', 'Chèn hình theo kịch bản');
+      d.classList.add('kbdlg');
+      d.querySelector('.tvbody').innerHTML =
+        '<p class="bghint"><b>1.</b> Chưa có kịch bản: nhập (hoặc dán) đề bài, bấm <b>Chép lệnh nhờ AI dựng hình</b>, dán cho ChatGPT / Gemini / Copilot. AI chỉ trả về khối hình, không giải bài.</p>' +
+        '<textarea id="kbde" rows="3" spellcheck="false" placeholder="Đề bài (ví dụ: Cho hình chóp S.ABCD có đáy là hình vuông, SA ⊥ (ABCD)…)"></textarea>' +
+        '<div class="kbbar"><button type="button" id="kbchep">🤖 Chép lệnh nhờ AI dựng hình</button></div>' +
+        '<p class="bghint"><b>2.</b> Dán khối <b>[HÌNH TOANVIET]</b> … (hoặc <b>[HÌNH KHÔNG GIAN TOANVIET]</b> …) AI trả về — hoặc tự viết các dòng kịch bản:</p>' +
+        '<textarea id="kbsrc" rows="10" spellcheck="false" placeholder="[HÌNH TOANVIET]\nB = (0, 0)\nC = (6, 0)\nA = (2.3, 3.8)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n[/HÌNH TOANVIET]"></textarea>' +
+        '<div class="kbbar"><span id="kbstat" class="bgstat"></span><button type="button" id="kbok" class="primary">Chèn hình</button></div>';
+      const src = $('#kbsrc'), stat = $('#kbstat');
+      const doc = () => BaiGiai.docKhoi(src.value)[0]; // phẳng / không gian: theo thẻ hoặc toạ độ ba số
+      const show = () => {
+        const sp = doc();
+        if (!src.value.trim()) { stat.textContent = ''; return; }
+        if (!sp) { stat.innerHTML = '<span class="bgerr">Chưa thấy kịch bản hình</span>'; return; }
+        const er = BaiGiai.loiKhoi(sp);
+        stat.innerHTML = (sp.type === 'space' ? 'Hình không gian' : 'Hình phẳng') + ', ' + sp.script.split('\n').length + ' dòng' + (er.length ? ' — <span class="bgerr">lỗi: ' + esc(er[0]) + '</span>' : ' — không có lỗi');
+      };
+      src.addEventListener('input', show);
+      $('#kbchep').onclick = () => {
+        const de = $('#kbde').value.trim();
+        if (!de) { msg('Nhập đề bài trước khi chép lệnh', true); $('#kbde').focus(); return; }
+        window.TVSChep(LoiNhacAI.nhoDung(de)).then(() => msg('Đã chép lệnh — dán (Ctrl+V) cho ChatGPT / Gemini, rồi dán khối hình AI trả về vào ô thứ hai'));
+      };
+      $('#kbok').onclick = () => {
+        const sp = doc();
+        if (!sp) { msg('Chưa thấy kịch bản hình — dán khối [HÌNH TOANVIET] … AI trả về', true); return; }
+        const er = BaiGiai.loiKhoi(sp);
+        if (er.length) { msg('Kịch bản còn lỗi: ' + er[0], true); return; }
+        C.insert(sp.type, sp.kind, { script: sp.script, w: sp.w, h: sp.h });
+        C.commit();
+        d.close();
+        msg('Đã chèn ' + (sp.type === 'space' ? 'hình không gian' : 'hình phẳng') + ' theo kịch bản — sửa tiếp kịch bản ở khung Thuộc tính');
+      };
+      d.showModal();
+      $('#kbde').focus();
+    }
+    window.__kichban = { open: openKichBan }; // kiểm thử
+
+    return { openBaiGiai, makeBaiGiai: make, openKichBan };
   };
 })(window);

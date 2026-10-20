@@ -389,8 +389,38 @@
     localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     await paste('Câu 4. Cho tam giác ABC có M là trung điểm của BC.\n[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\nbang BM MC\n```\n[/HÌNH TOANVIET]\nLời giải\nTa có $BM = MC$.');
     ok('dán câu trả lời có khối [HÌNH TOANVIET]: hình đúng kịch bản, có trong phần xem trước', /#FIG tv1 .*M = trungdiem\(B, C\)/.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value) && !!document.querySelector('#bgview svg, #bgview img'), src.value.slice(0, 300));
+    // nhờ AI dựng lại hình một câu: chép lệnh (không cần lời giải), dán khối AI trả về → thay hình của câu
+    await paste('Câu 5. Cho tam giác ABC có M là trung điểm của BC.\nLời giải\nTa có $BM = MC$.');
+    const ai = box.querySelector('.bgai');
+    ok('câu đã vẽ: có mục nhờ AI dựng hình (lệnh có đề, yêu cầu không giải)', !!ai && /Cho tam giác ABC có M là trung điểm của BC/.test(LoiNhacAI.nhoDung(ai.dataset.de)) && /KHÔNG giải bài/.test(LoiNhacAI.nhoDung(ai.dataset.de)));
+    if (ai) { ai.querySelector('.bgaiin').value = '[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (7, 0)\nA = (1, 5)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\n```\n[/HÌNH TOANVIET]'; ai.querySelector('.bgaiok').click(); await w(400); }
+    ok('"Dùng hình này": hình của câu thay bằng kịch bản AI, không còn hình tự đọc đề', /#FIG tv1 .*C = \(7, 0\)/.test(src.value) && !/^#FIG h\d/m.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value), src.value.slice(0, 300));
     localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
+  });
+
+  await step('Chèn hình theo kịch bản (nút Kịch bản): hình không gian, hình phẳng; kịch bản lỗi không chèn', async () => {
+    __clear(); await w(50);
+    const S_count = () => document.querySelectorAll('#page .obj').length;
+    const S_last = () => { const els = document.querySelectorAll('#page .obj'); return els.length ? __get(els[els.length - 1].dataset.id) : {}; };
+    const n0 = S_count();
+    document.querySelector('[data-cmd="ins-kichban"]').click(); await w(200);
+    const dlgK = document.getElementById('kbdlg'), kb = document.getElementById('kbsrc');
+    ok('mở hộp Chèn hình theo kịch bản, có ô đề và nút chép lệnh nhờ AI', !!dlgK && dlgK.open && !!document.getElementById('kbde') && !!document.getElementById('kbchep'));
+    kb.value = '[HÌNH KHÔNG GIAN TOANVIET]\n```\nA = (0, 0, 0)\nB = (4, 0, 0)\nC = (4, 3, 0)\nD = (0, 3, 0)\nS = (0, 0, 4)\nchop S ABCD\n```\n[/HÌNH KHÔNG GIAN TOANVIET]';
+    kb.dispatchEvent(new Event('input')); await w(50);
+    ok('nhận ra hình không gian, không lỗi', /Hình không gian, 6 dòng — không có lỗi/.test(document.getElementById('kbstat').textContent), document.getElementById('kbstat').textContent);
+    document.getElementById('kbok').click(); await w(300);
+    const o = document.querySelector('.obj.sel') ; const objs = window.__objs ? window.__objs() : null;
+    ok('chèn được hình không gian đúng kịch bản', !dlgK.open && S_count() === n0 + 1 && /chop S ABCD/.test(S_last().script || '') && S_last().type === 'space', JSON.stringify(S_last()).slice(0, 200));
+    document.querySelector('[data-cmd="ins-kichban"]').click(); await w(200);
+    const kb2 = document.getElementById('kbsrc');
+    kb2.value = 'B = (0, 0)\nC = (6, 0)\nN = trungdiem(B, Q)'; kb2.dispatchEvent(new Event('input'));
+    document.getElementById('kbok').click(); await w(200);
+    ok('kịch bản lỗi (điểm Q chưa có): báo lỗi, không chèn', document.getElementById('kbdlg').open && S_count() === n0 + 1 && /chưa có điểm Q/.test(document.getElementById('kbstat').textContent));
+    kb2.value = 'B = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC'; document.getElementById('kbok').click(); await w(300);
+    ok('chèn hình phẳng theo kịch bản', S_count() === n0 + 2 && S_last().type === 'plane' && /dagiac ABC/.test(S_last().script));
+    __clear();
   });
 
   console.log('UI-DONE ' + pass + ' ' + fail);

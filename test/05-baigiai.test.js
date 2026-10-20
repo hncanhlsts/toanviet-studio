@@ -9,9 +9,12 @@ thu('bỏ câu chào của AI, dựng nhãn Câu, Lời giải', () => {
   bang(t, '#C Câu 1.\nTính $x$.\n#G\nTa có $x=2$.');
 });
 
-thu('câu nhỏ a), b), c) không có gạch đầu dòng (cả văn bản lẫn HTML từ trang AI); ý thường giữ gạch đầu dòng', () => {
-  const t = BaiGiai.fromText('Cho tam giác $ABC$.\n- a) Chứng minh.\n- **b)** Tính.\n- Một ý thường').markup;
-  dung(/^a\) Chứng minh\.$/m.test(t) && /^\*\*b\)\*\* Tính\.$/m.test(t) && /^- Một ý thường$/m.test(t), t);
+thu('câu nhỏ a), b), c) và ý liệt kê của AI không có dấu đầu dòng (cả văn bản lẫn HTML từ trang AI)', () => {
+  const t = BaiGiai.fromText('Cho tam giác $ABC$.\n- a) Chứng minh.\n- **b)** Tính.\n- Một ý thường\n• Ý có chấm tròn\n    * Ý con').markup;
+  dung(/^a\) Chứng minh\.$/m.test(t) && /^\*\*b\)\*\* Tính\.$/m.test(t) && /^Một ý thường$/m.test(t) && /^Ý có chấm tròn$/m.test(t) && /^Ý con$/m.test(t) && !/^- /m.test(t), t);
+  // danh sách lồng nhau như Gemini: "Xét … có:" rồi các ý con — mỗi ý một dòng, không dồn thành "có: - … - …"
+  const g = BaiGiai.fromText(BaiGiai.fromHtml('<ul><li><p>Vì $AH \\perp BE$ nên $AM \\parallel IN$.</p></li><li><p>Xét $\\Delta ABE$ và $\\Delta AID$ có:</p><ul><li><p>$\\widehat{BAE} = \\widehat{IAD} = 90^\\circ$ (hai góc đối đỉnh)</p></li><li><p>$AB = AC$</p></li></ul></li></ul>')).markup;
+  dung(/^Vì \$AH/m.test(g) && /^Xét \$\\Delta ABE\$ và \$\\Delta AID\$ có:$/m.test(g) && /^\$\\widehat\{BAE\}/m.test(g) && /^\$AB = AC\$$/m.test(g) && !/ - /.test(g) && !/^- /m.test(g), g);
   const h = BaiGiai.fromText(BaiGiai.fromHtml('<p>Cho tam giác ABC.</p><ul><li><strong>a)</strong> Chứng minh.</li><li><strong>c)</strong> Trên đoạn thẳng AB lấy điểm E.</li></ul>')).markup;
   dung(!/^- /m.test(h) && /^\*\*c\)\*\* Trên đoạn thẳng AB/m.test(h), h);
 });

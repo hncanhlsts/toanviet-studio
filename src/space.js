@@ -984,5 +984,7 @@ vitri O trentrai`],
   const VIEW = { k_tru: { proj: 'xoay', yaw: 0, pitch: 16 }, k_non: { proj: 'xoay', yaw: 0, pitch: 16 }, k_noncut: { proj: 'xoay', yaw: 0, pitch: 16 }, k_cau: { proj: 'xoay', yaw: 0, pitch: 16 } };
   const viewOf = (kind) => Object.assign({ proj: 'xien', ob: 45, ok: 0.5 }, VIEW[kind] || {});
   const points = (script) => build(script).P; // toạ độ trong (x phải, y sau, z lên)
-  root.Space = { render, KINDS, scriptOf, params, setParam, viewOf, points };
+  // các dòng kịch bản lỗi (kiểm tra kịch bản hình do AI viết)
+  const loi = (script) => build(script).errors;
+  root.Space = { render, KINDS, scriptOf, params, setParam, viewOf, points, loi };
 })(typeof window !== 'undefined' ? window : globalThis);

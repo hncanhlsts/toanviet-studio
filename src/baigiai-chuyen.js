@@ -46,6 +46,32 @@
     return t.trim();
   }
 
+  // ---------- Khối kịch bản hình do AI viết: [HÌNH TOANVIET] / [HÌNH KHÔNG GIAN TOANVIET] … [/…] ----------
+  const KHOI_RE = () => /\[\s*H[ÌI]NH\s+(KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
+  // nội dung khối → đối tượng hình ToanViet (phẳng / không gian: theo thẻ, hoặc toạ độ có ba số)
+  function khoiSpec(kg, body) {
+    const script = String(body || '').replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean).join('\n');
+    if (!script || !/=/.test(script)) return null; // khối trống / chỉ có "…" (lời nhắc mẫu)
+    const kgian = !!kg || /^[A-Z][^=\n]*=\s*\(\s*[^,()]+,[^,()]+,[^,()]+\)\s*(?:#.*)?$/m.test(script);
+    return kgian ? { type: 'space', kind: 'k_tudien', script, w: 360, h: 320, scale: 0.75 } : { type: 'plane', kind: 'tamgiac', script, w: 340, h: 300, scale: 0.75 };
+  }
+  // các khối trong một đoạn chữ (câu trả lời AI dán vào); không có thẻ mà cả đoạn là kịch bản thì coi là một khối
+  function docKhoi(text) {
+    const t = String(text || '').replace(/\r\n?/g, '\n'), out = [];
+    let m; const rx = KHOI_RE();
+    while ((m = rx.exec(t))) { const sp = khoiSpec(m[1], m[2]); if (sp) out.push(sp); }
+    if (!out.length) {
+      const lines = t.replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.trim()).filter(Boolean);
+      if (lines.length && lines.every((l) => /^#|^[A-Za-z][A-Za-z0-9_']*\s*=|^[a-z]+(?:\s|$)/.test(l))) { const sp = khoiSpec('', lines.join('\n')); if (sp) out.push(sp); }
+    }
+    return out;
+  }
+  // dòng kịch bản lỗi của một hình (dùng bộ dựng hình của phần mềm)
+  function loiKhoi(sp) {
+    const M = sp.type === 'space' ? (root.Space || (typeof globalThis !== 'undefined' && globalThis.Space)) : (root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane));
+    try { return M && M.loi ? M.loi(sp.script) : []; } catch (e) { return [e && e.message ? e.message : String(e)]; }
+  }
+
   // ---------- Văn bản (Markdown + LaTeX) → nội dung chuẩn ----------
   function fromText(input) {
     const notes = {};
@@ -59,12 +85,13 @@
     const s1 = s; s = s.replace(/\p{Extended_Pictographic}\ufe0f?/gu, ''); if (s !== s1) note('bỏ biểu tượng cảm xúc');
     // hình AI viết sẵn bằng kịch bản ToanViet (theo skill / lời nhắc "toanviet-ve-hinh"):
     //   [HÌNH TOANVIET] … các dòng kịch bản hình phẳng … [/HÌNH TOANVIET]  → vẽ đúng kịch bản, không đọc đề đoán hình
+    //   [HÌNH KHÔNG GIAN TOANVIET] … [/HÌNH KHÔNG GIAN TOANVIET]  → hình không gian
     let ktv = 0;
-    s = s.replace(/\[\s*H[ÌI]NH\s+TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+TOANVIET)?\s*\]/giu, (m0, body) => {
-      const script = body.replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean).join('\n');
-      if (!script) return '\n';
+    s = s.replace(KHOI_RE(), (m0, kg, body) => {
+      const sp = khoiSpec(kg, body);
+      if (!sp) return '\n';
       ktv++; note('hình theo kịch bản ToanViet do AI viết');
-      return '\n#FIG tv' + ktv + ' ' + JSON.stringify({ type: 'plane', kind: 'tamgiac', script, w: 340, h: 300, scale: 0.75 }) + '\n[FIG tv' + ktv + '|Hình]\n';
+      return '\n#FIG tv' + ktv + ' ' + JSON.stringify(sp) + '\n[FIG tv' + ktv + '|Hình]\n';
     });
     // khối mã ```…```: bỏ dấu rào, giữ nội dung
     s = s.replace(/^```[a-z]*\s*$/gim, '');
@@ -122,7 +149,8 @@
       const b = /^[-*•+○◦▪▫]\s+(.*)$/.exec(ln);
       // mục là câu nhỏ "a) …", "**b)** …", "c. …": SGK không đặt gạch đầu dòng trước câu nhỏ
       if (b && /^(\*\*)?\s*[a-zđ]\s*[).](\*\*)?\s/i.test(b[1] + ' ')) { out.push(b[1]); continue; }
-      if (b) { out.push('- ' + b[1]); continue; }
+      // ý liệt kê của AI (•, -, *): lời giải SGK viết thành từng đoạn, không có dấu đầu dòng
+      if (b) { out.push(b[1]); note('bỏ dấu đầu dòng (•) của AI'); continue; }
       // công thức riêng dòng lẫn trong đoạn: tách ra
       if (/\$\$/.test(ln) && !/^\$\$[^$]+\$\$$/.test(ln)) {
         ln.split(/(\$\$[^$]+\$\$)/).map((x) => x.trim()).filter(Boolean).forEach((x) => out.push(x));
@@ -190,7 +218,10 @@
       if (tag === 'LI') {
         const ol = n.parentElement && n.parentElement.tagName === 'OL';
         const idx = ol ? [...n.parentElement.children].indexOf(n) + (+n.parentElement.getAttribute('start') || 1) : 0;
-        return '\n' + (ol ? idx + '. ' : '- ') + kids().replace(/\n+/g, ' ').trim() + '\n';
+        // danh sách con ("Xét ΔABE và ΔAID có:" + các ý): mỗi ý một dòng riêng, không dồn thành "có: - … - …"
+        const own = [...n.childNodes].filter((c) => !(c.nodeType === 1 && /^(UL|OL)$/.test(c.tagName))).map(walk).join('').replace(/\n+/g, ' ').trim();
+        const sub = [...n.childNodes].filter((c) => c.nodeType === 1 && /^(UL|OL)$/.test(c.tagName)).map(walk).join('');
+        return '\n' + (ol ? idx + '. ' : '- ') + own + '\n' + sub;
       }
       if (tag === 'TABLE') {
         return '\n' + [...n.querySelectorAll('tr')].map((tr) => '|' + [...tr.children].map((td) => walk(td).replace(/[\n|]+/g, ' ').trim()).join('|') + '|').join('\n') + '\n';
@@ -273,17 +304,20 @@
       // (đề đã ghi sẵn "(Hình 1)" thì không thêm lần nữa)
       if (at >= 0 && !/\[FIG|^#|^\$\$/.test(blk[at]) && !/\(\s*Hình\s+\d+\s*\)/i.test(blk[at])) blk[at] = blk[at].replace(/([.:;]?)\s*$/, (m, p) => ' (' + cap + ')' + (p || '.'));
       blk.splice(at + 1, 0, '[FIG ' + key + '|' + (caption || cap) + ']');
+      return key;
     };
+    // đề của một câu (phần trước Lời giải, bỏ nhãn và dòng hình): để nhờ AI dựng hình khi ToanViet chưa đọc được
+    const deOf = (blk) => { const gi = blk.findIndex((l) => /^#G/.test(l)); return blk.slice(0, gi < 0 ? blk.length : gi).filter((l) => !/^#|^\[FIG /.test(l)).join('\n').trim(); };
     for (const blk of blocks) {
       const f0 = fig;
       // hình kịch bản ToanViet do AI viết: đánh số theo thứ tự hình, kiểm tra kịch bản dựng được; câu này không đọc đề vẽ thêm
       blk.forEach((l, i) => {
         let m;
         if ((m = /^\[FIG (tv\d+)\|/.exec(l))) { fig++; blk[i] = '[FIG ' + m[1] + '|Hình ' + fig + ']'; return; }
-        if ((m = /^#FIG tv\d+ (\{.*\})\s*$/.exec(l))) {
+        if ((m = /^#FIG (tv\d+) (\{.*\})\s*$/.exec(l))) {
           let err = '';
-          try { const sp = JSON.parse(m[1]), PL = root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane); if (PL && PL.loi) { const er = PL.loi(sp.script); if (er.length) err = er.slice(0, 2).join('; '); } } catch (e) { err = e && e.message ? e.message : String(e); }
-          if (err) loi.push({ cau: nhan(blk), loai: 'kịch bản AI', chuaHieu: [], thieu: [], diem: [], loiKB: err });
+          try { const er = loiKhoi(JSON.parse(m[2])); if (er.length) err = er.slice(0, 2).join('; '); } catch (e) { err = e && e.message ? e.message : String(e); }
+          if (err) loi.push({ cau: nhan(blk), loai: 'kịch bản AI', chuaHieu: [], thieu: [], diem: [], loiKB: err, key: m[1], de: deOf(blk) });
         }
       });
       const text = blk.join('\n');
@@ -404,9 +438,9 @@
           const gi = blk.findIndex((l) => /^#G/.test(l));
           const at = gi >= 0 ? gi : blk.length - 1;
           // khối tròn xoay: không kèm kịch bản → dùng hình mẫu (kind) của phần mềm
-          addFig(blk, at, 'space', sp.script ? { kind: sp.kind, script: sp.script, w: 360, h: 320 } : { kind: sp.kind, w: 360, h: 320 }, '', 0.75);
+          const key = addFig(blk, at, 'space', sp.script ? { kind: sp.kind, script: sp.script, w: 360, h: 320 } : { kind: sp.kind, w: 360, h: 320 }, '', 0.75);
           notes['thêm hình không gian (đọc từ đề)'] = (notes['thêm hình không gian (đọc từ đề)'] || 0) + 1;
-          if (sp.unknown.length) loi.push({ cau: nhan(blk), loai: 'không gian', chuaHieu: sp.unknown.slice(), thieu: [] });
+          loi.push({ cau: nhan(blk), loai: 'không gian', chuaHieu: sp.unknown.slice(), thieu: [], diem: [], du: !sp.unknown.length, key, de: deOf(blk) });
           sp.unknown.forEach((u) => { notes['hình không gian — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }
@@ -539,11 +573,11 @@
         try { pl = DH.plane(blk.filter((l) => !/^#(TAB|ENDTAB|FIG)/.test(l)).join('\n')); } catch (err) { pl = null; }
         if (pl && pl.script) {
           const gi = blk.findIndex((l) => /^#G/.test(l));
-          addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
+          const key = addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
           notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
           // mọi hình phẳng: kèm danh sách điểm đã dựng (giáo viên mô tả lại được điểm vẽ sai); du = vẽ đủ
           const du = !(pl.chuaHieu || []).length && !(pl.thieu || []).length && !(pl.tam || []).length;
-          loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [], diem: pl.diem || [], tam: pl.tam || [], du });
+          loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [], diem: pl.diem || [], tam: pl.tam || [], du, key, de: deOf(blk) });
           pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }
@@ -552,7 +586,7 @@
     return { markup: (specs.length ? specs.join('\n') + '\n' : '') + out.join('\n'), notes, count: fig, loi };
   }
 
-  const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES };
+  const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES, docKhoi, loiKhoi };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BaiGiai = api;
 })(this);

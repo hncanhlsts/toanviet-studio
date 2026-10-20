@@ -1,10 +1,20 @@
 // Lời nhắc vẽ hình cho AI (src/loi-nhac-ai.js) và khối [HÌNH TOANVIET] trong Bài giải AI (src/baigiai-chuyen.js)
 nhom('Lời nhắc vẽ hình cho AI, khối [HÌNH TOANVIET]');
 const khoiTV = (s) => [...s.matchAll(/\[HÌNH TOANVIET\]([\s\S]*?)\[\/HÌNH TOANVIET\]/g)].map((m) => m[1].replace(/^\s*```.*$/gm, '').trim());
-thu('mọi kịch bản ví dụ trong lời nhắc dựng không lỗi', () => {
-  const ks = khoiTV(LoiNhacAI.text()).filter((k) => !/^\.\.\./.test(k));
-  dung(ks.length >= 4, 'số ví dụ: ' + ks.length);
-  ks.forEach((k) => { const e = Plane.loi(k); dung(!e.length, e.join('; ')); });
+thu('mọi kịch bản ví dụ trong lời nhắc (phẳng và không gian) dựng không lỗi', () => {
+  const ks = BaiGiai.docKhoi(LoiNhacAI.text());
+  dung(ks.filter((k) => k.type === 'plane').length >= 4 && ks.filter((k) => k.type === 'space').length >= 1, 'số ví dụ: ' + ks.map((k) => k.type).join());
+  ks.forEach((k) => { const e = BaiGiai.loiKhoi(k); dung(!e.length, e.join('; ')); });
+});
+thu('lệnh nhờ AI chỉ dựng hình: có lời nhắc, đề bài, yêu cầu không giải', () => {
+  const t = LoiNhacAI.nhoDung('Cho tam giác ABC có M là trung điểm BC.');
+  dung(/\[HÌNH TOANVIET\]/.test(t) && /KHÔNG giải bài/.test(t) && /Cho tam giác ABC có M là trung điểm BC\.\s*$/.test(t), t.slice(-300));
+});
+thu('đọc khối từ câu trả lời AI: thẻ không gian, kịch bản không có thẻ (toạ độ ba số → không gian), chữ thường không phải kịch bản', () => {
+  bang(BaiGiai.docKhoi('[HÌNH KHÔNG GIAN TOANVIET]\nA = (0, 0, 0)\nB = (4, 0, 0)\nC = (0, 3, 0)\nS = (0, 0, 4)\nchop S ABC\n[/HÌNH KHÔNG GIAN TOANVIET]')[0].type, 'space');
+  bang(BaiGiai.docKhoi('A = (0, 0, 0)\nB = (4, 0, 0)\nC = (0, 3, 0)\nS = (0, 0, 4)\nchop S ABC')[0].type, 'space');
+  bang(BaiGiai.docKhoi('B = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC')[0].type, 'plane');
+  bang(BaiGiai.docKhoi('xin chào thầy').length, 0);
 });
 thu('ví dụ tia Bx // AC: đúng quan hệ của đề (song song, D nằm giữa A và E, AF = AC, I trên AB và EF)', () => {
   const P = Plane.points(khoiTV(LoiNhacAI.text())[1]);

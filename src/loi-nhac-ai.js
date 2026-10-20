@@ -172,14 +172,50 @@ diem O A B
 '''
 [/HÌNH TOANVIET]
 
-## 6. Trước khi gửi, tự kiểm tra
+## 6. Hình không gian
+
+Dùng khối [HÌNH KHÔNG GIAN TOANVIET] … [/HÌNH KHÔNG GIAN TOANVIET]. Cách viết giống hình phẳng nhưng toạ độ có ba số (x, y, z): x sang phải, y ra phía sau (vào trong trang), z lên trên. Nét khuất ToanViet tự vẽ đứt.
+
+- Đặt đáy nằm ngang (z = 0), đỉnh / mặt trên có z > 0. Thông số đặt tên chữ thường: a = 4, h = 4.5.
+- Phép dựng điểm: trungdiem, chia, tinhtien, hbh, doixung, trongtam, giao(A, B, C, D) (hai đường thẳng cắt nhau), chan(M, A, B) (chân vuông góc xuống đường AB), tron(O, r, góc) (đường tròn nằm ngang), và các phép dựng với mặt phẳng ở dưới.
+- Mặt phẳng: mp P: A B C (vẽ mặt phẳng qua các điểm), thêm an ở cuối để chỉ dùng dựng, không vẽ: mp Q: S B C an.
+  giao(A, B, P): giao của đường thẳng AB với mặt phẳng P; H = chan(S, P) hoặc chanmp(S, P): hình chiếu của S lên mặt phẳng P; doixungmp(M, P).
+- Khối: chop S ABCD (hình chóp), langtru ABC A1B1C1 (lăng trụ; đỉnh trên đặt tên A1… rồi nhan A1 = A'), tudien ABCD, khoi ABC, ABD… (đa diện theo các mặt), tru O O1 r, non O S r, noncut O O1 r1 r2, cau O r.
+- Lệnh vẽ thêm: doan, netdut, duongthang, tia, vecto, vuong SAB (góc vuông, đỉnh ở giữa), goc, bang, ghi, diem, an, nhan, to (tô mặt) — như hình phẳng.
+
+Ví dụ: Cho hình chóp S.ABCD có đáy ABCD là hình chữ nhật, SA ⊥ (ABCD). Gọi M là trung điểm của SC, O là giao điểm của AC và BD.
+
+[HÌNH KHÔNG GIAN TOANVIET]
+'''
+a = 4.4
+b = 3.6
+h = 4
+A = (0, 0, 0)
+B = (a, 0, 0)
+C = (a, b, 0)
+D = (0, b, 0)
+S = (0, 0, h)
+chop S ABCD
+O = giao(A, C, B, D)
+M = trungdiem(S, C)
+doan AC BD OM
+vuong SAB SAD
+diem O M
+'''
+[/HÌNH KHÔNG GIAN TOANVIET]
+
+## 7. Trước khi gửi, tự kiểm tra
 
 - Mọi điểm dùng trong một dòng đã được dựng ở dòng trước. Tên phép dựng, tên lệnh viết đúng như bảng (không dấu, chữ thường).
 - Mọi quan hệ của đề đều có trong kịch bản (song song bằng tinhtien, vuông góc bằng chan / quay 90, giao bằng giao…).
 - Hướng đúng: tia đối, nửa mặt phẳng, điểm nằm giữa. Hình không quá dẹt, các điểm không trùng nhau.
 - Mỗi điểm trong đề đều có trên hình, đúng tên như đề.
 `;
-  const api = { text: () => TEXT.replace(/'''/g, '```') };
+  const text = () => TEXT.replace(/'''/g, '\u0060\u0060\u0060');
+  // lệnh nhờ AI CHỈ dựng hình cho một đề (khi ToanViet chưa đọc được đề): lời nhắc + đề, không cần lời giải
+  const nhoDung = (de) => text() + '\n---\n\n# NHIỆM VỤ\n\nChỉ viết khối [HÌNH TOANVIET] (hình phẳng) hoặc [HÌNH KHÔNG GIAN TOANVIET] (hình không gian) cho đề dưới đây, đúng theo hướng dẫn trên. ' +
+    'KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài khối hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
+  const api = { text, nhoDung };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LoiNhacAI = api;
 })(this);

@@ -14,7 +14,7 @@ delete env.TVS_SHOT_PAGE;
 // thư mục dùng chung giả, có sẵn một "bộ cài" bản 99.0.0 (tệp giả) để thử phát hiện bản mới
 fs.mkdirSync(path.join(tmp, 'to')); fs.writeFileSync(path.join(tmp, 'to', 'ToanVietStudio-Setup-99.0.0.exe'), 'gia');
 const electron = require('electron'); // đường dẫn tới electron.exe
-const r = spawnSync(electron, ['.', '--shot=' + path.join(tmp, 'ui.png'), '--evalfile=' + path.join(__dirname, 'ui-kichban.js')], { cwd: root, env, encoding: 'utf8', timeout: 180000 });
+const r = spawnSync(electron, ['.', '--shot=' + path.join(tmp, 'ui.png'), '--evalfile=' + path.join(__dirname, 'ui-kichban.js')], { cwd: root, env, encoding: 'utf8', timeout: 300000 }); // kịch bản dài (~2,5 phút)
 const out = (r.stdout || '') + (r.stderr || '');
 let pass = 0, fail = 0;
 out.split(/\r?\n/).forEach((l) => {

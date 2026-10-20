@@ -1,9 +1,9 @@
 ---
 name: toanviet-ve-hinh
-description: Chuyển đề hình học phẳng (lớp 6–12) do giáo viên viết thành kịch bản hình ToanViet Studio trong khối [HÌNH TOANVIET] … [/HÌNH TOANVIET], để ToanViet vẽ đúng hình khi dán bài vào Bài giải AI. Dùng skill này bất cứ khi nào người dùng đưa đề / bài giải có hình học phẳng (tam giác, tứ giác, đường tròn, tia, góc, đường thẳng song song, vuông góc…) và muốn vẽ hình, soạn bài giải để dán vào ToanViet, hoặc nhắc tới ToanViet, "vẽ hình cho đề", "kịch bản hình" — kể cả khi không nói rõ chữ "skill".
+description: Chuyển đề hình học (phẳng lớp 6–12 và không gian lớp 8–12) do giáo viên viết thành kịch bản hình ToanViet Studio trong khối [HÌNH TOANVIET] … [/HÌNH TOANVIET] (hình không gian: [HÌNH KHÔNG GIAN TOANVIET]), để ToanViet vẽ đúng hình khi dán bài vào Bài giải AI. Dùng skill này bất cứ khi nào người dùng đưa đề / bài giải có hình học phẳng (tam giác, tứ giác, đường tròn, tia, góc, song song, vuông góc, hình chóp, lăng trụ…) và muốn vẽ hình, soạn bài giải để dán vào ToanViet, hoặc nhắc tới ToanViet, "vẽ hình cho đề", "kịch bản hình" — kể cả khi không nói rõ chữ "skill".
 ---
 
-# Vẽ hình học phẳng cho ToanViet Studio
+# Vẽ hình học phẳng và không gian cho ToanViet Studio
 
 ToanViet Studio (phần mềm soạn công thức, hình vẽ Toán cho Word) có hộp **Bài giải AI**: giáo viên dán câu trả lời của
 trợ lí AI vào, phần mềm trình bày lại theo SGK và đặt hình vào tài liệu Word. Đọc lời văn để đoán hình dễ sai
@@ -17,6 +17,8 @@ trợ lí AI vào, phần mềm trình bày lại theo SGK và đặt hình vào
 2. Viết kịch bản theo **`references/kich-ban-hinh.md`** — đọc toàn bộ tệp này trước khi viết lần đầu: bảng phép dựng,
    lệnh vẽ, quy ước SGK (đoạn / đường thẳng / tia ở lớp 6–7, tên tia viết thường, nét đứt, kí hiệu bằng nhau, góc vuông)
    và các ví dụ mẫu.
+   Hình không gian: mục 6 của tệp đó (toạ độ ba số, mp, chop, langtru…), khối [HÌNH KHÔNG GIAN TOANVIET].
+   Giáo viên chỉ nhờ dựng hình (không cần giải): chỉ trả về khối hình.
 3. Nếu chạy được Node.js, kiểm tra kịch bản bằng đúng bộ dựng hình của ToanViet:
    ```
    node scripts/kiem-tra.js hinh.txt

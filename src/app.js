@@ -1178,7 +1178,7 @@
   // ---------- Thư viện của tôi, báo lỗi / góp ý: src/mod/thuvien.js ----------
   let modal, libThumb, openLib, openReport;
   // ---------- Soạn đề kiểm tra theo cấu trúc 2025, xuất sang Word: src/mod/soande.js ----------
-  let openExam, openBaiGiai, makeBaiGiai;
+  let openExam, openBaiGiai, makeBaiGiai, openKichBan;
   // ---------- Trình chiếu tương tác, mẫu theo bài sách Kết nối tri thức: src/mod/trinhchieu.js ----------
   let startPresent, stopPresent, openMau, isPresenting;
   function setFormulaFont(times) {
@@ -1225,6 +1225,8 @@
     'ins-region': () => { insert('region'); commit(); },
     'ins-solid': () => { const v = $('#solidKind').value; if (v.startsWith('sp:')) insert('space', v.slice(3)); else insert('solid', v); commit(); },
     'ins-plane': () => { insert('plane', $('#planeKind').value); commit(); },
+    // chèn hình theo kịch bản (khối [HÌNH TOANVIET] AI trả về) — hình phẳng hoặc không gian
+    'ins-kichban': () => openKichBan(),
     'ins-sym': () => { insert('sym', $('#symKind').value); commit(); },
     'ins-numline': () => { insert('numline', document.body.classList.contains('tieuhoc') ? 'tiaso' : 'bpt'); commit(); },
     'ins-venn': () => { insert('venn', 'phantu'); commit(); },
@@ -1506,7 +1508,7 @@
   sodo = TVM.sodo({ S, get, renderObj, commit, select, setSel, buildProps, msg, insert, elOf });
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
-  ({ openBaiGiai, makeBaiGiai } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults }));
+  ({ openBaiGiai, makeBaiGiai, openKichBan } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults, insert, commit }));
   window.__baigiai = { open: () => openBaiGiai(), make: (t) => makeBaiGiai(t) }; // kiểm thử
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));
 
