@@ -98,27 +98,53 @@
       loi = f.loi || [];
       return f;
     }
-    // khung "Hình chưa vẽ đủ": từng câu chưa hiểu / điểm chưa dựng được, gợi ý cách viết, ô viết lại, Vẽ lại và ghi nhớ
+    // khung "Hình chưa vẽ đủ": sửa theo TỪNG ĐIỂM — điểm chưa dựng được (hoặc vẽ sai) có ô mô tả riêng ("E là: giao điểm của Bx và AD");
+    // vẽ được điểm đó thì các điểm dựng từ nó (I là giao của AB và EF) tự vẽ tiếp; cách mô tả được ghi nhớ cho câu đề cùng dạng
+    let kid = 0;
+    const diemRow = (ten, cau) => {
+      const id = 'bgd' + (kid++), gy = (window.DeHinh && DeHinh.goiYDiem) ? DeHinh.goiYDiem(ten, cau) : [];
+      return '<div class="bgdrow" data-ten="' + esc(ten) + '" data-cau="' + esc(cau) + '">' +
+        (cau ? '<div class="bglgoc">Đề: ' + esc(cau) + '</div>' : '') +
+        (gy.length ? '<div class="bglgy">Gợi ý: ' + gy.map((g) => '<button type="button" class="bgchip" data-for="' + id + '">' + esc(g) + '</button>').join('') + '</div>' : '') +
+        '<div class="bglin"><label for="' + id + '"><b>' + esc(ten) + '</b> là:</label><input id="' + id + '" placeholder="mô tả điểm ' + esc(ten) + ', ví dụ: ' + esc(gy[0] || 'giao điểm của AB và CD') + '" spellcheck="false">' +
+        '<button type="button" class="primary bgdok" data-for="' + id + '">Vẽ điểm ' + esc(ten) + ' và ghi nhớ</button></div></div>';
+    };
+    const nhacTen = (c, n) => new RegExp('(?<![A-Za-z])' + n + "(?![a-z'])").test(c);
     function loiHtml() {
       const rules = loadRules();
-      let h = '';
-      if (loi.length) {
-        h += '<div class="bgloi"><b>Hình chưa vẽ đủ</b> — viết lại câu theo cách ToanViet hiểu (bấm một gợi ý để điền), rồi bấm <b>Vẽ lại và ghi nhớ</b>. Lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
-        let k = 0;
-        loi.forEach((L) => {
+      let h = '', k = 0;
+      kid = 0;
+      const sai = loi.filter((L) => !L.du);
+      if (sai.length) {
+        h += '<div class="bgloi"><b>Hình chưa vẽ đủ</b> — mô tả lại <b>từng điểm</b> chưa xác định (bấm một gợi ý để điền), rồi bấm <b>Vẽ điểm … và ghi nhớ</b>. Vẽ được điểm đó thì các điểm dựng từ nó tự vẽ tiếp; lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
+        sai.forEach((L) => {
           h += '<div class="bgloic">' + esc(L.cau || 'Hình') + ' <span>(hình ' + esc(L.loai) + ')</span></div>';
-          if (L.thieu && L.thieu.length) h += '<div class="bgthieu">Chưa dựng được: ' + L.thieu.map((t) => '<b>' + esc(t.ten) + '</b>' + (t.can && t.can.length ? ' (cần ' + esc(t.can.join(', ')) + ')' : '')).join(', ') + '</div>';
-          const caus = [...new Set((L.chuaHieu || []).concat(...(L.thieu || []).map((t) => t.cau || [])))];
-          caus.forEach((c) => {
+          const th = L.thieu || [], ten = th.map((t) => t.ten);
+          th.forEach((t) => {
+            const cho = (t.can || []).filter((c) => ten.includes(c));
+            if (cho.length) h += '<div class="bgcho">Điểm <b>' + esc(t.ten) + '</b> sẽ tự vẽ khi có ' + cho.map((c) => '<b>' + esc(c) + '</b>').join(', ') + '</div>';
+            else h += '<div class="bgthieu">Chưa xác định được điểm <b>' + esc(t.ten) + '</b>' + (t.can && t.can.length ? ' (cần ' + esc(t.can.join(', ')) + ')' : '') + '</div>' + diemRow(t.ten, (t.cau || [])[0] || '');
+          });
+          // câu chưa hiểu không nói tới điểm nào đang thiếu (hình không gian, câu chỉ vẽ đoạn…): viết lại cả câu
+          (L.chuaHieu || []).filter((c) => !ten.some((n) => nhacTen(c, n))).forEach((c) => {
             const id = 'bgl' + (k++), gy = (window.DeHinh && DeHinh.goiY) ? DeHinh.goiY(c) : [];
-            h += '<div class="bglrow" data-goc="' + esc(c) + '"><div class="bglgoc">' + esc(c) + '</div>' +
+            h += '<div class="bglrow" data-goc="' + esc(c) + '"><div class="bglgoc">Câu chưa hiểu: ' + esc(c) + '</div>' +
               (gy.length ? '<div class="bglgy">Gợi ý: ' + gy.map((g) => '<button type="button" class="bgchip" data-for="' + id + '">' + esc(g) + '</button>').join('') + '</div>' : '') +
               '<div class="bglin"><input id="' + id + '" value="' + esc(c) + '" spellcheck="false"><button type="button" class="primary bglok" data-for="' + id + '">Vẽ lại và ghi nhớ</button></div></div>';
           });
         });
         h += '</div>';
       }
-      if (rules.length) h += '<details class="bgnho"><summary>Cách vẽ đã ghi nhớ (' + rules.length + ')</summary>' + rules.map((r, i) => '<div class="bgnhor"><span><s>' + esc(r.goc) + '</s> → ' + esc(r.moi) + '</span><button type="button" class="bgdel" data-i="' + i + '" title="Xoá cách vẽ này">✕</button></div>').join('') + '</details>';
+      // hình đã vẽ nhưng có điểm sai vị trí: chọn điểm rồi mô tả lại
+      const co = loi.filter((L) => (L.diem || []).length);
+      if (co.length) {
+        h += '<details class="bgsua"><summary>Có điểm vẽ sai vị trí? Chọn điểm rồi mô tả lại</summary>';
+        co.forEach((L) => {
+          h += (co.length > 1 ? '<div class="bgloic">' + esc(L.cau || 'Hình') + '</div>' : '') + '<div class="bgsdiem">Điểm: ' + L.diem.map((d) => '<button type="button" class="bgpick" data-ten="' + esc(d.ten) + '" data-cau="' + esc(d.cau) + '">' + esc(d.ten) + '</button>').join('') + '</div><div class="bgsrow"></div>';
+        });
+        h += '</details>';
+      }
+      if (rules.length) h += '<details class="bgnho"><summary>Cách vẽ đã ghi nhớ (' + rules.length + ')</summary>' + rules.map((r, i) => '<div class="bgnhor"><span><s>' + esc(r.goc) + '</s> → ' + (r.diem ? 'điểm <b>' + esc(r.diem) + '</b>: ' : '') + esc(r.moi) + '</span><button type="button" class="bgdel" data-i="' + i + '" title="Xoá cách vẽ này">✕</button></div>').join('') + '</details>';
       return h;
     }
 
@@ -152,21 +178,47 @@
       $('#bgloi').addEventListener('click', (e) => {
         const chip = e.target.closest('.bgchip'), ok = e.target.closest('.bglok'), del = e.target.closest('.bgdel');
         if (chip) { const i = $('#' + chip.dataset.for); i.value = chip.textContent; i.focus(); return; }
+        // chọn điểm vẽ sai: hiện ô mô tả riêng cho điểm đó
+        const pick = e.target.closest('.bgpick'), dok = e.target.closest('.bgdok');
+        if (pick) {
+          const box = pick.parentNode.nextElementSibling;
+          pick.parentNode.querySelectorAll('.bgpick').forEach((b) => b.classList.toggle('on', b === pick));
+          box.innerHTML = diemRow(pick.dataset.ten, pick.dataset.cau);
+          const inp = box.querySelector('input'); if (inp) inp.focus();
+          return;
+        }
+        // Vẽ điểm … và ghi nhớ: học cách vẽ điểm (câu đề gốc + mô tả điểm), dựng lại hình
+        if (dok) {
+          const row = dok.closest('.bgdrow'), ten = row.dataset.ten, cau = row.dataset.cau, moTa = $('#' + dok.dataset.for).value.trim();
+          if (!moTa) { msg('Hãy mô tả điểm ' + ten + ' (hoặc bấm một gợi ý) trước khi bấm Vẽ', true); return; }
+          const r = DeHinh.hocDiem(cau, ten, moTa);
+          if (!r) { msg('Chưa ghi nhớ được cách vẽ điểm ' + ten, true); return; }
+          const list = loadRules().filter((x) => !(x.from === r.from && x.diem === ten)); list.push(r); saveRules(list);
+          const f = rebuildFigures(src.value); src.value = f.markup;
+          // mô tả vẫn chưa vẽ được điểm: bỏ cách vẽ vừa học, báo để thử cách khác
+          const nm = DeHinh.norm(r.moi).replace(/[.;]\s*$/, '').trim();
+          const still = loi.some((L) => (L.thieu || []).some((t) => t.ten === ten) || (L.chuaHieu || []).some((c) => DeHinh.norm(c).replace(/[.;]\s*$/, '').trim() === nm));
+          if (still) { saveRules(list.filter((x) => x !== r)); const f2 = rebuildFigures(src.value); src.value = f2.markup; refresh(); msg('Chưa vẽ được điểm ' + ten + ' theo mô tả "' + r.moi + '" — thử một gợi ý khác', true); return; }
+          refresh();
+          const con = [].concat(...loi.map((L) => (L.thieu || []).map((t) => t.ten)));
+          msg('Đã vẽ điểm ' + ten + ' và ghi nhớ' + (con.length ? ' — còn điểm ' + con.join(', ') + ' chưa xác định' : ''));
+          return;
+        }
         if (del) { const list = loadRules(); list.splice(+del.dataset.i, 1); saveRules(list); const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg('Đã xoá cách vẽ đã ghi nhớ'); return; }
         if (!ok) return;
         const row = ok.closest('.bglrow'), goc = row.dataset.goc, moi = $('#' + ok.dataset.for).value.trim();
         if (!moi || moi === goc) { msg('Hãy viết lại câu (hoặc bấm một gợi ý) trước khi bấm Vẽ lại', true); return; }
         const r = DeHinh.hocMau(goc, moi);
         if (!r) { msg('Câu viết lại cần có tên điểm như câu gốc', true); return; }
-        const list = loadRules().filter((x) => x.from !== r.from); list.push(r); saveRules(list);
+        const list = loadRules().filter((x) => x.from !== r.from || x.diem); list.push(r); saveRules(list);
         const f = rebuildFigures(src.value); src.value = f.markup;
         // câu viết lại vẫn chưa hiểu: bỏ mẫu vừa học, báo để sửa tiếp
         const still = loi.some((L) => (L.chuaHieu || []).some((c) => DeHinh.norm(c).replace(/[.;]\s*$/, '') === r.moi));
-        if (still) { saveRules(list.filter((x) => x.from !== r.from)); const f2 = rebuildFigures(src.value); src.value = f2.markup; refresh(); msg('Câu viết lại vẫn chưa hiểu — thử một gợi ý khác', true); return; }
+        if (still) { saveRules(list.filter((x) => x !== r)); const f2 = rebuildFigures(src.value); src.value = f2.markup; refresh(); msg('Câu viết lại vẫn chưa hiểu — thử một gợi ý khác', true); return; }
         refresh();
         msg('Đã vẽ lại và ghi nhớ: lần sau câu cùng dạng sẽ tự vẽ đúng');
       });
-      $('#bgloi').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const b = e.target.parentNode.querySelector('.bglok'); if (b) b.click(); } });
+      $('#bgloi').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const b = e.target.parentNode.querySelector('.bglok, .bgdok'); if (b) b.click(); } });
       // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường
       src.addEventListener('paste', (e) => {
         const html = e.clipboardData.getData('text/html'), text = e.clipboardData.getData('text/plain');

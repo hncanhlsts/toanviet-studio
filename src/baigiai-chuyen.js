@@ -517,7 +517,9 @@
           const gi = blk.findIndex((l) => /^#G/.test(l));
           addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
           notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
-          if ((pl.chuaHieu || []).length || (pl.thieu || []).length) loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [] });
+          // mọi hình phẳng: kèm danh sách điểm đã dựng (giáo viên mô tả lại được điểm vẽ sai); du = vẽ đủ
+          const du = !(pl.chuaHieu || []).length && !(pl.thieu || []).length;
+          loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [], diem: pl.diem || [], du });
           pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }

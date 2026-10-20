@@ -29,3 +29,48 @@ thu('gợi ý điền đúng vai trò tên điểm trong câu', () => {
   bang(DeHinh.goiY('kẻ AH vuông góc BC')[0], 'Kẻ AH ⊥ BC tại H.');
   bang(DeHinh.goiY('Gọi F là điểm sao cho tứ giác AEFC có hai cạnh đối song song.')[0], 'AEFC là hình bình hành.');
 });
+// sửa theo từng điểm: điểm chưa xác định (hoặc vẽ sai) được mô tả lại riêng, các điểm dựng từ nó tự vẽ tiếp
+const DE_BX = 'Cho ΔABC nhọn (AB < AC) có D là trung điểm của BC. Trên nửa mặt phẳng bờ BC không chứa điểm A, vẽ tia Bx // AC, Bx cắt tia AD tại E. Trên tia đối của tia AC lấy điểm F sao cho AF = AC. Gọi I là giao điểm của AB và EF. Chứng minh I là trung điểm của EF.';
+thu('tia Bx // AC (nửa mặt phẳng bờ BC không chứa A), Bx cắt tia AD tại E; F trên tia đối; I = AB ∩ EF', () => {
+  DeHinh.setRules([]);
+  const r = DeHinh.plane(DE_BX);
+  dung(/E = giao\(B, X, A, D\)/.test(r.script) && /I = giao\(A, B, E, F\)/.test(r.script) && /F = doixung\(C, A\)/.test(r.script), r.script);
+  dung(/X = tinhtien\(B, A, C\)/.test(r.script), 'tia Bx ngược phía A so với BC: ' + r.script);
+  bang(r.thieu.length + r.chuaHieu.length, 0);
+  dung(r.diem.map((d) => d.ten).join() === 'D,E,F,I', JSON.stringify(r.diem));
+});
+thu('câu mô tả điểm → câu đầy đủ', () => {
+  bang(DeHinh.cauDiem('E', 'giao điểm của Bx và AD'), 'E là giao điểm của Bx và AD');
+  bang(DeHinh.cauDiem('E', 'E: qua B kẻ đường thẳng song song với AC cắt AD'), 'qua B kẻ đường thẳng song song với AC cắt AD tại E');
+  bang(DeHinh.cauDiem('K', 'giao của MN và PQ'), 'K là giao điểm của MN và PQ');
+  bang(DeHinh.cauDiem('F', 'trên tia đối của tia AC lấy điểm sao cho AF = AC'), 'trên tia đối của tia AC lấy điểm F sao cho AF = AC');
+});
+thu('gợi ý mô tả điểm E theo câu đề (Bx cắt tia AD tại E)', () => {
+  const g = DeHinh.goiYDiem('E', 'trên nửa mặt phẳng bờ BC không chứa điểm A , vẽ tia Bx ∥ AC , Bx cắt tia AD tại E .');
+  bang(g[0], 'giao điểm của Bx và AD');
+  dung(g.includes('qua B kẻ đường thẳng song song với AC cắt AD'), JSON.stringify(g));
+});
+thu('mô tả lại điểm chưa xác định: vẽ được E, điểm I dựng từ E tự vẽ tiếp; ghi nhớ cho đề khác tên điểm', () => {
+  DeHinh.setRules([]);
+  const de = 'Cho tam giác ABC. Gọi E là điểm sao cho ABEC kì lạ. Gọi I là giao điểm của AE và BC.';
+  const r0 = DeHinh.plane(de), tE = r0.thieu.find((t) => t.ten === 'E'), tI = r0.thieu.find((t) => t.ten === 'I');
+  dung(tE && tI && tI.can.includes('E'), JSON.stringify(r0.thieu));
+  DeHinh.setRules([DeHinh.hocDiem(tE.cau[0], 'E', 'ABEC là hình bình hành')]);
+  const r1 = DeHinh.plane(de);
+  dung(/E = hbh\(/.test(r1.script) && /I = giao\(A, E, B, C\)/.test(r1.script), r1.script);
+  bang(r1.thieu.length, 0);
+  const r2 = DeHinh.plane('Cho tam giác MNP. Gọi Q là điểm sao cho MNQP kì lạ.');
+  DeHinh.setRules([]);
+  dung(/Q = hbh\(/.test(r2.script), r2.script);
+});
+thu('mô tả lại điểm vẽ sai: cách mô tả của giáo viên được ưu tiên hơn cách đọc đề', () => {
+  DeHinh.setRules([]);
+  const r0 = DeHinh.plane(DE_BX), dF = r0.diem.find((d) => d.ten === 'F');
+  const R = DeHinh.hocDiem(dF.cau, 'F', 'trung điểm của AC');
+  bang(R.diem, 'F');
+  DeHinh.setRules([R]);
+  const r1 = DeHinh.plane(DE_BX);
+  DeHinh.setRules([]);
+  dung(/F = trungdiem\(A, C\)/.test(r1.script) && !/F = doixung/.test(r1.script), r1.script);
+  dung(/I = giao\(A, B, E, F\)/.test(r1.script), 'I vẫn dựng từ F mới');
+});

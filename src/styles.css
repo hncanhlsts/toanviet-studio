@@ -385,6 +385,11 @@ math-field { user-select: text; -webkit-user-select: text; }
 #bgloi .bgchip:hover { background: #dbe8f8; } #bgloi .bglin { display: flex; gap: 6px; } #bgloi .bglin input { flex: 1; padding: 4px 6px; font-size: 13px; }
 #bgloi .bgnho { margin: 4px 0; font-size: 12px; color: #33445a; } #bgloi .bgnhor { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px 10px; } #bgloi .bgnhor s { color: #999; }
 #bgloi .bgdel { border: 0; background: none; color: #b03a2e; cursor: pointer; }
+#bgloi .bgdrow { margin: 2px 0 8px 8px; } #bgloi .bgdrow .bglin label { align-self: center; white-space: nowrap; }
+#bgloi .bgcho { margin: 2px 0 6px 8px; color: #6b7785; }
+#bgloi .bgsua { margin: 4px 0; font-size: 12.5px; color: #33445a; } #bgloi .bgsua summary { cursor: pointer; }
+#bgloi .bgsdiem { margin: 4px 0 4px 10px; } #bgloi .bgpick { min-width: 30px; margin: 0 4px 0 0; padding: 2px 8px; border: 1px solid #c9d7ea; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; }
+#bgloi .bgpick.on, #bgloi .bgpick:hover { background: #dbe8f8; }
 /* có khung hình chưa vẽ đủ: ô nội dung, xem trước thấp bớt để khung gợi ý luôn nhìn thấy */
 .bgdlg:has(#bgloi .bgloi) #bgsrc, .bgdlg:has(#bgloi .bgloi) .bgview { height: 34vh; }
 .bgfoot { display: flex; align-items: center; gap: 10px; margin-top: 6px; }

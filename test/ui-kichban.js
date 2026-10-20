@@ -361,20 +361,29 @@
     __clear();
   });
 
-  await step('Bài giải AI: hình chưa vẽ đủ — gợi ý, viết lại câu, Vẽ lại và ghi nhớ; đề khác cùng dạng tự vẽ đúng', async () => {
+  await step('Bài giải AI: hình chưa vẽ đủ — mô tả lại từng điểm, các điểm dựng từ nó tự vẽ tiếp, ghi nhớ; sửa điểm vẽ sai', async () => {
     __clear(); localStorage.removeItem('tvs-cach-ve'); await w(50);
     window.__baigiai.open(); await w(300);
     const src = document.getElementById('bgsrc');
     const paste = async (t) => { src.value = ''; const dt = new DataTransfer(); dt.setData('text/plain', t); src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500); };
-    await paste('Câu 1. Cho tam giác ABC. Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song.');
+    await paste('Câu 1. Cho tam giác ABC. Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song. Gọi I là giao điểm của AE và BC.');
     const box = document.getElementById('bgloi');
-    ok('hiện khung hình chưa vẽ đủ, chỉ ra điểm E', !!box.querySelector('.bgloi') && /Chưa dựng được: E/.test(box.innerText), box.innerText.slice(0, 160));
-    const chip = [...box.querySelectorAll('.bgchip')].find((b) => /hình bình hành/.test(b.textContent));
-    ok('có gợi ý "ABEC là hình bình hành."', !!chip && chip.textContent === 'ABEC là hình bình hành.');
-    if (chip) { chip.click(); box.querySelector('.bglok').click(); await w(500); }
-    ok('vẽ lại được, khung lỗi biến mất, đã ghi nhớ 1 cách vẽ', !box.querySelector('.bgloi') && JSON.parse(localStorage.getItem('tvs-cach-ve') || '[]').length === 1 && /E = hbh/.test(src.value));
+    ok('hiện khung hình chưa vẽ đủ: ô mô tả riêng cho điểm E, I chờ E', !!box.querySelector('.bgloi') && !!box.querySelector('.bgdrow[data-ten="E"]') && /I sẽ tự vẽ khi có E/.test(box.innerText), box.innerText.slice(0, 200));
+    const chip = [...box.querySelectorAll('.bgdrow[data-ten="E"] .bgchip')].find((b) => /hình bình hành/.test(b.textContent));
+    ok('có gợi ý "ABEC là hình bình hành"', !!chip, [...box.querySelectorAll('.bgchip')].map((b) => b.textContent).join(' | '));
+    if (chip) { chip.click(); box.querySelector('.bgdok').click(); await w(500); }
+    ok('vẽ được E, I tự vẽ tiếp, khung lỗi biến mất, đã ghi nhớ 1 cách vẽ điểm', !box.querySelector('.bgloi') && /E = hbh/.test(src.value) && /I = giao/.test(src.value) && JSON.parse(localStorage.getItem('tvs-cach-ve') || '[]').filter((r) => r.diem === 'E').length === 1, src.value.slice(0, 300));
     await paste('Câu 2. Cho tam giác MNP. Lấy điểm Q sao cho tứ giác MNQP có hai cạnh đối song song.');
-    ok('đề khác cùng dạng (tên điểm khác) tự vẽ đúng nhờ cách vẽ đã nhớ', !box.querySelector('.bgloi') && /Q = hbh\(P, M, N\)/.test(src.value));
+    ok('đề khác cùng dạng (tên điểm khác) tự vẽ đúng nhờ cách vẽ đã nhớ', !box.querySelector('.bgloi') && /Q = hbh\(/.test(src.value), src.value.slice(0, 300));
+    // hình đã vẽ đủ: chọn điểm F vẽ sai, mô tả lại
+    await paste('Câu 3. Cho ΔABC nhọn (AB < AC) có D là trung điểm của BC. Trên nửa mặt phẳng bờ BC không chứa điểm A, vẽ tia Bx // AC, Bx cắt tia AD tại E. Trên tia đối của tia AC lấy điểm F sao cho AF = AC. Gọi I là giao điểm của AB và EF.');
+    ok('đề tia Bx // AC vẽ đủ E, F, I', !box.querySelector('.bgloi') && /E = giao\(B, X, A, D\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
+    const pick = box.querySelector('.bgpick[data-ten="F"]');
+    if (pick) { box.querySelector('.bgsua').open = true; pick.click(); await w(50); }
+    const inp = box.querySelector('.bgsrow .bgdrow[data-ten="F"] input');
+    ok('chọn điểm F: hiện ô mô tả lại F', !!inp);
+    if (inp) { inp.value = 'trung điểm của AC'; inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(500); }
+    ok('F vẽ lại theo mô tả (trung điểm AC), I dựng lại theo F mới', /F = trungdiem\(A, C\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
     localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });
