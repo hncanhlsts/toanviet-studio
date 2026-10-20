@@ -240,6 +240,9 @@
   }
   function figures(markup) {
     const notes = {};
+    // hình chưa vẽ đủ (câu chưa hiểu, điểm chưa dựng được): để hộp Bài giải AI gợi ý giáo viên sửa câu và ghi nhớ
+    const loi = [];
+    const nhan = (blk) => (blk.find((l) => /^#C /.test(l)) || '').replace(/^#C\s*/, '').trim();
     const lines = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l));
     const out = [], specs = [];
     let fig = 0;
@@ -379,6 +382,7 @@
           // khối tròn xoay: không kèm kịch bản → dùng hình mẫu (kind) của phần mềm
           addFig(blk, at, 'space', sp.script ? { kind: sp.kind, script: sp.script, w: 360, h: 320 } : { kind: sp.kind, w: 360, h: 320 }, '', 0.75);
           notes['thêm hình không gian (đọc từ đề)'] = (notes['thêm hình không gian (đọc từ đề)'] || 0) + 1;
+          if (sp.unknown.length) loi.push({ cau: nhan(blk), loai: 'không gian', chuaHieu: sp.unknown.slice(), thieu: [] });
           sp.unknown.forEach((u) => { notes['hình không gian — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }
@@ -513,12 +517,13 @@
           const gi = blk.findIndex((l) => /^#G/.test(l));
           addFig(blk, gi >= 0 ? gi : blk.length - 1, 'plane', { kind: pl.kind, script: pl.script, w: 340, h: 300 }, '', 0.75);
           notes['thêm hình phẳng (đọc từ đề)'] = (notes['thêm hình phẳng (đọc từ đề)'] || 0) + 1;
+          if ((pl.chuaHieu || []).length || (pl.thieu || []).length) loi.push({ cau: nhan(blk), loai: 'phẳng', chuaHieu: pl.chuaHieu || [], thieu: pl.thieu || [] });
           pl.unknown.forEach((u) => { notes['hình phẳng — chưa hiểu: "' + u.slice(0, 90) + '"'] = 1; });
         }
       }
       out.push(...blk);
     }
-    return { markup: (specs.length ? specs.join('\n') + '\n' : '') + out.join('\n'), notes, count: fig };
+    return { markup: (specs.length ? specs.join('\n') + '\n' : '') + out.join('\n'), notes, count: fig, loi };
   }
 
   const api = { fromText, fromHtml, cleanTex, formulas, figures, texToExpr, linear, TEX_RULES };

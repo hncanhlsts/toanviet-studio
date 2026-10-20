@@ -1,0 +1,31 @@
+// Hình chưa vẽ đủ: gợi ý cách viết, ghi nhớ cách vẽ giáo viên dạy (src/dedehinh.js: hocMau, setRules, goiY)
+nhom('Ghi nhớ cách vẽ và gợi ý sửa câu (dedehinh.js)');
+thu('học mẫu: tên điểm thành {1}, {2}… theo thứ tự trong câu gốc', () => {
+  const r = DeHinh.hocMau('Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song.', 'ABEC là hình bình hành.');
+  bang(r.from, 'lấy điểm {1} sao cho tứ giác {2}{3}{1}{4} có hai cạnh đối song song');
+  bang(r.to, '{2}{3}{1}{4} là hình bình hành');
+  dung(DeHinh.hocMau('Kẻ đường cao.', 'Kẻ đường cao.') === null, 'câu không có tên điểm / không đổi: không học');
+});
+thu('áp dụng mẫu đã nhớ cho đề khác tên điểm: vẽ được, không còn báo chưa hiểu', () => {
+  const de = 'Cho tam giác MNP. Lấy điểm Q sao cho tứ giác MNQP có hai cạnh đối song song.';
+  DeHinh.setRules([]);
+  const r0 = DeHinh.plane(de);
+  dung(r0.thieu.some((t) => t.ten === 'Q'), 'khi chưa dạy: Q chưa dựng được');
+  DeHinh.setRules([DeHinh.hocMau('Lấy điểm E sao cho tứ giác ABEC có hai cạnh đối song song.', 'ABEC là hình bình hành.')]);
+  const r1 = DeHinh.plane(de);
+  DeHinh.setRules([]);
+  dung(/Q = hbh\(P, M, N\)/.test(r1.script), r1.script);
+  bang(r1.thieu.length + r1.chuaHieu.length, 0);
+});
+thu('chỉ ra câu chưa hiểu (viết như trong đề: Oz, xOy) và điểm chưa dựng được', () => {
+  const r = DeHinh.plane('Cho tam giác ABC. Gọi F là điểm sao cho tứ giác AEFC có hai cạnh đối song song.');
+  dung(r.thieu.some((t) => t.ten === 'F'), JSON.stringify(r.thieu));
+  dung(r.chuaHieu.length === 1 && /AEFC/.test(r.chuaHieu[0]), JSON.stringify(r.chuaHieu));
+  const r2 = DeHinh.plane('Cho góc xOy. Vẽ tia Oz sao cho góc xOz gấp đôi góc zOy.');
+  dung(r2.chuaHieu.every((c) => !/[XYZ]/.test(c.replace(/[^A-Z]/g, ''))), 'tên tia hiện chữ thường: ' + JSON.stringify(r2.chuaHieu));
+});
+thu('gợi ý điền đúng vai trò tên điểm trong câu', () => {
+  bang(DeHinh.goiY('Qua điểm A thuộc tia Ox, vẽ đường thẳng song song với Oy cắt Oz tại M')[0], 'Qua A kẻ đường thẳng song song với Oy cắt Oz tại M.');
+  bang(DeHinh.goiY('kẻ AH vuông góc BC')[0], 'Kẻ AH ⊥ BC tại H.');
+  bang(DeHinh.goiY('Gọi F là điểm sao cho tứ giác AEFC có hai cạnh đối song song.')[0], 'AEFC là hình bình hành.');
+});

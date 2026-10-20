@@ -148,6 +148,12 @@ const DE_HINH_LOP = [
   [10, 'biến thể: G trọng tâm, M trung điểm BC (vectơ)', String.raw`Cho tam giác $ABC$ với $G$ là trọng tâm. Gọi $M$ là trung điểm của $BC$. Chứng minh $\overrightarrow{AG} = \dfrac{2}{3}\overrightarrow{AM}$.`, { hinh: 'phang', dung: ['th AGM', 'tl AG GM 2', 'bn BM MC'] }],
   [10, 'biến thể: hình vuông, vectơ tổng', String.raw`Cho hình vuông $ABCD$ cạnh $a$, tâm $O$. Tính $|\overrightarrow{AB} + \overrightarrow{AD}|$.`, { hinh: 'phang', dung: ['vg ABC', 'th AOC'] }],
   [10, 'biến thể: điểm M thoả MA = 2MB (vectơ, M ngoài đoạn)', String.raw`Cho đoạn thẳng $AB$. Tìm điểm $M$ sao cho $\overrightarrow{MA} = 2\overrightarrow{MB}$.`, { hinh: 'phang', dung: ['giua ABM', 'tl MA MB 2'] }],
+  // đề thầy gửi 20/10/2026: "Oz là tia phân giác", "qua điểm A thuộc tia Ox, vẽ đường thẳng song song với Oy cắt Oz tại M"
+  [7, 'đề thầy gửi: Oz là tia phân giác, qua A thuộc tia Ox vẽ đường song song với Oy cắt Oz tại M', String.raw`Cho góc $xOy$ khác góc bẹt có $Oz$ là tia phân giác. Qua điểm $A$ thuộc tia $Ox$, vẽ đường thẳng song song với $Oy$ cắt $Oz$ tại $M$. Qua $M$ kẻ đường thẳng song song với $Ox$ cắt $Oy$ tại $B$.
+a) Chứng minh $OA = OB$.
+b) Kẻ $MH \perp Ox$ tại $H$, $MK \perp Oy$ tại $K$. Chứng minh $MH = MK$.
+c) Chứng minh $\widehat{HMA} = \widehat{KMB}$.`, { hinh: 'phang', dung: ['bn OA OB', 'bn MH MK', 'vg MHO', 'vg MKO'] }],
+  [8, 'đường thẳng đặt tên d // BC, d cắt AC tại N; AH vuông góc BC (thiếu chữ "với")', 'Cho tam giác ABC, M là trung điểm của AB. Qua M vẽ đường thẳng d // BC, d cắt AC tại N. Kẻ AH vuông góc BC tại H.', { hinh: 'phang', dung: ['ss MN BC', 'giua ANC', 'vg AHB'] }],
   // đề giáo viên chép thử (chữ thường, không có $): báo lỗi ngày 19/10/2026
   [8, 'đề chép: điểm tùy ý trên đoạn MI, đường thẳng qua K vuông góc cắt hai cạnh', 'Cho tam giác MNP nhọn có đường cao MI (I thuộc NP). Trên đoạn MI, lấy điểm K tùy ý (không trùng M, I). Đường thẳng qua K vuông góc với MI cắt cạnh MN, MP lần lượt tại E, F.', { hinh: 'phang', dung: ['vg MIN', 'giua MKI', 'giua MEN', 'giua MFP', 'th EKF', 'vg EKI'] }],
   [8, 'đề chép: ΔABC cân, trung tuyến AD, "đường thẳng này cắt AB và AC lần lượt tại"', 'Cho ΔABC cân tại A có đường trung tuyến AD. M là một điểm trên cạnh AD (M khác A và D). Qua M kẻ đường thẳng vuông góc với AD, đường thẳng này cắt AB và AC lần lượt tại K và H.', { hinh: 'phang', dung: ['bn AB AC', 'bn BD DC', 'giua AMD', 'giua AKB', 'giua AHC', 'th KMH', 'vg KMD'] }],

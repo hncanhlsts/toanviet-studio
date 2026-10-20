@@ -73,12 +73,21 @@
       return out.join('') || '<div class="bgempty">Phần xem trước hiện ở đây sau khi dán bài giải.</div>';
     }
 
+    // ---------- Cách vẽ giáo viên đã dạy (ghi nhớ trên máy) ----------
+    // Mỗi mục: { from, to, goc, moi } — câu gốc phần mềm chưa hiểu và câu giáo viên viết lại, tên điểm thay bằng {1}, {2}…
+    const KEY = 'tvs-cach-ve';
+    const loadRules = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (err) { return []; } };
+    const saveRules = (list) => { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (err) { /* bỏ qua */ } if (window.DeHinh && DeHinh.setRules) DeHinh.setRules(list); };
+    if (window.DeHinh && DeHinh.setRules) DeHinh.setRules(loadRules());
+    let loi = []; // hình chưa vẽ đủ của lần dựng hình gần nhất
+
     // chuẩn hoá nội dung dán vào rồi tự thêm hình
     function convert(raw) {
       const r = BaiGiai.fromText(raw);
       mergeNotes(r.notes);
       const f = BaiGiai.figures(r.markup);
       mergeNotes(f.notes);
+      loi = f.loi || [];
       return f.markup;
     }
     // dựng lại hình sau khi sửa nội dung: bỏ các hình cũ và chữ "(Hình n)" đã thêm, nhận diện lại
@@ -86,11 +95,35 @@
       const clean = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l)).map((l) => l.replace(/ \(Hình \d+\)(?=[.:;]?\s*$)/, '')).join('\n');
       const f = BaiGiai.figures(clean);
       mergeNotes(f.notes);
+      loi = f.loi || [];
       return f;
+    }
+    // khung "Hình chưa vẽ đủ": từng câu chưa hiểu / điểm chưa dựng được, gợi ý cách viết, ô viết lại, Vẽ lại và ghi nhớ
+    function loiHtml() {
+      const rules = loadRules();
+      let h = '';
+      if (loi.length) {
+        h += '<div class="bgloi"><b>Hình chưa vẽ đủ</b> — viết lại câu theo cách ToanViet hiểu (bấm một gợi ý để điền), rồi bấm <b>Vẽ lại và ghi nhớ</b>. Lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
+        let k = 0;
+        loi.forEach((L) => {
+          h += '<div class="bgloic">' + esc(L.cau || 'Hình') + ' <span>(hình ' + esc(L.loai) + ')</span></div>';
+          if (L.thieu && L.thieu.length) h += '<div class="bgthieu">Chưa dựng được: ' + L.thieu.map((t) => '<b>' + esc(t.ten) + '</b>' + (t.can && t.can.length ? ' (cần ' + esc(t.can.join(', ')) + ')' : '')).join(', ') + '</div>';
+          const caus = [...new Set((L.chuaHieu || []).concat(...(L.thieu || []).map((t) => t.cau || [])))];
+          caus.forEach((c) => {
+            const id = 'bgl' + (k++), gy = (window.DeHinh && DeHinh.goiY) ? DeHinh.goiY(c) : [];
+            h += '<div class="bglrow" data-goc="' + esc(c) + '"><div class="bglgoc">' + esc(c) + '</div>' +
+              (gy.length ? '<div class="bglgy">Gợi ý: ' + gy.map((g) => '<button type="button" class="bgchip" data-for="' + id + '">' + esc(g) + '</button>').join('') + '</div>' : '') +
+              '<div class="bglin"><input id="' + id + '" value="' + esc(c) + '" spellcheck="false"><button type="button" class="primary bglok" data-for="' + id + '">Vẽ lại và ghi nhớ</button></div></div>';
+          });
+        });
+        h += '</div>';
+      }
+      if (rules.length) h += '<details class="bgnho"><summary>Cách vẽ đã ghi nhớ (' + rules.length + ')</summary>' + rules.map((r, i) => '<div class="bgnhor"><span><s>' + esc(r.goc) + '</s> → ' + esc(r.moi) + '</span><button type="button" class="bgdel" data-i="' + i + '" title="Xoá cách vẽ này">✕</button></div>').join('') + '</details>';
+      return h;
     }
 
     function openBaiGiai() {
-      notes = {};
+      notes = {}; loi = [];
       const d = modal('bgdlg', 'Bài giải AI → tài liệu Word');
       d.classList.add('bgdlg');
       const body = d.querySelector('.tvbody');
@@ -100,10 +133,10 @@
         '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
-        '<div id="bgnotes" class="bgnotes"></div>' +
+        '<div id="bgnotes" class="bgnotes"></div><div id="bgloi"></div>' +
         '<div class="bgfoot"><label>Tiêu đề <input id="bgtitle" placeholder="(không bắt buộc)"></label>' +
         '<label>Cỡ chữ <select id="bgpt"><option>12</option><option>13</option><option>14</option></select></label>' +
-        '<span id="bgstat" class="bgstat"></span><button id="bgocr" title="Đọc chữ trong ảnh đề bài (ảnh cắt màn hình, ảnh chụp, ảnh Zalo). Cũng có thể dán ảnh bằng Ctrl+V hoặc kéo thả tệp ảnh vào ô bên trái. Chạy trên máy, không cần mạng.">📷 Đọc đề từ ảnh…</button><input type="file" id="bgocrfile" accept="image/*" multiple hidden><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
+        '<span id="bgstat" class="bgstat"></span><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
       const src = $('#bgsrc'), view = $('#bgview');
       let tmr = 0;
       const refresh = () => {
@@ -112,46 +145,31 @@
         const fixed = Object.keys(notes).map((k) => k + (notes[k] > 1 ? ' (' + notes[k] + ')' : ''));
         $('#bgnotes').innerHTML = (list.length ? '<b>' + list.length + ' công thức' + (nfig ? ', ' + nfig + ' hình' : '') + '.</b> ' : '') +
           (errs.length ? '<span class="bgerr">' + errs.length + ' công thức có mã LaTeX lỗi (tô đỏ ở phần xem trước) — sửa trong ô bên trái: ' + errs.slice(0, 3).map((x) => '<code>' + esc(x.slice(0, 40)) + '</code>').join(', ') + '</span> ' : '') +
-          (fixed.length ? '<span class="bgfix">Đã làm: ' + esc(fixed.join(' · ')) + '</span>' : '');
+          (fixed.length ? '<span class="bgfix">Đã làm: ' + esc(fixed.join(' · ').replace(/ · hình (?:phẳng|không gian) — chưa hiểu: "[^"]*"/g, '')) + '</span>' : '');
+        $('#bgloi').innerHTML = loiHtml();
       };
-      // đọc đề từ ảnh (OCR chạy trên máy): làm rõ ảnh → nhận chữ → sửa lỗi nhận chữ của đề Toán → đưa vào ô như khi dán chữ
-      const readImages = async (files) => {
-        files = [...files].filter((f) => /^image\//.test(f.type || '') || /\.(png|jpe?g|bmp|webp|gif)$/i.test(f.name || ''));
-        if (!files.length) return;
-        if (!window.OcrAnh || !window.OcrSua || !api.ocr) { msg('Chức năng đọc ảnh chưa sẵn sàng', true); return; }
-        const stat = $('#bgstat'), btn = $('#bgocr'); btn.disabled = true;
-        const parts = [], doubt = [];
-        try {
-          for (let i = 0; i < files.length; i++) {
-            stat.textContent = 'Đang đọc chữ trong ảnh' + (files.length > 1 ? ' ' + (i + 1) + '/' + files.length : '') + '…';
-            const bmp = await createImageBitmap(files[i]);
-            const pr = OcrAnh.prep(bmp), png = await OcrAnh.toPng(pr.canvas);
-            const r = await api.ocr(png);
-            if (!r.ok) throw new Error(r.error);
-            const text = OcrSua.sua(OcrSua.ghep(r.lines));
-            if (text) parts.push(text);
-            r.lines.forEach((l) => (l.words || []).forEach((w) => { if (w.conf < 55 && /[A-Za-zÀ-ỹĐđ]{2,}/.test(w.text) && doubt.length < 8) doubt.push(w.text); }));
-          }
-        } catch (err) { stat.textContent = ''; btn.disabled = false; msg('Không đọc được ảnh: ' + err.message, true); return; }
-        stat.textContent = ''; btn.disabled = false;
-        if (!parts.length) { msg('Không tìm thấy chữ trong ảnh', true); return; }
-        const raw = parts.join('\n\n');
-        if (!src.value.trim()) src.value = convert(raw);
-        else { const r = BaiGiai.fromText(raw); mergeNotes(r.notes); src.setRangeText(r.markup, src.selectionStart, src.selectionEnd, 'end'); }
-        notes['đọc đề từ ảnh'] = (notes['đọc đề từ ảnh'] || 0) + files.length;
-        if (doubt.length) notes['chữ đọc chưa chắc, xem lại: ' + doubt.join(', ')] = 1;
+      // gợi ý: bấm để điền vào ô viết lại; Vẽ lại và ghi nhớ: học mẫu (câu gốc → câu viết lại), dựng lại hình
+      $('#bgloi').addEventListener('click', (e) => {
+        const chip = e.target.closest('.bgchip'), ok = e.target.closest('.bglok'), del = e.target.closest('.bgdel');
+        if (chip) { const i = $('#' + chip.dataset.for); i.value = chip.textContent; i.focus(); return; }
+        if (del) { const list = loadRules(); list.splice(+del.dataset.i, 1); saveRules(list); const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg('Đã xoá cách vẽ đã ghi nhớ'); return; }
+        if (!ok) return;
+        const row = ok.closest('.bglrow'), goc = row.dataset.goc, moi = $('#' + ok.dataset.for).value.trim();
+        if (!moi || moi === goc) { msg('Hãy viết lại câu (hoặc bấm một gợi ý) trước khi bấm Vẽ lại', true); return; }
+        const r = DeHinh.hocMau(goc, moi);
+        if (!r) { msg('Câu viết lại cần có tên điểm như câu gốc', true); return; }
+        const list = loadRules().filter((x) => x.from !== r.from); list.push(r); saveRules(list);
+        const f = rebuildFigures(src.value); src.value = f.markup;
+        // câu viết lại vẫn chưa hiểu: bỏ mẫu vừa học, báo để sửa tiếp
+        const still = loi.some((L) => (L.chuaHieu || []).some((c) => DeHinh.norm(c).replace(/[.;]\s*$/, '') === r.moi));
+        if (still) { saveRules(list.filter((x) => x.from !== r.from)); const f2 = rebuildFigures(src.value); src.value = f2.markup; refresh(); msg('Câu viết lại vẫn chưa hiểu — thử một gợi ý khác', true); return; }
         refresh();
-        msg('Đã đọc chữ từ ảnh — thầy cô xem lại nội dung bên trái trước khi tạo tài liệu');
-      };
-      $('#bgocr').onclick = () => $('#bgocrfile').click();
-      $('#bgocrfile').onchange = (e) => { readImages(e.target.files); e.target.value = ''; };
-      src.addEventListener('dragover', (e) => { if ([...e.dataTransfer.items].some((it) => it.kind === 'file')) e.preventDefault(); });
-      src.addEventListener('drop', (e) => { if (e.dataTransfer.files.length) { e.preventDefault(); readImages(e.dataTransfer.files); } });
-      // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường; chỉ có ảnh thì đọc chữ trong ảnh
+        msg('Đã vẽ lại và ghi nhớ: lần sau câu cùng dạng sẽ tự vẽ đúng');
+      });
+      $('#bgloi').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); const b = e.target.parentNode.querySelector('.bglok'); if (b) b.click(); } });
+      // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường
       src.addEventListener('paste', (e) => {
         const html = e.clipboardData.getData('text/html'), text = e.clipboardData.getData('text/plain');
-        const imgs = [...e.clipboardData.items].filter((it) => it.kind === 'file' && /^image\//.test(it.type)).map((it) => it.getAsFile()).filter(Boolean);
-        if (!text && imgs.length) { e.preventDefault(); readImages(imgs); return; }
         if (!html && !text) return;
         e.preventDefault();
         let raw = text;
@@ -162,7 +180,7 @@
       });
       src.addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(refresh, 300); });
       $('#bgfig').onclick = () => { const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg(f.count ? 'Đã dựng ' + f.count + ' hình' : 'Không nhận ra chỗ nào cần hình (miền nghiệm, bảng biến thiên, bảng xét dấu)'); };
-      $('#bgclear').onclick = () => { src.value = ''; notes = {}; refresh(); src.focus(); };
+      $('#bgclear').onclick = () => { src.value = ''; notes = {}; loi = []; refresh(); src.focus(); };
       $('#bgmake').onclick = () => make(src.value);
       refresh();
       d.showModal();
