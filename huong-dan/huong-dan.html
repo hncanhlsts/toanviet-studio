@@ -780,6 +780,14 @@ vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74
   <li>Nếu bài dán vào đã là công thức Equation của Word, dùng <b>Equation → ToanViet</b>.</li>
 </ol>
 <p>Số tiền viết kiểu "$5 và $10" không bị nhận nhầm là công thức. Đoạn mã LaTeX nào không dựng được thì giữ nguyên dạng chữ.</p>
+<h3>Nhờ AI viết sẵn hình: lời nhắc vẽ hình và skill toanviet-ve-hinh</h3>
+<p>Đọc lời văn để đoán hình đôi khi sai (tia Bx, nửa mặt phẳng, tia đối…). Cách chắc chắn nhất là nhờ chính trợ lí AI viết hình bằng <b>kịch bản ToanViet</b>: mỗi điểm được dựng đúng quan hệ của đề (trung điểm, giao điểm, song song…), ToanViet vẽ đúng như vậy.</p>
+<ol>
+  <li>Trong hộp <b>🤖 Bài giải AI</b>, bấm <b>📋 Chép lời nhắc vẽ hình cho AI</b>.</li>
+  <li>Dán (<kbd>Ctrl</kbd>+<kbd>V</kbd>) vào đầu cuộc trò chuyện với ChatGPT, Gemini, Copilot… rồi gửi đề bài. Muốn dùng lâu dài: dán lời nhắc vào phần hướng dẫn riêng của AI (Custom instructions của ChatGPT, một Gem của Gemini, một GPT riêng).</li>
+  <li>AI trả lời kèm khối <b>[HÌNH TOANVIET]</b> … <b>[/HÌNH TOANVIET]</b> ngay sau đề. Chép cả câu trả lời, dán vào Bài giải AI như thường lệ: hình được vẽ đúng kịch bản, đánh số Hình 1, Hình 2… Nếu kịch bản có dòng sai (ví dụ dùng điểm chưa dựng), khung vàng chỉ ra dòng đó để nhờ AI sửa.</li>
+</ol>
+<p>Thầy cô dùng <b>Claude</b>: tải gói skill <b>toanviet-ve-hinh.zip</b> (thư mục <i>skill</i> trong kho GitHub của ToanViet Studio) rồi thêm vào Claude (Cài đặt → Năng lực → Skills). Claude sẽ tự viết khối [HÌNH TOANVIET] khi gặp đề hình học phẳng, và kiểm tra kịch bản bằng chính bộ dựng hình của ToanViet trước khi trả lời.</p>
 <h3>Khi hình chưa vẽ đủ: sửa từng điểm và ghi nhớ cách vẽ</h3>
 <p>Sau khi dán đề vào <b>🤖 Bài giải AI</b>, nếu có điểm ToanViet chưa xác định được, khung vàng <b>Hình chưa vẽ đủ</b> hiện ngay dưới phần xem trước. Thầy cô chỉ cần <b>mô tả lại từng điểm</b>, không phải viết lại cả câu:</p>
 <ul>

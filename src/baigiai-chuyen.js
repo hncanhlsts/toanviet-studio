@@ -57,6 +57,15 @@
     if (s !== s0) note('bỏ đánh dấu trích dẫn của AI ([cite…])');
     // biểu tượng cảm xúc
     const s1 = s; s = s.replace(/\p{Extended_Pictographic}\ufe0f?/gu, ''); if (s !== s1) note('bỏ biểu tượng cảm xúc');
+    // hình AI viết sẵn bằng kịch bản ToanViet (theo skill / lời nhắc "toanviet-ve-hinh"):
+    //   [HÌNH TOANVIET] … các dòng kịch bản hình phẳng … [/HÌNH TOANVIET]  → vẽ đúng kịch bản, không đọc đề đoán hình
+    let ktv = 0;
+    s = s.replace(/\[\s*H[ÌI]NH\s+TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+TOANVIET)?\s*\]/giu, (m0, body) => {
+      const script = body.replace(/^\s*```.*$/gm, '').split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean).join('\n');
+      if (!script) return '\n';
+      ktv++; note('hình theo kịch bản ToanViet do AI viết');
+      return '\n#FIG tv' + ktv + ' ' + JSON.stringify({ type: 'plane', kind: 'tamgiac', script, w: 340, h: 300, scale: 0.75 }) + '\n[FIG tv' + ktv + '|Hình]\n';
+    });
     // khối mã ```…```: bỏ dấu rào, giữ nội dung
     s = s.replace(/^```[a-z]*\s*$/gim, '');
     // \[ … \] và $$ … $$ (có thể nhiều dòng) → một dòng $$…$$ riêng; \( … \) → $…$
@@ -69,6 +78,7 @@
     for (let i = 0; i < lines.length; i++) {
       let ln = lines[i].trim();
       if (!ln) continue;
+      if (/^#FIG tv\d+ |^\[FIG tv\d+\|/.test(ln)) { out.push(ln); continue; } // hình kịch bản ToanViet (ở trên)
       if (/^([-*_]\s*){3,}$/.test(ln)) continue; // đường kẻ ngang Markdown
       // bảng Markdown: các dòng liền nhau bắt đầu bằng |
       if (ln.startsWith('|')) {
@@ -122,7 +132,7 @@
     }
     // chuẩn hoá công thức và phần chữ
     const res = out.map((ln) => {
-      if (/^#(TAB|ENDTAB)$/.test(ln)) return ln;
+      if (/^#(TAB|ENDTAB)$/.test(ln) || /^#FIG tv\d+ |^\[FIG tv\d+\|/.test(ln)) return ln;
       const disp = /^\$\$([^$]+)\$\$$/.exec(ln);
       if (disp) return '$$' + cleanTex(disp[1], false, notes) + '$$';
       return ln.replace(/\$\$([^$]+)\$\$|\$([^$]+)\$/g, (m, d, i2) => (d ? '$$' + cleanTex(d, false, notes) + '$$' : '$' + cleanTex(i2, true, notes) + '$'))
@@ -172,6 +182,8 @@
       const tag = n.tagName;
       const kids = () => [...n.childNodes].map(walk).join('');
       if (tag === 'BR') return '\n';
+      // khối mã (kịch bản hình ToanViet…): giữ nguyên xuống dòng; chỉ lấy phần <code>, bỏ thanh tên ngôn ngữ của trang AI
+      if (tag === 'PRE') { const c = n.querySelector('code'); return '\n' + (c || n).textContent.replace(/\r\n?/g, '\n') + '\n'; }
       if (tag === 'HR') return '\n';
       if (/^H[1-6]$/.test(tag)) return '\n' + '#'.repeat(+tag[1]) + ' ' + kids().replace(/\n+/g, ' ').trim() + '\n';
       if (tag === 'STRONG' || tag === 'B') { const k = kids(); return k.trim() ? '**' + k.trim() + '**' + (/\s$/.test(k) ? ' ' : '') : k; }
@@ -243,7 +255,8 @@
     // hình chưa vẽ đủ (câu chưa hiểu, điểm chưa dựng được): để hộp Bài giải AI gợi ý giáo viên sửa câu và ghi nhớ
     const loi = [];
     const nhan = (blk) => (blk.find((l) => /^#C /.test(l)) || '').replace(/^#C\s*/, '').trim();
-    const lines = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l));
+    // giữ hình kịch bản ToanViet do AI viết (#FIG tvN, [FIG tvN|…]); các hình khác dựng lại
+    const lines = String(markup).split('\n').filter((l) => /^#FIG tv\d+ |^\[FIG tv\d+\|/.test(l) || (!/^#FIG /.test(l) && !/^\[FIG /.test(l)));
     const out = [], specs = [];
     let fig = 0;
     // chia theo câu / đề mục: mỗi khối xét riêng
@@ -261,8 +274,18 @@
       blk.splice(at + 1, 0, '[FIG ' + key + '|' + (caption || cap) + ']');
     };
     for (const blk of blocks) {
-      const text = blk.join('\n');
       const f0 = fig;
+      // hình kịch bản ToanViet do AI viết: đánh số theo thứ tự hình, kiểm tra kịch bản dựng được; câu này không đọc đề vẽ thêm
+      blk.forEach((l, i) => {
+        let m;
+        if ((m = /^\[FIG (tv\d+)\|/.exec(l))) { fig++; blk[i] = '[FIG ' + m[1] + '|Hình ' + fig + ']'; return; }
+        if ((m = /^#FIG tv\d+ (\{.*\})\s*$/.exec(l))) {
+          let err = '';
+          try { const sp = JSON.parse(m[1]), PL = root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane); if (PL && PL.loi) { const er = PL.loi(sp.script); if (er.length) err = er.slice(0, 2).join('; '); } } catch (e) { err = e && e.message ? e.message : String(e); }
+          if (err) loi.push({ cau: nhan(blk), loai: 'kịch bản AI', chuaHieu: [], thieu: [], diem: [], loiKB: err });
+        }
+      });
+      const text = blk.join('\n');
       // --- miền nghiệm hệ bất phương trình bậc nhất hai ẩn ---
       // (cả khi đề không nói "miền nghiệm" mà cho hệ hai ẩn x, y rồi hỏi GTLN, GTNN… như bài toán tối ưu SGK)
       const sysXY = /\\begin\{cases\}/.test(text) && /x/.test(text) && /y/.test(text) && /GTLN|GTNN|giá trị (?:lớn|nhỏ) nhất|tối ưu|thoả mãn|thỏa mãn|hệ bất phương trình/i.test(text);

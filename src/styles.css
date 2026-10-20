@@ -402,3 +402,5 @@ body.capturing dialog::backdrop { display: none !important; background: transpar
 .bgview .pv-fig { text-align: center; margin: 8px 0 2px; font: 13px 'Segoe UI', sans-serif; }
 .bgview .pv-fig .obj { outline: none !important; cursor: default; }
 .bgview .pv-cap { text-align: center; font-style: italic; font-size: 14px; margin-bottom: 8px; }
+.bghint .bgnhac { padding: 1px 8px; border: 1px solid #c9d7ea; border-radius: 12px; background: #eef4fc; color: #1f4f8f; font-size: 12px; cursor: pointer; }
+.bghint .bgnhac:hover { background: #dbe8f8; }

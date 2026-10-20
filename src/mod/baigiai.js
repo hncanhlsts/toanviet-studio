@@ -92,7 +92,8 @@
     }
     // dựng lại hình sau khi sửa nội dung: bỏ các hình cũ và chữ "(Hình n)" đã thêm, nhận diện lại
     function rebuildFigures(markup) {
-      const clean = String(markup).split('\n').filter((l) => !/^#FIG /.test(l) && !/^\[FIG /.test(l)).map((l) => l.replace(/ \(Hình \d+\)(?=[.:;]?\s*$)/, '')).join('\n');
+      // giữ hình kịch bản ToanViet do AI viết (#FIG tvN)
+      const clean = String(markup).split('\n').filter((l) => /^#FIG tv\d+ |^\[FIG tv\d+\|/.test(l) || (!/^#FIG /.test(l) && !/^\[FIG /.test(l))).map((l) => l.replace(/ \(Hình \d+\)(?=[.:;]?\s*$)/, '')).join('\n');
       const f = BaiGiai.figures(clean);
       mergeNotes(f.notes);
       loi = f.loi || [];
@@ -119,6 +120,7 @@
         h += '<div class="bgloi"><b>Hình chưa vẽ đủ</b> — mô tả lại <b>từng điểm</b> chưa xác định (bấm một gợi ý để điền), rồi bấm <b>Vẽ điểm … và ghi nhớ</b>. Vẽ được điểm đó thì các điểm dựng từ nó tự vẽ tiếp; lần sau gặp câu cùng dạng (tên điểm khác), ToanViet tự vẽ đúng.';
         sai.forEach((L) => {
           h += '<div class="bgloic">' + esc(L.cau || 'Hình') + ' <span>(hình ' + esc(L.loai) + ')</span></div>';
+          if (L.loiKB) { h += '<div class="bgthieu">Kịch bản hình do AI viết bị lỗi: ' + esc(L.loiKB) + ' — sửa dòng đó trong khối #FIG ở ô bên trái, hoặc nhờ AI viết lại kịch bản.</div>'; return; }
           const th = L.thieu || [], ten = th.map((t) => t.ten);
           th.forEach((t) => {
             const cho = (t.can || []).filter((c) => ten.includes(c));
@@ -155,7 +157,8 @@
       const body = d.querySelector('.tvbody');
       body.innerHTML =
         '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
-        'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào.</p>' +
+        'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào. ' +
+        'Hình học phẳng vẽ đúng ý đề nhất khi AI viết sẵn hình: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button>, dán vào đầu cuộc trò chuyện với AI (hoặc phần hướng dẫn riêng / Gem / GPT), AI sẽ viết kèm khối <b>[HÌNH TOANVIET]</b>.</p>' +
         '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
@@ -164,6 +167,14 @@
         '<label>Cỡ chữ <select id="bgpt"><option>12</option><option>13</option><option>14</option></select></label>' +
         '<span id="bgstat" class="bgstat"></span><button id="bgfig" title="Sau khi sửa nội dung: nhận diện và vẽ lại các hình">Dựng lại hình</button><button id="bgclear">Xoá</button><button id="bgmake" class="primary">Tạo tài liệu Word</button></div>';
       const src = $('#bgsrc'), view = $('#bgview');
+      // chép lời nhắc vẽ hình (src/loi-nhac-ai.js) vào bộ nhớ tạm để dán cho ChatGPT, Gemini, Copilot…
+      $('#bgnhac').onclick = async () => {
+        const t = window.LoiNhacAI ? LoiNhacAI.text() : '';
+        if (!t) return;
+        try { await navigator.clipboard.writeText(t); }
+        catch (err) { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+        msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài');
+      };
       let tmr = 0;
       const refresh = () => {
         view.innerHTML = previewHtml(src.value);

@@ -6,9 +6,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node build/tao-cau-noi.js --kiem-tra && electron test/run.js && node test/kiem-hinh-lop.js && node test/ui.js && node test/baigiai-chay.js",
+    "test": "node build/tao-cau-noi.js --kiem-tra && node build/dong-goi-skill.js --kiem-tra && electron test/run.js && node test/kiem-hinh-lop.js && node test/ui.js && node test/baigiai-chay.js",
     "dist": "electron-packager . \"ToanViet Studio\" --platform=win32 --arch=x64 --out=dist --overwrite --ignore=\"^/dist\" --ignore=\"^/test\"",
-    "installer": "node build/tao-cau-noi.js && electron-builder --win nsis --x64"
+    "installer": "node build/tao-cau-noi.js && node build/dong-goi-skill.js && electron-builder --win nsis --x64"
   },
   "license": "MIT",
   "dependencies": {

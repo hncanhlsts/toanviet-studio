@@ -384,6 +384,11 @@
     ok('chọn điểm F: hiện ô mô tả lại F', !!inp);
     if (inp) { inp.value = 'trung điểm của AC'; inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await w(500); }
     ok('F vẽ lại theo mô tả (trung điểm AC), I dựng lại theo F mới', /F = trungdiem\(A, C\)/.test(src.value) && /I = giao\(A, B, E, F\)/.test(src.value), src.value.slice(0, 400));
+    // AI viết sẵn hình theo lời nhắc: khối [HÌNH TOANVIET] được vẽ đúng kịch bản
+    ok('có nút "Chép lời nhắc vẽ hình cho AI", lời nhắc có khối [HÌNH TOANVIET]', !!document.getElementById('bgnhac') && /\[HÌNH TOANVIET\]/.test(LoiNhacAI.text()));
+    localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
+    await paste('Câu 4. Cho tam giác ABC có M là trung điểm của BC.\n[HÌNH TOANVIET]\n```\nB = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC\nM = trungdiem(B, C)\ndoan AM\nbang BM MC\n```\n[/HÌNH TOANVIET]\nLời giải\nTa có $BM = MC$.');
+    ok('dán câu trả lời có khối [HÌNH TOANVIET]: hình đúng kịch bản, có trong phần xem trước', /#FIG tv1 .*M = trungdiem\(B, C\)/.test(src.value) && /\[FIG tv1\|Hình 1\]/.test(src.value) && !!document.querySelector('#bgview svg, #bgview img'), src.value.slice(0, 300));
     localStorage.removeItem('tvs-cach-ve'); DeHinh.setRules([]);
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });

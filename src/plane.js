@@ -984,5 +984,7 @@ diem O`],
 
   // toạ độ các điểm (dùng khi kéo điểm để giải ngược thông số)
   const points = (script) => build(script).P;
-  root.Plane = { render, KINDS, scriptOf, params, setParam, points, placeNames };
+  // các dòng kịch bản lỗi (kiểm tra kịch bản hình do AI viết)
+  const loi = (script) => build(script).errors;
+  root.Plane = { render, KINDS, scriptOf, params, setParam, points, placeNames, loi };
 })(window);
