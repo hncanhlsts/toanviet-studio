@@ -407,6 +407,10 @@ body.capturing dialog::backdrop { display: none !important; background: transpar
 #ribbon.gon .grp { padding: 0 4px; }
 #ribbon.gon button { min-width: 44px; padding: 2px 3px; font-size: 11px; }
 #ribbon.gon .stack select { width: 160px; max-width: 160px; }
+#ribbon.hep .stack select { width: 120px; max-width: 120px; }
+#ribbon.hep .stack label, #ribbon.hep .stack > div > span { font-size: 11px; }
+#ribbon.cuon { flex-wrap: nowrap; overflow-x: auto; }
+#ribbon.cuon > .grp { flex-shrink: 0; }
 #ribbon .grp.ic .btns { display: grid; grid-auto-flow: column; grid-template-rows: 25px 25px; gap: 0 1px; }
 #ribbon .grp.ic button { flex-direction: row; min-width: 30px; width: 30px; height: 25px; padding: 0; font-size: 0; }
 #ribbon .grp.ic button i { font-size: 15px; line-height: 20px; }

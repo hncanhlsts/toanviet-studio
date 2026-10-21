@@ -1400,13 +1400,16 @@
     const grps = [...rb.querySelectorAll(':scope > .grp')];
     const lbl = (g) => (g.querySelector(':scope > span') || {}).textContent || '';
     // thứ tự thu gọn: nhóm ít dùng trước
-    const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo'];
+    const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo', 'Hình học và ký hiệu Lí – Hoá – Sinh', 'Tiểu học (lớp 1–5)'];
     const seq = ORDER.map((t) => grps.find((g) => lbl(g) === t)).filter(Boolean);
     const wraps = () => { const vis = grps.filter((g) => g.offsetParent !== null); return vis.length > 1 && vis.some((g) => g.offsetTop > vis[0].offsetTop + 4); };
-    rb.classList.remove('gon'); grps.forEach((g) => g.classList.remove('ic'));
+    rb.classList.remove('gon', 'hep', 'cuon'); grps.forEach((g) => g.classList.remove('ic'));
     if (!wraps()) return;
     rb.classList.add('gon');
     for (const g of seq) { if (!wraps()) break; g.classList.add('ic'); }
+    // cửa sổ rất hẹp: thu hẹp các ô chọn hình; vẫn chưa đủ thì giữ một hàng, cuộn ngang
+    if (wraps()) rb.classList.add('hep');
+    if (wraps()) rb.classList.add('cuon');
   }
   let fitT = 0;
   addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitRibbon, 80); });
