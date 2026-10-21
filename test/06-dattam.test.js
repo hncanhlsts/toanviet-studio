@@ -25,10 +25,10 @@ thu('A, B theo thứ tự thuộc Ox, Oy sao cho OA = OB; AH ⊥ Oy, BK ⊥ Ox; 
   dung(/B = dat\(O, Y, O, A\)/.test(r.script) && /H = chan\(A, O, Y\)/.test(r.script) && /K = chan\(B, O, X\)/.test(r.script) && /M = giao\(A, H, B, K\)/.test(r.script), r.script);
   bang(r.thieu.length + r.chuaHieu.length + r.tam.length, 0);
 });
-thu('đặt tạm: điểm ∈ tia (A ∈ Ox), chân vuông góc chưa đọc được (AH vuông góc Oy), điểm tự do (D ở ngoài tam giác)', () => {
+thu('A ∈ Ox (điểm trên tia), AH vuông góc Oy: đọc được hẳn, không đặt tạm; điểm tự do (D ở ngoài tam giác) vẫn đặt tạm', () => {
   const r = DeHinh.plane('Cho góc xOy, điểm A ∈ Ox. Kẻ AH vuông góc Oy tại H.');
-  dung(/A = chia\(O, X, 0\.6\)/.test(r.script) && /H = chan\(A, O, Y\)/.test(r.script), r.script);
-  bang(r.tam.map((t) => t.ten).join(), 'A,H');
+  dung(/A = chia\(O, X, 0\.\d+\)/.test(r.script) && /H = chan\(A, O, Y\)/.test(r.script), r.script);
+  bang(r.tam.length + r.thieu.length + r.chuaHieu.length, 0);
   const r2 = DeHinh.plane('Cho tam giác ABC và điểm D ở phía ngoài tam giác. Gọi M là trung điểm của AD.');
   dung(/D = \(-?[\d.]+, -?[\d.]+\)/.test(r2.script) && /M = trungdiem\(A, D\)/.test(r2.script), r2.script);
   bang(r2.thieu.length, 0);
