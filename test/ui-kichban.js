@@ -410,6 +410,16 @@
     __clear(); await w(50);
     const grps = [...document.querySelectorAll('#ribbon > .grp')].filter((g) => g.offsetParent !== null);
     ok('thanh công cụ nằm trên một hàng (cửa sổ ' + innerWidth + ' px)', grps.every((g) => g.offsetTop === grps[0].offsetTop), grps.map((g) => g.offsetTop).join(','));
+    // cửa sổ hẹp, cả chế độ Tiểu học: một hàng, khối ô chọn không tràn ra ngoài thanh công cụ (lỗi 2.7.9)
+    const rb = document.getElementById('ribbon'), trong = () => [...rb.querySelectorAll('.stack')].filter((s) => s.offsetParent).every((s) => s.getBoundingClientRect().bottom <= rb.getBoundingClientRect().bottom + 1);
+    const motHang = () => { const g = [...rb.querySelectorAll(':scope > .grp')].filter((x) => x.offsetParent); return g.every((x) => x.offsetTop === g[0].offsetTop); };
+    const kq = [];
+    for (const th of [false, true]) {
+      if (th) { __run('tieuhoc'); await w(150); }
+      for (const W of [1300, 1000, 800]) { rb.style.width = W + 'px'; window.__fitRibbon(); await w(30); kq.push((th ? 'TH' : 'CS') + W + ':' + (motHang() && trong() ? 'ok' : 'LỖI')); }
+    }
+    __run('tieuhoc'); await w(150); rb.style.width = ''; window.__fitRibbon();
+    ok('thanh công cụ hẹp (Tiểu học / THCS): một hàng, ô chọn không tràn', kq.every((s) => s.endsWith('ok')), kq.join(' '));
     __run('ins-arrow'); await w(150);
     const el = document.querySelector('#page .obj.sel'), o = __get(el.dataset.id);
     ok('mũi tên chèn vào nằm ngang, có hai nút đầu mút', o.kind === 'conn' && o.head === 'end' && o.p1.y === o.p2.y && el.querySelectorAll('.eph').length === 2, JSON.stringify([o.p1, o.p2]));

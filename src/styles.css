@@ -414,6 +414,10 @@ body.capturing dialog::backdrop { display: none !important; background: transpar
 #ribbon .grp.ic .btns { display: grid; grid-auto-flow: column; grid-template-rows: 25px 25px; gap: 0 1px; }
 #ribbon .grp.ic button { flex-direction: row; min-width: 30px; width: 30px; height: 25px; padding: 0; font-size: 0; }
 #ribbon .grp.ic button i { font-size: 15px; line-height: 20px; }
+/* nhóm có khối ô chọn (Tiểu học, Hình học): khối chiếm cả hai hàng, nút Chèn giữ nguyên chữ */
+#ribbon .grp.ic .btns:has(> .stack) { grid-template-rows: auto auto; align-content: center; }
+#ribbon .grp.ic .btns > .stack { grid-row: 1 / span 2; align-self: center; margin-left: 4px; }
+#ribbon .grp.ic .stack button { width: auto; min-width: 0; height: 21px; padding: 0 6px; font-size: 11px; }
 /* đầu mút của đoạn / mũi tên / đường nối: kéo để xoay, kéo dài (app.js: endDrag) */
 .eph { position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; border: 1.8px solid #1f5fbf; cursor: crosshair; display: none; z-index: 2; }
 .obj.sel:not(.msel) .eph { display: block; }
