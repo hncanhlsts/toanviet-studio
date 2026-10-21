@@ -58,14 +58,27 @@
     return String(script || '').split('\n').map((l) => {
       const h = l.indexOf('#'), code = h < 0 ? l : l.slice(0, h), note = h < 0 ? '' : l.slice(h);
       return code
-        .replace(/(?<!\bnhan)(?<!\bnhanmp)\s+(?=(?:[A-Z](?:'{1,2}|_?\d+)?|[a-z][a-z0-9_]*)\s*=\s*[-\w(.√])/g, '\n')
+        // chỉ tách trước phép gán thật: "X = (…)", "X = phépdựng(…)", "r = 5" — không tách nhãn "goc C1 A A2 = 65°"
+        .replace(/(?<!\bnhan)(?<!\bnhanmp)\s+(?=[A-Z](?:'{1,2}|_?\d+)?\s*=\s*(?:\(|[a-z]+\()|[a-z][a-z0-9_]*\s*=\s*-?[\d.]+(?![\d.]*\s*(?:\^|°|\\)))/g, '\n')
         .replace(new RegExp('\\s+(?=(?:' + LENH + ")\\s+[A-Z(])", 'g'), '\n') + note;
     }).join('\n');
+  }
+  // chuẩn hoá kịch bản chép từ trang AI về đúng cú pháp ToanViet (dùng chung cho dán Bài giải AI, Dùng hình này, Kịch bản, skill)
+  function chuanHoaKB(body) {
+    return String(body || '').normalize('NFC').replace(/\r\n?/g, '\n').replace(/[   ]/g, ' ').replace(/[​‌‍﻿]/g, '')
+      .replace(/（/g, '(').replace(/）/g, ')').replace(/，/g, ',').replace(/：/g, ':').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[−–]/g, '-')
+      .split('\n').map((l) => l
+        .replace(/\\([_*#[\]()])/g, '$1') // ký tự thoát của Markdown: A\_1 → A_1
+        .replace(/^\s*(?:[-*•]\s+|\d+[.)]\s+)/, '') // số thứ tự, gạch đầu dòng
+        .replace(/[;,]\s*$/, '').trim())
+      // dòng nhãn của khung mã trên trang AI ("toanviet", "Copy code", "Sao chép mã") và nhãn câu lọt vào khối
+      .filter((l) => l && !/^(?:toanviet[\w-]*|copy(?: code)?|sao chép(?: mã)?|plaintext|text|code|c[âa]u\s*\d+[a-z]?\s*[.:)]?|bài\s*\d+[a-z]?\s*[.:)]?)$/i.test(l))
+      .join('\n');
   }
   const coKB = (lines) => lines.length >= 2 && lines.filter((l) => DONG_KB.test(l)).length >= 0.8 * lines.length && lines.some((l) => /^[A-Z](?:'{1,2}|_?\d+)?\s*=\s*\(/.test(l));
   // nội dung khối → đối tượng hình ToanViet (phẳng / không gian: theo nhãn, hoặc toạ độ có ba số)
   function khoiSpec(kg, body) {
-    const lines = tachDong(String(body || '').replace(/^\s*`{3,}.*$/gm, '').replace(/`+/g, '')).split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean);
+    const lines = tachDong(chuanHoaKB(String(body || '').replace(/^\s*`{3,}.*$/gm, '').replace(/`+/g, ''))).split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean);
     const script = lines.join('\n');
     if (!script || !/=/.test(script)) return null; // khối trống / chỉ có "…" (lời nhắc mẫu)
     const kgian = !!kg || /^[A-Z][^=\n]*=\s*\(\s*[^,()]+,[^,()]+,[^,()]+\)\s*(?:#.*)?$/m.test(script);
@@ -82,7 +95,7 @@
     while ((m = rf.exec(t))) {
       const lang = (m[1] || '').toLowerCase(), tv = /^toanviet/.test(lang), kg = /kh[oô]ng|gian|kg|3d/.test(lang);
       if (tv) { add(m.index, m.index + m[0].length, kg, m[2]); continue; }
-      if (!lang || /^(text|plaintext|txt|plain|code)$/.test(lang)) { const ls = tachDong(m[2]).split('\n').map((l) => l.trim()).filter(Boolean); if (coKB(ls)) add(m.index, m.index + m[0].length, false, m[2]); }
+      if (!lang || /^(text|plaintext|txt|plain|code)$/.test(lang)) { const ls = tachDong(chuanHoaKB(m[2])).split('\n').map((l) => l.trim()).filter(Boolean); if (coKB(ls)) add(m.index, m.index + m[0].length, false, m[2]); }
     }
     // dạng cũ [HÌNH TOANVIET] … [/HÌNH TOANVIET]
     const rb = /\[?\s*H[ÌI]NH\s+(KH[ÔO]NG\s+GIAN\s+)?TOANVIET\s*\]([\s\S]*?)\[\s*\/\s*H[ÌI]NH(?:\s+(?:KH[ÔO]NG\s+GIAN\s+)?TOANVIET)?\s*\]/giu;
@@ -96,12 +109,12 @@
     timKhoi(t).forEach((k) => {
       const sp = khoiSpec(k.kg, k.body);
       // nhãn "Câu n" gần nhất phía trên khối (sau khối trước)
-      const nh = [...t.slice(last, k.start).matchAll(/c[âa]u\s*(\d+[a-z]?)\b/gi)], so = nh.length ? nh[nh.length - 1][1] : '';
+      const nh = [...t.slice(last, k.start).matchAll(/(?:c[âa]u|b[àa]i)\s*(\d+[a-z]?)\b/gi)], so = nh.length ? nh[nh.length - 1][1] : '';
       if (sp) out.push({ so: (so || '').toLowerCase(), sp, start: k.start, end: k.end });
       last = k.end;
     });
     if (!out.length) {
-      const ls = tachDong(t.replace(/^\s*`{3,}.*$/gm, '')).split('\n').map((l) => l.trim()).filter(Boolean);
+      const ls = tachDong(chuanHoaKB(t.replace(/^\s*`{3,}.*$/gm, ''))).split('\n').map((l) => l.trim()).filter(Boolean);
       if (coKB(ls)) { const sp = khoiSpec('', ls.join('\n')); if (sp) out.push({ so: '', sp, start: 0, end: t.length }); }
     }
     return out;

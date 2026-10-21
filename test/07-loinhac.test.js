@@ -55,3 +55,18 @@ thu('dán HTML từ trang AI: khối mã <pre> giữ xuống dòng, bỏ thanh t
   const m = /^#FIG tv1 (\{.*\})$/m.exec(f.markup);
   bang(m && JSON.parse(m[1]).script, "B = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC");
 });
+thu('kịch bản AI viết tên điểm cách nhau (goc C1 A A2, doan A B, dagiac A B C), dấu °, dấu trừ Unicode: dựng được', () => {
+  bang(Plane.loi('A = (0, 0)\nB = (4, −1)\nC = (2, 3)\ndoan A B\ndagiac A B C\ngoc B A C = 40°\nvuong A B C\nbang A B A C').join(), '');
+  // kịch bản thầy gửi 21/10/2026 (AI viết "goc C1 A A2 = 65^\circ")
+  const kb = 'A = (0, 3)\nB = (-1.5, 0)\nC = (3, 3)\nA1 = (-3, 3)\nA2 = (5, 3)\nB1 = (-4.5, 0)\nB2 = (3.5, 0)\nduongthang A1A2\nduongthang B1B2\nnhan A1 = a\nnhan B1 = b\nan A2 B2\nC1 = chia(A, B, -0.6)\nC2 = chia(A, B, 1.6)\nduongthang C1C2\nnhan C1 = c\nan C2\nD = chan(C, B1, B2)\nD1 = chia(C, D, -0.4)\nD2 = chia(C, D, 1.4)\nduongthang D1D2\nnhan D1 = d\nan D2\nvuong ACD\ngoc C1 A A2 = 65^\circ\ngoc A B B2 = 65^\circ\ndiem A B C D\nnhan A = A_1\nnhan B = B_1';
+  bang(Plane.loi(kb).join(), '');
+  const sp = BaiGiai.docKhoi('1. A = (0, 0)\n2. B = (6, 0)\n3. C\_1 = (2, 3)\n- dagiac A B C\_1;\n- goc B A C\_1 = 40°')[0];
+  dung(sp && !BaiGiai.loiKhoi(sp).length, JSON.stringify(sp));
+});
+thu('bảng "Từ ngữ chỉ vị trí" trong lời nhắc: mọi phép dựng đều chạy được', () => {
+  const t = LoiNhacAI.text(), sec = t.slice(t.indexOf('## 4b.'), t.indexOf('## 4c.'));
+  const goc = 'A = (0, 0)\nB = (6, 0)\nC = (2, 4)\nO = (0, 0)\nX = (6, 0)\nY = (2, 5)\nr = 3\nA1 = (-5, 2)\nA2 = (5, 2)\n';
+  const dong = sec.split('\n').filter((l) => /^\| .* \| .*= .* \|$/.test(l)).map((l) => l.split('|')[2].trim());
+  dung(dong.length >= 14, 'số dòng bảng: ' + dong.length);
+  dong.forEach((d) => { const kb = d.split(/ rồi | ; | — | hoặc /)[0].replace(/^tia Ox: /, '').replace(/\s+\([^)]*[à-ỹ][^)]*\)\s*$/, ''); /* bỏ ghi chú "(góc khác …)" */ const e = Plane.loi(goc + 'M = (1, 1)\n' + kb.replace(/\bH = /, 'H = ').replace(/^X = /, 'X9 = ').replace(/^D = /, 'D = ')); dung(!e.length, d + ' → ' + e.join('; ')); });
+});

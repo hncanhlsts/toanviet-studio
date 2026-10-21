@@ -68,7 +68,7 @@
     const names = (s) => { const m = s.match(NAME_RE) || []; if (!m.length) throw new Error('thiếu tên điểm'); m.forEach(pt); return m; };
     let tickAuto = 0;
     String(script || '').split(/\n/).forEach((raw) => {
-      const line = raw.replace(/#.*$/, '').trim();
+      const line = raw.replace(/#.*$/, '').replace(/[−–]/g, '-').trim(); // dấu trừ Unicode (chép từ trang AI)
       if (!line) return;
       try {
         const vdef = line.match(/^([a-z][a-z0-9_]*)\s*=\s*(.+)$/);
@@ -85,8 +85,19 @@
         let rest = sp < 0 ? '' : line.slice(sp + 1).trim(), label = '', color = '';
         if (kw !== 'nhan') rest = rest.replace(/\s+(#[0-9a-fA-F]{6}|do|xanh|xanhla|den|xam|cam|tim)\b/g, (m, c) => { color = COLORS[c] || c; return ''; });
         const eq = rest.indexOf('=');
-        if (eq >= 0 && kw !== 'nhan') { label = rest.slice(eq + 1).trim(); rest = rest.slice(0, eq).trim(); }
-        const groups = () => rest.split(/[,\s]+/).filter(Boolean).map(names);
+        if (eq >= 0 && kw !== 'nhan') { label = rest.slice(eq + 1).trim().replace(/^\$(.*)\$$/, '$1').replace(/\s*°/g, '^{\\circ}'); rest = rest.slice(0, eq).trim(); }
+        // tên điểm viết cách nhau ("goc C1 A A2", "doan A B", "dagiac A B C"): ghép lại — ba điểm một góc, cả dãy một đường,
+        // từng cặp cho dấu bằng nhau / song song (cách viết tự nhiên của trợ lí AI)
+        const groups = () => {
+          const gs = rest.split(/[,\s]+/).filter(Boolean).map(names);
+          if (gs.length > 1 && gs.every((g) => g.length === 1)) {
+            const all = gs.map((g) => g[0]), cut = (k) => { const o = []; for (let i = 0; i < all.length; i += k) o.push(all.slice(i, i + k)); return o; };
+            if (kw === 'goc' || kw === 'vuong') { if (all.length % 3 === 0) return cut(3); }
+            else if (kw === 'bang' || kw === 'ssong') { if (all.length % 2 === 0) return cut(2); }
+            else return [all];
+          }
+          return gs;
+        };
         const pairs = (closed) => { const out = []; groups().forEach((g) => { for (let i = 0; i + 1 < g.length; i++) out.push([g[i], g[i + 1]]); if (closed && g.length > 2) out.push([g[g.length - 1], g[0]]); }); return out; };
         switch (kw) {
           case 'doan': pairs().forEach((s) => cmds.push({ k: 'seg', a: s[0], b: s[1], color, label })); break;

@@ -77,7 +77,7 @@
     const arg = (a) => (NAME_FULL.test(a) && P[a] ? P[a] : PL[a] ? PL[a] : num(a));
     let tickAuto = 0;
     String(script || '').split(/\n/).forEach((raw) => {
-      const line = raw.replace(/#.*$/, '').trim();
+      const line = raw.replace(/#.*$/, '').replace(/[−–]/g, '-').trim(); // dấu trừ Unicode (chép từ trang AI)
       if (!line) return;
       try {
         const vdef = line.match(/^([a-z][a-z0-9_]*)\s*=\s*(.+)$/);
@@ -114,8 +114,18 @@
           return;
         }
         const eq = rest.indexOf('=');
-        if (eq >= 0 && kw !== 'nhan') { label = rest.slice(eq + 1).trim(); rest = rest.slice(0, eq).trim(); }
-        const groups = () => rest.split(/[,\s]+/).filter(Boolean).map(names);
+        if (eq >= 0 && kw !== 'nhan') { label = rest.slice(eq + 1).trim().replace(/^\$(.*)\$$/, '$1').replace(/\s*°/g, '^{\\circ}'); rest = rest.slice(0, eq).trim(); }
+        // tên điểm viết cách nhau ("goc S A B", "doan S A"): ghép lại như hình phẳng (src/plane.js)
+        const groups = () => {
+          const gs = rest.split(/[,\s]+/).filter(Boolean).map(names);
+          if (gs.length > 1 && gs.every((g) => g.length === 1)) {
+            const all = gs.map((g) => g[0]), cut = (k) => { const o = []; for (let i = 0; i < all.length; i += k) o.push(all.slice(i, i + k)); return o; };
+            if (kw === 'goc' || kw === 'vuong') { if (all.length % 3 === 0) return cut(3); }
+            else if (kw === 'bang') { if (all.length % 2 === 0) return cut(2); }
+            else return [all];
+          }
+          return gs;
+        };
         const pairs = (closed) => { const out = []; groups().forEach((g) => { for (let i = 0; i + 1 < g.length; i++) out.push([g[i], g[i + 1]]); if (closed && g.length > 2) out.push([g[g.length - 1], g[0]]); }); return out; };
         switch (kw) {
           case 'doan': case 'netdut': case 'netlien': case 'vecto':

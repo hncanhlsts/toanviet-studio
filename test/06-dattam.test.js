@@ -38,4 +38,20 @@ thu('nhiều điểm đặt tạm ở chỗ trống: không đặt trùng nhau',
   const r = DeHinh.plane('Cho tam giác ABC và hai điểm D, E ở phía ngoài tam giác. Gọi M là trung điểm của DE.');
   const P = Plane.points(r.script);
   dung(P.D && P.E && Math.hypot(P.D[0] - P.E[0], P.D[1] - P.E[1]) > 1, r.script);
+});// bảng từ ngữ chỉ vị trí (VI_TRI trong dedehinh.js): câu bộ đọc chưa hiểu vẫn đặt điểm đúng chỗ
+thu('bảng từ ngữ chỉ vị trí: ngoài tam giác, khác phía, trong góc, phần kéo dài, nửa mặt phẳng không chứa A', () => {
+  const ca = [
+    ['Cho tam giác ABC. Điểm E nằm ngoài tam giác ABC. Nối AE.', /E = tohop\(-0\.35, A, 0\.7, B, 0\.65, C\)/],
+    ['Cho tam giác ABC. Điểm D và A nằm khác phía đối với BC. Nối AD.', /D = tohop\(-0\.5, A, 0\.75, B, 0\.75, C\)/],
+    ['Cho góc xOy nhọn. Điểm M nằm trong góc xOy. Nối OM.', /M = phangiacgoc\(X, O, Y\)/],
+    ['Cho tam giác ABC. Điểm P thuộc phần kéo dài của cạnh BC. Nối AP.', /P = chia\(B, C, 1\.4\)/],
+    ['Cho tam giác ABC. Trên nửa mặt phẳng bờ BC không chứa A lấy điểm D kì lạ. Nối AD.', /D = tohop\(-0\.5, A, 0\.75, B, 0\.75, C\)/],
+  ];
+  ca.forEach(([de, rx]) => { const r = DeHinh.plane(de); dung(rx.test(r.script) && !Plane.loi(r.script).length, de + '\n' + r.script); });
+});
+thu('đề thầy gửi 21/10: a và b bị cắt bởi c tại A và B (góc A1, B1 là tên góc), d vuông góc với a tại C, đề có điểm số (0,5đ)', () => {
+  const r = DeHinh.plane(String.raw`Cho hình vẽ: hai đường thẳng $a$ và $b$ bị cắt bởi đường thẳng $c$ tại hai điểm $A$ và $B$. Biết góc $\widehat{A_1} = 65^\circ$ và $\widehat{B_1} = 65^\circ$. a) (0,5đ) Chứng minh rằng $a//b$. b) (1,0đ) Vẽ đường thẳng $d$ vuông góc với $a$ tại $C$. Chứng minh rằng đường thẳng $d$ cũng vuông góc với đường thẳng $b$.`);
+  dung(r && /A = giao\(/.test(r.script) && /B = giao\(/.test(r.script) && /C = chia\(/.test(r.script) && /nhan \w = d/.test(r.script) && /vuong /.test(r.script), r && r.script);
+  bang(r.thieu.length + r.tam.length + r.chuaHieu.length, 0);
+  dung(!/A1|B1/.test(r.script), 'A1, B1 là tên góc, không phải điểm');
 });

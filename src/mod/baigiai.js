@@ -214,7 +214,7 @@
         const ks = BaiGiai.khoiCau(t);
         // phần còn lại (ngoài các khối, nhãn câu, lời dẫn ngắn của AI) gần như trống: đây là câu trả lời chỉ có hình
         let du = t; ks.slice().sort((a, b) => b.start - a.start).forEach((k) => { du = du.slice(0, k.start) + du.slice(k.end); });
-        du = du.replace(/c[âa]u\s*\d+[a-z]?\s*[.:)]?/gi, '').replace(/[`*#\s.:,-]+/g, '');
+        du = du.replace(/(?:c[âa]u|b[àa]i)\s*\d+[a-z]?\s*[.:)]?/gi, '').replace(/[`*#\s.:,-]+/g, '');
         if (!ks.length || du.length > 120) return false;
         const L0 = src.value.split('\n'), cs = cauCua(L0), coHinh = cs.filter((c) => L0.slice(c.start, c.end).some((l) => /^\[FIG /.test(l)));
         const loi2 = [];
