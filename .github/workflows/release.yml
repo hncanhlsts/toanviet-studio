@@ -48,8 +48,15 @@ jobs:
             exit 1
           }
 
+      # các dòng ✘ được ghi thành chú thích lỗi (::error::) để xem được ở trang Actions mà không cần tải nhật ký
       - name: Kiem thu
-        run: npm test
+        shell: pwsh
+        run: |
+          npm test 2>&1 | Tee-Object -FilePath kiem-thu.log
+          if ($LASTEXITCODE) {
+            Select-String -Path kiem-thu.log -Pattern '✘|Error|lỗi:' | Select-Object -First 40 | ForEach-Object { '::error::' + $_.Line.Trim() }
+            exit 1
+          }
 
       - name: Dong goi bo cai (electron-builder)
         run: npx electron-builder --win nsis --x64 --publish never
