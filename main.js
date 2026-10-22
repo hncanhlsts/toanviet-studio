@@ -1,6 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog, clipboard, nativeImage, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const BanDung = require('./src/ban-dung.js');
+// số bản dựng (package.json build.buildNumber): bản chỉ sửa lỗi giữ số phiên bản, tăng số này
+const BAN_DUNG = Number((require('./package.json').build || {}).buildNumber) || 0;
+const verLabel = () => BanDung.nhan(app.getVersion(), BAN_DUNG);
 
 let win;
 // kiểm thử: dùng thư mục dữ liệu riêng để không đụng thư viện thật của người dùng
@@ -26,7 +30,7 @@ app.on('render-process-gone', (_e, _wc, d) => bootLog('Trang giao diện dừng:
 app.on('child-process-gone', (_e, d) => bootLog('Tiến trình con dừng: ' + d.type + ' ' + d.reason + ' (mã ' + d.exitCode + ')'));
 
 function createWindow() {
-  if (!shotArg) bootLog('Mở ToanViet Studio ' + app.getVersion() + ' ' + process.argv.slice(1).filter((a) => a.startsWith('--')).join(' '));
+  if (!shotArg) bootLog('Mở ToanViet Studio ' + verLabel() + ' ' + process.argv.slice(1).filter((a) => a.startsWith('--')).join(' '));
   win = new BrowserWindow({
     width: office && office.mode !== 'full' ? 1080 : 1400, height: office && office.mode !== 'full' ? 760 : 900, minWidth: 980, minHeight: 600,
     // quay video giới thiệu (chế độ kiểm thử): cửa sổ đúng khung 16:9, vd TVS_WIN_SIZE=1600x900
@@ -75,7 +79,15 @@ function createWindow() {
       { label: 'Thu nhỏ', accelerator: 'Ctrl+-', click: send('zoomout') },
       { label: '100%', accelerator: 'Ctrl+0', click: send('zoom100') },
       { type: 'separator' },
+      { label: 'Môn / cấp học', submenu: [
+        { label: 'Tiểu học (lớp 1–5)', click: send('mon-tieuhoc') },
+        { label: 'Toán THCS – THPT', click: send('mon-toan') },
+        { label: 'Vật lí', click: send('mon-li') },
+        { label: 'Hoá học', click: send('mon-hoa') },
+        { label: 'Sinh học', click: send('mon-sinh') },
+      ] },
       { label: 'Chế độ Tiểu học (lớp 1–5): bật / tắt', accelerator: 'Ctrl+Shift+T', click: send('tieuhoc') },
+      { label: 'Giao diện cơ bản / đầy đủ', accelerator: 'Ctrl+Shift+G', click: send('coban') },
       { label: 'Trình chiếu', accelerator: 'F5', click: send('present') },
       { label: 'Trình chiếu hiện dần từng phần', accelerator: 'Shift+F5', click: send('present-step') },
       { type: 'separator' },
@@ -156,7 +168,7 @@ async function diagnoseOffice() {
 function showAbout() {
   dialog.showMessageBox(win, {
     type: 'info', title: 'Giới thiệu', buttons: ['Đóng'],
-    message: 'ToanViet Studio ' + app.getVersion(),
+    message: 'ToanViet Studio ' + verLabel(),
     detail: 'Soạn công thức Toán, đồ thị, bảng biến thiên, miền nghiệm và hình không gian cho chương trình Toán phổ thông Việt Nam.\n\n' +
       'Thiết kế bởi: Thầy Hoàng Ngọc Cảnh\nGiáo viên trường THCS - THPT Đinh Thiện Lý\nEmail: canhld@gmail.com\n\n© 2026 Hoàng Ngọc Cảnh. Phát hành theo giấy phép MIT.',
   });
@@ -303,8 +315,11 @@ ipcMain.handle('shared', async (_e, o) => {
   if (o.action === 'checkUpdate') {
     if (shotArg && !process.env.TVS_UPDATE_TEST) return null;
     const found = fs.readdirSync(dir).map((f) => { const m = f.match(/^ToanVietStudio-Setup-(\d+\.\d+\.\d+)\.exe$/i); return m ? { version: m[1], file: path.join(dir, f) } : null; }).filter(Boolean)
-      .filter((x) => verCmp(x.version, app.getVersion()) > 0).sort((x, y) => verCmp(y.version, x.version));
-    return found[0] || { none: true, current: app.getVersion() };
+      // bản mới: số phiên bản lớn hơn, hoặc cùng số phiên bản nhưng số bản dựng lớn hơn (bản sửa lỗi)
+      .map((x) => Object.assign(x, { ban: verCmp(x.version, app.getVersion()) === 0 ? BanDung.cuaBoCai(x.file) : 0 }))
+      .filter((x) => verCmp(x.version, app.getVersion()) > 0 || x.ban > BAN_DUNG).sort((x, y) => verCmp(y.version, x.version) || y.ban - x.ban);
+    if (found[0]) found[0].version = BanDung.nhan(found[0].version, found[0].ban);
+    return found[0] || { none: true, current: verLabel() };
   }
   if (o.action === 'runUpdate') {
     // chép bộ cài về máy rồi chạy sau khi phần mềm đã đóng (để cài đè được)
@@ -322,7 +337,7 @@ app.on('will-quit', () => { if (pendingInstaller) { try { require('child_process
 ipcMain.handle('report', async (_e, o) => {
   const t = new Date(), z = (n) => String(n).padStart(2, '0'), stamp = t.getFullYear() + z(t.getMonth() + 1) + z(t.getDate()) + '-' + z(t.getHours()) + z(t.getMinutes()) + z(t.getSeconds());
   const dir = process.env.TVS_REPORT_DIR || app.getPath('desktop'), base = path.join(dir, 'BaoLoi-ToanViet-' + stamp);
-  const info = ['Phiên bản: ' + app.getVersion(), 'Windows: ' + require('os').release() + ' (' + process.arch + ')', 'Electron: ' + process.versions.electron, 'Thời điểm: ' + new Date().toLocaleString('vi-VN'), ''].join('\r\n');
+  const info = ['Phiên bản: ' + verLabel(), 'Windows: ' + require('os').release() + ' (' + process.arch + ')', 'Electron: ' + process.versions.electron, 'Thời điểm: ' + new Date().toLocaleString('vi-VN'), ''].join('\r\n');
   fs.writeFileSync(base + '.txt', info + String(o.text || '').replace(/\r?\n/g, '\r\n'), 'utf8');
   let png = '';
   try { const img = await win.webContents.capturePage(); png = base + '.png'; fs.writeFileSync(png, img.toPNG()); } catch (err) { png = ''; }
@@ -335,7 +350,7 @@ ipcMain.handle('report', async (_e, o) => {
   });
   const { shell } = require('electron');
   if (r.response === 0) shell.showItemInFolder(base + '.txt');
-  if (r.response === 1) { shell.showItemInFolder(base + '.txt'); shell.openExternal('mailto:canhld@gmail.com?subject=' + encodeURIComponent('[ToanViet ' + app.getVersion() + '] Báo lỗi / góp ý') + '&body=' + encodeURIComponent('Kính gửi thầy,\n\n' + String(o.summary || '') + '\n\n(Đính kèm tệp ' + path.basename(base + '.txt') + (png ? ' và ảnh màn hình' : '') + ' trên Desktop.)')); }
+  if (r.response === 1) { shell.showItemInFolder(base + '.txt'); shell.openExternal('mailto:canhld@gmail.com?subject=' + encodeURIComponent('[ToanViet ' + verLabel() + '] Báo lỗi / góp ý') + '&body=' + encodeURIComponent('Kính gửi thầy,\n\n' + String(o.summary || '') + '\n\n(Đính kèm tệp ' + path.basename(base + '.txt') + (png ? ' và ảnh màn hình' : '') + ' trên Desktop.)')); }
   return base + '.txt';
 });
 ipcMain.handle('copyText', (_e, t) => { clipboard.writeText(String(t)); return true; });ipcMain.handle('confirm', async (_e, msg) => {

@@ -457,6 +457,36 @@
     __clear();
   });
 
+  await step('Chọn môn (Toán / Lí / Hoá / Sinh / Tiểu học), giao diện cơ bản; lỗi hình viết bằng lời thường', async () => {
+    const vis = (q) => { const e = document.querySelector(q); return !!(e && e.offsetParent); };
+    const sel = document.getElementById('modeBadge'), chon = async (m) => { sel.value = m; sel.dispatchEvent(new Event('change')); await w(120); };
+    const nhom = () => [...document.getElementById('symKind').children].map((o) => o.label).join(',');
+    await chon('hoa');
+    ok('Hoá học: ẩn hình học, đại số; ký hiệu chỉ còn Hoá học', !vis('#planeKind') && !vis('[data-cmd="ins-bbt"]') && nhom() === 'Hoá học' && document.getElementById('gHinhLbl').textContent === 'Ký hiệu Hoá học', nhom());
+    await chon('li');
+    ok('Vật lí: còn Đồ thị, ẩn Biến thiên; ký hiệu Vật lí', vis('[data-cmd="ins-graph"]') && !vis('[data-cmd="ins-bbt"]') && /^Vật lí/.test(nhom()) && !/Hoá/.test(nhom()), nhom());
+    window.__run('ins-formula'); await w(400);
+    ok('Vật lí: hộp công thức mở sẵn thẻ Đơn vị đo', /Đơn vị đo/.test((document.querySelector('#tabs button.on, #tabs button.active') || {}).textContent || ''), (document.querySelector('#tabs button.on, #tabs button.active') || {}).textContent);
+    document.getElementById('fxdlg').close(); await w(100);
+    await chon('tieuhoc');
+    ok('chọn Tiểu học ở chân trang = chế độ Tiểu học', document.body.classList.contains('tieuhoc') && vis('[data-cmd="ins-phieu"]'));
+    await chon('toan');
+    ok('Toán: hiện đủ, ký hiệu đủ ba môn', vis('#planeKind') && vis('[data-cmd="ins-bbt"]') && nhom().split(',').length === 5 && !document.body.classList.contains('tieuhoc'));
+    let nc = [...document.querySelectorAll('#ribbon .nc')].filter((b) => b.offsetParent).length;
+    window.__run('coban'); await w(120);
+    const an = [...document.querySelectorAll('#ribbon .nc')].filter((b) => b.offsetParent).length;
+    ok('giao diện cơ bản ẩn nút ít dùng, giữ nút chính', nc > 5 && an === 0 && vis('[data-cmd="ins-formula"]') && vis('[data-cmd="toword"]') && /cơ bản/.test(document.getElementById('uiBadge').textContent), nc + ' → ' + an);
+    window.__run('coban'); await w(120);
+    nc = [...document.querySelectorAll('#ribbon .nc')].filter((b) => b.offsetParent).length;
+    ok('trở lại giao diện đầy đủ', nc > 5 && /đầy đủ/.test(document.getElementById('uiBadge').textContent), nc);
+    // lỗi kịch bản ở khung Thuộc tính: lời thường, lỗi gốc ở chú thích
+    __clear(); await w(50);
+    const id = __add('plane', 'tamgiac', { script: 'A = (0, 0)\nB = (4, 0)\nH = (0, 3)\nZ1 = (4, 3)\nD = giao(B, Z1, A, H)\ndoan BD', x: 40, y: 40, w: 200, h: 200 });
+    await w(150); ok('hình vừa chèn đang được chọn', !!document.querySelector('#page .obj.sel[data-id="' + id + '"]'));
+    const pe = document.getElementById('perr');
+    ok('khung Thuộc tính báo lỗi bằng lời', pe && /Không dựng được điểm D: đường thẳng kẻ qua B song song với đường thẳng AH/.test(pe.textContent) && /giao\(B, Z1, A, H\)/.test(pe.title), pe && pe.textContent);
+  });
+
   await step('Chèn hình theo kịch bản (nút Kịch bản): hình không gian, hình phẳng; kịch bản lỗi không chèn', async () => {
     __clear(); await w(50);
     const S_count = () => document.querySelectorAll('#page .obj').length;
@@ -475,7 +505,7 @@
     const kb2 = document.getElementById('kbsrc');
     kb2.value = 'B = (0, 0)\nC = (6, 0)\nN = trungdiem(B, Q)'; kb2.dispatchEvent(new Event('input'));
     document.getElementById('kbok').click(); await w(200);
-    ok('kịch bản lỗi (điểm Q chưa có): báo lỗi, không chèn', document.getElementById('kbdlg').open && S_count() === n0 + 1 && /chưa có điểm Q/.test(document.getElementById('kbstat').textContent));
+    ok('kịch bản lỗi (điểm Q chưa có): báo lỗi, không chèn', document.getElementById('kbdlg').open && S_count() === n0 + 1 && /điểm Q chưa được dựng/.test(document.getElementById('kbstat').textContent));
     kb2.value = 'B = (0, 0)\nC = (6, 0)\nA = (2, 4)\ndagiac ABC'; document.getElementById('kbok').click(); await w(300);
     ok('chèn hình phẳng theo kịch bản', S_count() === n0 + 2 && S_last().type === 'plane' && /dagiac ABC/.test(S_last().script));
     __clear();

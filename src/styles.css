@@ -423,3 +423,13 @@ body.capturing dialog::backdrop { display: none !important; background: transpar
 .obj.sel:not(.msel) .eph { display: block; }
 .eph:hover { background: #dbe8f8; }
 .obj.sh-conn.sel > .handle { display: none; } /* đoạn / mũi tên: kéo nút đầu mút thay cho ô co giãn */
+/* môn Vật lí / Hoá học / Sinh học (app.js: setMon): chỉ hiện nhóm nút của môn đó */
+body.mon-khtn .r-hinh { display: none !important; }
+body.mon-hoa .g-dai, body.mon-sinh .g-dai { display: none !important; }
+body.mon-li .g-dai button:not([data-cmd="ins-graph"]) { display: none !important; }
+/* giao diện cơ bản (app.js: setCoBan): ẩn các nút ít dùng */
+body.coban #ribbon .nc { display: none !important; }
+#uiBadge { margin-left: auto; margin-right: 6px; border: 1px solid #b8c4d6; background: #fff; color: #1f3f7a; border-radius: 10px; padding: 0 9px; font-size: 11px; line-height: 17px; cursor: pointer; }
+body.coban #uiBadge { background: #e3f1e6; border-color: #7fb98d; color: #1d5a2c; }
+select#modeBadge { margin-left: 0 !important; height: 19px; padding: 0 4px; font: 11px "Segoe UI", sans-serif; }
+body.mon-khtn #modeBadge { background: #e8f0fb; border-color: #8fb0de; color: #1f4f8f; }

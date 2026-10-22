@@ -7,6 +7,8 @@
   root.TVM = root.TVM || {};
   root.TVM.baigiai = function (C) {
     const { $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults } = C;
+    // lỗi kịch bản hình viết bằng lời thường (src/loi-de-hieu.js); lệnh chép cho AI vẫn dùng lỗi gốc
+    const deHieu = (er) => (root.LoiDeHieu ? root.LoiDeHieu.dich(er) : [].concat(er));
     let notes = {};
     const mergeNotes = (n) => { for (const k in n) notes[k] = (notes[k] || 0) + n[k]; };
     // dữ liệu ToanViet ghi kèm ảnh (giống lúc chèn công thức vào Word)
@@ -27,7 +29,7 @@
       const ck = JSON.stringify(spec);
       if (!figCache.has(ck)) {
         const o = figObj(key, spec), el = renderObj(o);
-        const err = o._err ? '<div class="bgerr">' + esc(o._err.split('\n')[0]) + '</div>' : '';
+        const err = o._err ? '<div class="bgerr">' + esc(deHieu(o._err.split('\n'))[0]) + '</div>' : '';
         figCache.set(ck, err + el.outerHTML.replace(/ style="[^"]*"/, ' style="position:relative;left:0;top:0;display:inline-block"'));
         el.remove();
       }
@@ -111,7 +113,7 @@
         h += '<div class="bgloi"><b>Hình chưa vẽ đủ ý đề</b> — ToanViet đã vẽ phần đọc được (điểm đề chưa cho đủ vị trí được đặt tạm ở chỗ hợp lý). Muốn hình đúng hẳn: nhờ AI dựng hình câu đó.';
         sai.forEach((L) => {
           const ds = [], th = (L.thieu || []).map((t) => t.ten), tm = (L.tam || []).map((t) => t.ten);
-          if (L.loiKB) ds.push('kịch bản AI viết bị lỗi: ' + L.loiKB);
+          if (L.loiKB) ds.push('kịch bản AI viết bị lỗi: ' + deHieu(L.loiKB.split('; ')).join(' '));
           if (th.length) ds.push('chưa dựng được điểm ' + th.join(', '));
           if (tm.length) ds.push('đặt tạm điểm ' + tm.join(', '));
           if (!th.length && !tm.length && (L.chuaHieu || []).length) ds.push('chưa hiểu: ' + L.chuaHieu.map((c) => '“' + c + '”').join('; '));
@@ -169,7 +171,7 @@
           const box = aiOk.closest('.bgai'), key = box.dataset.key, sp = BaiGiai.docKhoi(box.querySelector('.bgaiin').value)[0];
           if (!sp) { msg('Chưa thấy kịch bản hình (khối mã ```toanviet) — dán đúng phần AI trả về', true); return; }
           const er = BaiGiai.loiKhoi(sp);
-          if (er.length) { msg('Kịch bản AI viết còn lỗi: ' + er[0] + ' — nhờ AI sửa lại dòng đó', true); return; }
+          if (er.length) { msg('Kịch bản AI viết còn lỗi: ' + deHieu(er)[0] + ' — nhờ AI sửa lại', true); return; }
           // dòng đặt hình "[FIG key|…]" nằm trong câu (dòng khai báo "#FIG hN" của hình tự đọc đề nằm ở đầu nội dung)
           const L0 = src.value.split('\n'), i = L0.findIndex((l) => l.startsWith('[FIG ' + key + '|'));
           const c = cauCua(L0).find((x) => i >= x.start && i < x.end);
@@ -220,7 +222,7 @@
         const loi2 = [];
         // đặt từ câu cuối lên (chèn dòng không làm lệch vị trí câu phía trên)
         const viec = ks.map((k, i) => ({ k, c: k.so ? cs.find((c) => c.so === k.so) : (ks.length === coHinh.length ? coHinh[i] : ks.length === cs.length ? cs[i] : null) }));
-        viec.filter((v) => v.c).sort((a, b) => b.c.start - a.c.start).forEach((v) => { const er = BaiGiai.loiKhoi(v.k.sp); if (er.length) loi2.push((v.c.nhan || 'Hình') + ': ' + er[0]); else thayHinh(L0, v.c, v.k.sp); });
+        viec.filter((v) => v.c).sort((a, b) => b.c.start - a.c.start).forEach((v) => { const er = BaiGiai.loiKhoi(v.k.sp); if (er.length) loi2.push((v.c.nhan || 'Hình') + ': ' + deHieu(er)[0]); else thayHinh(L0, v.c, v.k.sp); });
         const f = rebuildFigures(L0.join('\n')); src.value = f.markup; refresh();
         const khong = viec.filter((v) => !v.c).length;
         msg('Đã đặt ' + (viec.length - khong - loi2.length) + ' hình theo kịch bản AI' + (khong ? '; ' + khong + ' khối không rõ của câu nào (ghi "Câu n." trên khối)' : '') + (loi2.length ? '; lỗi: ' + loi2.join(' · ') : ''), !!(khong || loi2.length));
@@ -320,7 +322,7 @@
         if (!src.value.trim()) { stat.textContent = ''; return; }
         if (!sp) { stat.innerHTML = '<span class="bgerr">Chưa thấy kịch bản hình</span>'; return; }
         const er = BaiGiai.loiKhoi(sp);
-        stat.innerHTML = (sp.type === 'space' ? 'Hình không gian' : 'Hình phẳng') + ', ' + sp.script.split('\n').length + ' dòng' + (er.length ? ' — <span class="bgerr">lỗi: ' + esc(er[0]) + '</span>' : ' — không có lỗi');
+        stat.innerHTML = (sp.type === 'space' ? 'Hình không gian' : 'Hình phẳng') + ', ' + sp.script.split('\n').length + ' dòng' + (er.length ? ' — <span class="bgerr" title="' + esc(er.join('\n')) + '">' + esc(deHieu(er).join(' ')) + '</span>' : ' — không có lỗi');
       };
       src.addEventListener('input', show);
       $('#kbchep').onclick = () => {
@@ -332,7 +334,7 @@
         const sp = doc();
         if (!sp) { msg('Chưa thấy kịch bản hình — dán khối mã ```toanviet AI trả về', true); return; }
         const er = BaiGiai.loiKhoi(sp);
-        if (er.length) { msg('Kịch bản còn lỗi: ' + er[0], true); return; }
+        if (er.length) { msg('Kịch bản còn lỗi: ' + deHieu(er)[0], true); return; }
         C.insert(sp.type, sp.kind, { script: sp.script, w: sp.w, h: sp.h });
         C.commit();
         d.close();

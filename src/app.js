@@ -10,6 +10,8 @@
   MathfieldElement.soundsDirectory = null;
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // lỗi của đối tượng ở khung Thuộc tính: lời thường (src/loi-de-hieu.js), rê chuột xem lỗi gốc
+  const showErr = (el, err) => { el.textContent = err && window.LoiDeHieu ? LoiDeHieu.dich(err).join('\n') : err || ''; el.title = err || ''; };
   // Dấu đồng dạng kiểu SGK Việt Nam (chữ S nằm ngang, hai đầu cuộn tròn): nét vẽ lấy từ dự án BangVeToan
   const SIM_D = 'M300 370C200 430 75 360 75 245C75 130 200 70 300 135C390 190 390 310 480 365C580 430 705 370 705 255C705 140 580 70 480 130';
   const SIM_TEX = '\\mathrel{\\class{tv-sim}{\\sim}}';
@@ -255,7 +257,7 @@
     // đoạn, mũi tên, đường nối: hai nút tròn ở hai đầu mút — kéo đầu mút về hướng cần chỉ (thả vào ô chữ thì gắn với ô)
     if (o.type === 'shape' && o.kind === 'conn' && sodo.ends) html += sodo.ends(o).map((p, i) => `<div class="eph" data-ep="${i + 1}" title="Kéo đầu mút: xoay, kéo dài (Shift: góc tròn 15°)" style="left:${Math.round(p.x - o.x)}px;top:${Math.round(p.y - o.y)}px"></div>`).join('');
     el.innerHTML = html + '<div class="handle"></div>';
-    if (S.sel === o.id) { const er = $('#perr'); if (er) er.textContent = o._err; }
+    if (S.sel === o.id) { const er = $('#perr'); if (er) showErr(er, o._err); }
     return el;
   }
   // ---------- Chọn nhiều đối tượng, khung chọn, bắt dính, nhóm, căn thẳng hàng: src/mod/chonnhieu.js ----------
@@ -808,7 +810,7 @@
     props.innerHTML = '';
     if (many()) return multiProps();
     if (!o) {
-      props.innerHTML = `<div class="help"><b>Bắt đầu nhanh</b><br>• Bấm <b>Công thức</b> (Ctrl+M) để soạn công thức, nhấp đúp để sửa.<br>• <b>Gõ chữ</b>: nhấp đúp vào chỗ trống bất kỳ trên trang (hoặc bấm <b>Văn bản</b> rồi nhấp vào trang) và gõ tiếng Việt ngay tại đó; <b>Ctrl+M</b> khi đang gõ để chèn công thức tại con trỏ.<br>• <b>Sửa lại công thức</b>: nhấp đúp vào công thức (kể cả công thức nằm trong dòng chữ), hoặc chọn rồi nhấn Enter/F2.<br>• <b>Đồ thị</b>, <b>Biến thiên</b>, <b>Xét dấu</b>, <b>Miền nghiệm</b>: nhập biểu thức ở khung này, hình tự cập nhật.<br>• <b>Hình không gian</b>: chọn loại hình rồi bấm <b>Chèn hình</b>; nét khuất tự vẽ đứt.<br>• Kéo để di chuyển, kéo ô vuông ở góc để co giãn.<br>• <b>Ctrl+C</b> rồi dán vào Word/PowerPoint dưới dạng ảnh nét cao.<br><br><b>Cú pháp biểu thức</b><br><code>x^3-3x+1</code>, <code>(2x+1)/(x-1)</code>, <code>sqrt(x)</code>, <code>|x|</code>, <code>sin x</code>, <code>ln(x)</code>, <code>log(x)</code>, <code>e^x</code>, <code>2^x</code>, <code>pi</code></div>`;
+      props.innerHTML = `<div class="help"><b>Bắt đầu nhanh</b><br>• Chọn <b>môn</b> (Toán, Vật lí, Hoá học, Sinh học, Tiểu học) và <b>giao diện cơ bản</b> ở góc dưới bên phải: thanh công cụ chỉ còn các nút cần dùng.<br>• Bấm <b>Công thức</b> (Ctrl+M) để soạn công thức, nhấp đúp để sửa.<br>• <b>Gõ chữ</b>: nhấp đúp vào chỗ trống bất kỳ trên trang (hoặc bấm <b>Văn bản</b> rồi nhấp vào trang) và gõ tiếng Việt ngay tại đó; <b>Ctrl+M</b> khi đang gõ để chèn công thức tại con trỏ.<br>• <b>Sửa lại công thức</b>: nhấp đúp vào công thức (kể cả công thức nằm trong dòng chữ), hoặc chọn rồi nhấn Enter/F2.<br>• <b>Đồ thị</b>, <b>Biến thiên</b>, <b>Xét dấu</b>, <b>Miền nghiệm</b>: nhập biểu thức ở khung này, hình tự cập nhật.<br>• <b>Hình không gian</b>: chọn loại hình rồi bấm <b>Chèn hình</b>; nét khuất tự vẽ đứt.<br>• Kéo để di chuyển, kéo ô vuông ở góc để co giãn.<br>• <b>Ctrl+C</b> rồi dán vào Word/PowerPoint dưới dạng ảnh nét cao.<br><br><b>Cú pháp biểu thức</b><br><code>x^3-3x+1</code>, <code>(2x+1)/(x-1)</code>, <code>sqrt(x)</code>, <code>|x|</code>, <code>sin x</code>, <code>ln(x)</code>, <code>log(x)</code>, <code>e^x</code>, <code>2^x</code>, <code>pi</code></div>`;
       return;
     }
     const add = (el) => { props.appendChild(el); return el; };
@@ -1202,7 +1204,7 @@
     row(field('x', 'X', 'num'), field('y', 'Y', 'num'));
     if (o.type === 'baitap') add(field('w', 'Rộng', 'num'));
     else if (o.type !== 'formula' && o.type !== 'text' && o.type !== 'dattinh') row(field('w', 'Rộng', 'num'), field('h', 'Cao', 'num'));
-    const er = add(mk('div', 'err')); er.id = 'perr'; er.textContent = o._err || '';
+    const er = add(mk('div', 'err')); er.id = 'perr'; showErr(er, o._err);
   }
 
   // ---------- Lệnh ----------
@@ -1229,15 +1231,45 @@
     msg(times ? 'Công thức dùng phông kiểu Times New Roman (giống chữ trong Word)' : 'Công thức dùng phông mặc định');
   }
   try { if (localStorage.getItem('tvs-font-times') === '1') document.body.classList.add('ftimes'); } catch (e) { /* bỏ qua */ }
-  // Chế độ Tiểu học: hiện nhóm nút Tiểu học, ẩn công cụ cấp 2–3, công thức theo quy ước tiểu học
-  function setTieuHoc(on, quiet) {
-    document.body.classList.toggle('tieuhoc', !!on);
-    fTab = on ? 0 : 1;
-    try { localStorage.setItem('tvs-tieuhoc', on ? '1' : '0'); } catch (e) { /* bỏ qua */ }
-    const b = $('#modeBadge'); if (b) b.textContent = on ? 'Tiểu học' : 'THCS – THPT';
-    if (!quiet) msg(on ? 'Chế độ Tiểu học (lớp 1–5): nhóm nút Tiểu học ở thanh công cụ; công thức dùng dấu × và dấu phẩy thập phân' : 'Chế độ THCS – THPT: hiện đủ công cụ');
+  // Môn / cấp học (chọn ở chân trang hoặc menu Xem): thanh công cụ chỉ hiện nhóm nút của môn đó.
+  // Tiểu học: nhóm nút Tiểu học, công thức theo quy ước tiểu học. Vật lí / Hoá học / Sinh học: ẩn hình học và
+  // bảng biến thiên…, danh sách ký hiệu chỉ còn của môn đó, bảng ký hiệu trong hộp công thức mở sẵn thẻ của môn.
+  const MON = {
+    tieuhoc: { ten: 'Tiểu học', the: 'Tiểu học', loi: 'Chế độ Tiểu học (lớp 1–5): nhóm nút Tiểu học ở thanh công cụ; công thức dùng dấu × và dấu phẩy thập phân' },
+    toan: { ten: 'Toán THCS – THPT', the: 'Cơ bản', loi: 'Môn Toán THCS – THPT: hiện đủ công cụ' },
+    li: { ten: 'Vật lí', the: 'Đơn vị đo', kyhieu: 'Vật lí', loi: 'Môn Vật lí: ký hiệu mạch điện, quang học, cơ học; đồ thị; bảng đơn vị đo trong hộp công thức' },
+    hoa: { ten: 'Hoá học', the: 'Mũi tên & Hoá học', kyhieu: 'Hoá học', loi: 'Môn Hoá học: dụng cụ thí nghiệm, vòng benzen, ô lượng tử; mũi tên phản ứng trong hộp công thức' },
+    sinh: { ten: 'Sinh học', the: 'Cơ bản', kyhieu: 'Sinh học', loi: 'Môn Sinh học: ký hiệu phả hệ, nhiễm sắc thể, ADN' },
+  };
+  let monHien = 'toan', symGroups = null;
+  function setMon(m, quiet) {
+    if (!MON[m]) m = 'toan';
+    monHien = m;
+    const M = MON[m], bd = document.body.classList;
+    bd.toggle('tieuhoc', m === 'tieuhoc');
+    ['li', 'hoa', 'sinh'].forEach((k) => bd.toggle('mon-' + k, m === k));
+    bd.toggle('mon-khtn', !!M.kyhieu);
+    fTab = Math.max(0, PALETTE.findIndex((t) => t.name === M.the));
+    // danh sách ký hiệu SGK: chỉ các nhóm của môn đang chọn
+    const yk = $('#symKind');
+    if (yk && symGroups) {
+      yk.replaceChildren(...symGroups.filter((og) => !M.kyhieu || og.label.startsWith(M.kyhieu)));
+      if (!yk.value && yk.options.length) yk.selectedIndex = 0;
+    }
+    const lb = $('#gHinhLbl'); if (lb) lb.textContent = M.kyhieu ? 'Ký hiệu ' + M.ten : 'Hình học và ký hiệu Lí – Hoá – Sinh';
+    const ld = document.querySelector('.g-dai > span'); if (ld) ld.textContent = m === 'li' ? 'Đồ thị' : 'Đại số & Giải tích';
+    const b = $('#modeBadge'); if (b && b.value !== m) b.value = m;
+    try { localStorage.setItem('tvs-mon', m); localStorage.removeItem('tvs-tieuhoc'); } catch (e) { /* bỏ qua */ }
+    if (!quiet) msg(M.loi);
   }
-  try { if (localStorage.getItem('tvs-tieuhoc') === '1') setTieuHoc(true, true); } catch (e) { /* bỏ qua */ }
+  const setTieuHoc = (on, quiet) => setMon(on ? 'tieuhoc' : 'toan', quiet);
+  // Giao diện cơ bản: chỉ các nút hay dùng (các nút class "nc" ẩn đi), cho thầy cô mới làm quen
+  function setCoBan(on, quiet) {
+    document.body.classList.toggle('coban', !!on);
+    const b = $('#uiBadge'); if (b) b.textContent = on ? 'Giao diện cơ bản' : 'Giao diện đầy đủ';
+    try { localStorage.setItem('tvs-coban', on ? '1' : '0'); } catch (e) { /* bỏ qua */ }
+    if (!quiet) msg(on ? 'Giao diện cơ bản: chỉ hiện các nút hay dùng — nhấp "Giao diện cơ bản" ở góc dưới để hiện đủ' : 'Giao diện đầy đủ: hiện mọi nút');
+  }
   // quy ước trình bày tiểu học trong công thức: 2,5 (không có khoảng trắng sau dấu phẩy), dấu nhân ×
   const thFix = (v) => (document.body.classList.contains('tieuhoc') && v ? v.replace(/(\d),(?=\d)/g, '$1{,}').replace(/\\ast(?![a-zA-Z])|\*/g, '\\times ') : v);
   // phiếu bài tập mẫu: tiêu đề và các dạng bài hay gặp, xếp lần lượt từ trên xuống
@@ -1279,6 +1311,8 @@
     present: () => startPresent(false),
     'present-step': () => startPresent(true),
     tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
+    'mon-tieuhoc': () => setMon('tieuhoc'), 'mon-toan': () => setMon('toan'), 'mon-li': () => setMon('li'), 'mon-hoa': () => setMon('hoa'), 'mon-sinh': () => setMon('sinh'),
+    coban: () => setCoBan(!document.body.classList.contains('coban')),
     // đoạn, mũi tên: nằm ngang khi chèn; kéo hai đầu mút (nút tròn) để xoay về hướng cần chỉ
     'ins-line': () => insLine('none'),
     'ins-arrow': () => insLine('end'),
@@ -1398,7 +1432,7 @@
   function fitRibbon() {
     const rb = $('#ribbon');
     const grps = [...rb.querySelectorAll(':scope > .grp')];
-    const lbl = (g) => (g.querySelector(':scope > span') || {}).textContent || '';
+    const lbl = (g) => g.dataset.ten || (g.querySelector(':scope > span') || {}).textContent || ''; // tên nhóm cố định (nhãn đổi theo môn)
     // thứ tự thu gọn: nhóm ít dùng trước
     const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo', 'Hình học và ký hiệu Lí – Hoá – Sinh', 'Tiểu học (lớp 1–5)'];
     const seq = ORDER.map((t) => grps.find((g) => lbl(g) === t)).filter(Boolean);
@@ -1416,7 +1450,8 @@
   new MutationObserver(() => fitRibbon()).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   window.__fitRibbon = fitRibbon; // kiểm thử
   fitRibbon();
-  $('#modeBadge').onclick = () => run('tieuhoc');
+  $('#modeBadge').onchange = (e) => setMon(e.target.value);
+  $('#uiBadge').onclick = () => run('coban');
   if (api) api.onMenu(run);
   if (api && api.onLibFile) api.onLibFile(async (r) => {
     try {
@@ -1468,6 +1503,8 @@
   MinhHoa.GROUPS.forEach((g, gi) => { const og = document.createElement('optgroup'); og.label = g[0]; if (gi === 0) { const op = document.createElement('option'); op.value = 'tiaso'; op.textContent = 'Tia số (lớp 1 – 5)'; og.appendChild(op); } for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } mk.appendChild(og); });
   const yk = $('#symKind');
   SGK.GROUPS.forEach((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } yk.appendChild(og); });
+  symGroups = [...yk.children];
+  try { setMon(localStorage.getItem('tvs-mon') || (localStorage.getItem('tvs-tieuhoc') === '1' ? 'tieuhoc' : 'toan'), true); setCoBan(localStorage.getItem('tvs-coban') === '1', true); } catch (e) { setMon('toan', true); }
   const pk = $('#planeKind');
   Plane.KINDS.forEach((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[1]) { const op = document.createElement('option'); op.value = k; op.textContent = g[1][k][0]; og.appendChild(op); } pk.appendChild(og); });
   const sk = $('#solidKind');

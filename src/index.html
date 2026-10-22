@@ -36,7 +36,7 @@
       <div><label>Minh hoạ</label><select id="mhKind" title="Hình minh hoạ: sơ đồ đoạn thẳng, phân số, đồng hồ, lịch, cân, biểu đồ, hình khai triển…"></select><button data-cmd="ins-minhhoa" title="Chèn hình minh hoạ đã chọn">Chèn</button></div>
     </div></div><span>Tiểu học (lớp 1–5)</span>
   </div>
-  <div class="grp th-hide">
+  <div class="grp th-hide g-dai">
     <div class="btns">
       <button data-cmd="ins-graph" title="Đồ thị hàm số"><i>📈</i>Đồ thị</button>
       <button data-cmd="ins-bbt" title="Bảng biến thiên (lập tự động)"><i>⤴</i>Biến thiên</button>
@@ -46,12 +46,12 @@
       <button data-cmd="ins-venn" title="Biểu đồ Ven: phần tử, tập con, giao – hợp – hiệu – phần bù"><i>◎</i>Biểu đồ Ven</button>
     </div><span>Đại số &amp; Giải tích</span>
   </div>
-  <div class="grp">
+  <div class="grp g-hinh" data-ten="Hình học và ký hiệu Lí – Hoá – Sinh">
     <div class="stack">
-      <div><label>Hình không gian</label><select id="solidKind" title="Chọn hình không gian"></select><button data-cmd="ins-solid" title="Chèn hình không gian đã chọn">Chèn</button><button data-cmd="ins-kichban" title="Chèn hình (không gian / phẳng) theo kịch bản — dán khối hình AI dựng, hoặc chép lệnh nhờ AI dựng hình">Kịch bản</button></div>
-      <div><label>Hình phẳng</label><select id="planeKind" title="Chọn hình phẳng mẫu (đổi được thông số ở khung Thuộc tính)"></select><button data-cmd="ins-plane" title="Chèn hình phẳng đã chọn">Chèn</button><button data-cmd="ins-kichban" title="Chèn hình (phẳng / không gian) theo kịch bản — dán khối hình AI dựng, hoặc chép lệnh nhờ AI dựng hình">Kịch bản</button></div>
+      <div class="r-hinh"><label>Hình không gian</label><select id="solidKind" title="Chọn hình không gian"></select><button data-cmd="ins-solid" title="Chèn hình không gian đã chọn">Chèn</button><button class="nc" data-cmd="ins-kichban" title="Chèn hình (không gian / phẳng) theo kịch bản — dán khối hình AI dựng, hoặc chép lệnh nhờ AI dựng hình">Kịch bản</button></div>
+      <div class="r-hinh"><label>Hình phẳng</label><select id="planeKind" title="Chọn hình phẳng mẫu (đổi được thông số ở khung Thuộc tính)"></select><button data-cmd="ins-plane" title="Chèn hình phẳng đã chọn">Chèn</button><button class="nc" data-cmd="ins-kichban" title="Chèn hình (phẳng / không gian) theo kịch bản — dán khối hình AI dựng, hoặc chép lệnh nhờ AI dựng hình">Kịch bản</button></div>
       <div class="th-hide"><label>Ký hiệu SGK</label><select id="symKind" title="Ký hiệu, hình vẽ thường gặp trong SGK Vật lí, Hoá học, Sinh học"></select><button data-cmd="ins-sym" title="Chèn ký hiệu đã chọn">Chèn</button></div>
-    </div><span>Hình học và ký hiệu Lí – Hoá – Sinh</span>
+    </div><span id="gHinhLbl">Hình học và ký hiệu Lí – Hoá – Sinh</span>
   </div>
   <div class="grp">
     <div class="btns">
@@ -59,35 +59,35 @@
       <button data-cmd="ins-arrow" title="Mũi tên"><i>→</i>Mũi tên</button>
       <button data-cmd="ins-rect" title="Hình chữ nhật"><i>▭</i>Chữ nhật</button>
       <button data-cmd="ins-ellipse" title="Elip / đường tròn"><i>◯</i>Elip</button>
-      <button data-cmd="ins-darrow" title="Mũi tên hai đầu"><i>↔</i>Hai đầu</button>
-      <button data-cmd="ins-curve" title="Mũi tên cong (kéo để dời; khung Thuộc tính: đổi kiểu thẳng / cong / gấp khúc)"><i>⤻</i>Cong</button>
+      <button class="nc" data-cmd="ins-darrow" title="Mũi tên hai đầu"><i>↔</i>Hai đầu</button>
+      <button class="nc" data-cmd="ins-curve" title="Mũi tên cong (kéo để dời; khung Thuộc tính: đổi kiểu thẳng / cong / gấp khúc)"><i>⤻</i>Cong</button>
     </div><span>Hình vẽ</span>
   </div>
   <div class="grp">
     <div class="btns">
       <button data-cmd="ins-mindmap" title="Sơ đồ tư duy mẫu: chủ đề ở giữa và bốn nhánh. Chọn một ô rồi bấm Tab để thêm nhánh con"><i>✺</i>Sơ đồ tư duy</button>
       <button data-cmd="ins-box" title="Ô chữ bo góc — nhấp đúp để gõ chữ (gõ công thức giữa hai dấu $)"><i>▢</i>Ô chữ</button>
-      <button data-cmd="ins-diamond" title="Hình thoi (điều kiện trong sơ đồ khối)"><i>◇</i>Hình thoi</button>
-      <button data-cmd="ins-connect" title="Nối các ô: nhấp ô đầu, giữ Ctrl nhấp thêm ô cần nối, rồi bấm Nối. Kéo ô thì đường nối chạy theo"><i>⇢</i>Nối</button>
-      <button data-cmd="add-branch" title="Thêm nhánh con cho ô đang chọn (phím Tab)"><i>⊕</i>Thêm nhánh</button>
+      <button class="nc" data-cmd="ins-diamond" title="Hình thoi (điều kiện trong sơ đồ khối)"><i>◇</i>Hình thoi</button>
+      <button class="nc" data-cmd="ins-connect" title="Nối các ô: nhấp ô đầu, giữ Ctrl nhấp thêm ô cần nối, rồi bấm Nối. Kéo ô thì đường nối chạy theo"><i>⇢</i>Nối</button>
+      <button class="nc" data-cmd="add-branch" title="Thêm nhánh con cho ô đang chọn (phím Tab)"><i>⊕</i>Thêm nhánh</button>
     </div><span>Sơ đồ</span>
   </div>
   <div class="grp">
     <div class="btns">
       <button data-cmd="undo" title="Hoàn tác (Ctrl+Z)"><i>↶</i>Hoàn tác</button>
       <button data-cmd="redo" title="Làm lại (Ctrl+Y)"><i>↷</i>Làm lại</button>
-      <button data-cmd="dup" title="Nhân bản (Ctrl+D)"><i>⧉</i>Nhân bản</button>
-      <button data-cmd="front" title="Đưa lên trên"><i>▲</i>Lên trên</button>
-      <button data-cmd="back" title="Đưa xuống dưới"><i>▼</i>Xuống dưới</button>
+      <button class="nc" data-cmd="dup" title="Nhân bản (Ctrl+D)"><i>⧉</i>Nhân bản</button>
+      <button class="nc" data-cmd="front" title="Đưa lên trên"><i>▲</i>Lên trên</button>
+      <button class="nc" data-cmd="back" title="Đưa xuống dưới"><i>▼</i>Xuống dưới</button>
       <button data-cmd="del" title="Xoá (Delete)"><i>✕</i>Xoá</button>
     </div><span>Sắp xếp</span>
   </div>
   <div class="grp">
     <div class="btns">
       <button data-cmd="copyimg" title="Sao chép đối tượng đang chọn thành ảnh để dán vào Word/PowerPoint (Ctrl+C)"><i>🖼</i>Chép ảnh</button>
-      <button data-cmd="copytex" title="Sao chép mã LaTeX của công thức"><i>TeX</i>LaTeX</button>
-      <button data-cmd="copymml" title="Sao chép MathML: dán vào Word sẽ thành công thức soạn được"><i>W</i>MathML</button>
-      <button data-cmd="png" title="Xuất PNG (Ctrl+E)"><i>⇩</i>PNG</button>
+      <button class="nc" data-cmd="copytex" title="Sao chép mã LaTeX của công thức"><i>TeX</i>LaTeX</button>
+      <button class="nc" data-cmd="copymml" title="Sao chép MathML: dán vào Word sẽ thành công thức soạn được"><i>W</i>MathML</button>
+      <button class="nc" data-cmd="png" title="Xuất PNG (Ctrl+E)"><i>⇩</i>PNG</button>
       <button data-cmd="pdf" title="Xuất PDF cả trang (Ctrl+P)"><i>⎙</i>PDF</button>
     </div><span>Xuất sang Word / in ấn</span>
   </div>
@@ -104,7 +104,7 @@
   <div id="stage"><div id="page"></div></div>
   <aside id="panel"><h3>Thuộc tính</h3><div id="props"></div></aside>
 </main>
-<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><button id="modeBadge" data-cmd="tieuhoc" title="Nhấp để chuyển giữa chế độ Tiểu học (lớp 1–5) và THCS – THPT">THCS – THPT</button><span id="zoomlbl">100%</span></footer>
+<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><button id="uiBadge" title="Giao diện cơ bản: chỉ hiện các nút hay dùng. Nhấp để chuyển giữa cơ bản và đầy đủ (Ctrl+Shift+G)">Giao diện đầy đủ</button><select id="modeBadge" title="Chọn môn / cấp học: thanh công cụ chỉ hiện các nhóm nút của môn đó"><option value="tieuhoc">Tiểu học</option><option value="toan">Toán THCS – THPT</option><option value="li">Vật lí</option><option value="hoa">Hoá học</option><option value="sinh">Sinh học</option></select><span id="zoomlbl">100%</span></footer>
 
 <div id="fxback" hidden></div>
 <button type="button" id="kbClose" hidden title="Ẩn bàn phím toán">✕ Đóng bàn phím</button>
@@ -158,6 +158,7 @@
 <script src="dedehinh.js"></script>
 <script src="baigiai-chuyen.js"></script>
 <script src="loi-nhac-ai.js"></script>
+<script src="loi-de-hieu.js"></script>
 <script src="mod/baigiai.js"></script>
 <script src="maukntt.js"></script>
 <script src="mod/trinhchieu.js"></script>
