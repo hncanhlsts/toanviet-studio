@@ -37,14 +37,34 @@ async function img(file) {
   if (IMG.size > 24) { const k = IMG.keys().next().value; IMG.get(k).close(); IMG.delete(k); }
   return bmp;
 }
+// khoảng trống của cảnh quay trong [a, b] (mili giây): giữa hai "sự kiện" (ảnh đổi, con trỏ di / bấm, phím, mốc) cách nhau
+// quá g thì bỏ phần sau g mili giây đầu (giữ g để kịp nhìn kết quả). Trả về các đoạn bị bỏ [p, q], tăng dần.
+function catTrong(m, a, b, g) {
+  const ev = [a, b];
+  m.frames.forEach((f) => ev.push(f.t));
+  m.cursor.forEach((p, i) => { const q = m.cursor[i - 1]; if (!q || p.x !== q.x || p.y !== q.y || p.down !== q.down || p.show !== q.show) ev.push(p.t); });
+  m.keys.forEach((k) => ev.push(k.t, k.t + 1400));
+  m.marks.forEach((k) => ev.push(k.t));
+  const e = [...new Set(ev.filter((t) => t >= a && t <= b))].sort((x, y) => x - y), cuts = [];
+  for (let i = 1; i < e.length; i++) if (e[i] - e[i - 1] > g) cuts.push([e[i - 1] + g, e[i]]);
+  return cuts;
+}
 // ---------- thời gian biểu ----------
 const SEG = []; let T = 0;
 KB.segments.filter((s) => !(s.rec && s.optional && !fs.existsSync(path.join(ROOT, 'khung', s.rec, 'meta.json')))).forEach((s) => {
   let dur = s.dur;
   if (s.rec) {
-    const m = recOf(s.rec); s.m = m; s.a = m.mark(s.from || 0); s.b = m.mark(s.to || 'het'); s.speed = s.speed || 1; if (!dur) dur = (s.b - s.a) / 1000 / s.speed + (s.hold || 0);
+    const m = recOf(s.rec); s.m = m; s.a = m.mark(s.from || 0); s.b = m.mark(s.to || 'het'); s.speed = s.speed || 1;
+    // cắt khoảng trống (KB.nen giây): màn hình không đổi, con trỏ đứng yên, không bấm phím quá lâu → rút còn KB.nen giây
+    const cuts = KB.nen && s.nen !== false ? catTrong(m, s.a, s.b, KB.nen * 1000) : [];
+    s.c = (t) => cuts.reduce((x, [p, q]) => x - Math.max(0, Math.min(t, q) - p), t); // thời gian quay → thời gian sau khi cắt
+    s.r = (c) => { let t = c; for (const [p, q] of cuts) { if (t >= p) t += q - p; else break; } return t; }; // ngược lại
+    if (!dur) dur = (s.c(s.b) - s.c(s.a)) / 1000 / s.speed + (s.hold || 0);
+    const giay = (x) => Math.max(0, (s.c(m.mark(x)) - s.c(s.a)) / 1000 / s.speed);
     // phụ đề canh theo mốc khi quay: ['ten-moc', kéo dài, chữ] hoặc [['ten-moc', lệch giây], …] → giây của đoạn
-    (s.caps || []).forEach((c) => { if (typeof c[0] !== 'number') c[0] = Math.max(0, (m.mark(c[0]) - s.a) / 1000 / s.speed); });
+    (s.caps || []).forEach((c) => { if (typeof c[0] !== 'number') c[0] = giay(c[0]); });
+    // khung nhìn chuyển theo mốc: [ 'ten-moc', {x,y,w}, thời gian chuyển ]
+    (s.cam || []).forEach((c, i) => { if (i && typeof c[0] !== 'number') c[0] = giay(c[0]); });
   }
   // kéo dài 0: hiện tới phụ đề sau (hoặc hết đoạn)
   (s.caps || []).forEach((c, i, a) => { if (c[1] === 0) c[1] = Math.max(1.5, (i + 1 < a.length ? a[i + 1][0] : dur) - c[0] - 0.15); });
@@ -66,12 +86,12 @@ function richLine(line, cx, y, size, color) {
   parts.forEach((p, i) => { ctx.font = (i % 2 ? '700 ' : '500 ') + size + 'px ' + FONT; ctx.fillStyle = i % 2 ? C.gold : color; ctx.fillText(p, x, y); x += ctx.measureText(p).width; });
 }
 function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
-// tren: phụ đề ở trên (khi phần cần xem nằm sát đáy khung)
-function caption(text, alpha, tren) {
+// cho: 'tren' phụ đề ở trên (phần cần xem nằm sát đáy khung), 'giua' giữa màn hình (trang trống)
+function caption(text, alpha, cho) {
   if (!text || alpha <= 0) return;
   ctx.save(); ctx.globalAlpha = alpha;
   const size = 42, lines = wrap(text, 1560, '500 ' + size + 'px ' + FONT), bh = 40 + lines.length * 58;
-  const y0 = tren ? 36 : H - bh - 36;
+  const y0 = cho === 'tren' ? 36 : cho === 'giua' ? (H - bh) / 2 : H - bh - 36;
   ctx.fillStyle = C.band; rrect(120, y0, W - 240, bh, 18); ctx.fill();
   ctx.textBaseline = 'middle';
   lines.forEach((l, i) => richLine(l, W / 2, y0 + 20 + 29 + i * 58, size, '#ffffff'));
@@ -130,7 +150,7 @@ function curAt(m, ms) {
   return p;
 }
 async function drawRec(s, u) {
-  const m = s.m, ms = Math.min(s.b, s.a + u * 1000 * s.speed);
+  const m = s.m, ms = Math.min(s.b, s.r(s.c(s.a) + u * 1000 * s.speed));
   const bmp = await img(path.join(m.dir, frameAt(m, ms)));
   const k = bmp.width / m.w, c = camAt(s, u);
   ctx.fillStyle = '#e9eef5'; ctx.fillRect(0, 0, W, H);
@@ -208,7 +228,7 @@ async function drawAt(t) {
   else if (s.img) { const bmp = await img(path.join(ROOT, s.img)); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); const k = Math.min(W / bmp.width, H / bmp.height); ctx.drawImage(bmp, (W - bmp.width * k) / 2, (H - bmp.height * k) / 2, bmp.width * k, bmp.height * k); }
   if (s.title) chip(s.title, s.tag, Math.min(1, u / 0.3, (3.6 - u) / 0.4));
   const cp = (s.caps || []).find(([a, d]) => u >= a && u < a + d);
-  if (cp) caption(cp[2], Math.min(1, (u - cp[0]) / 0.25, (cp[0] + cp[1] - u) / 0.25), cp[3] === 'tren');
+  if (cp) caption(cp[2], Math.min(1, (u - cp[0]) / 0.25, (cp[0] + cp[1] - u) / 0.25), cp[3]);
   // chuyển cảnh: mờ qua trắng ở ranh giới (trừ khi s.cut)
   const fin = 0.35;
   let fade = 0;
