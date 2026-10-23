@@ -76,8 +76,42 @@
       .join('\n');
   }
   const coKB = (lines) => lines.length >= 2 && lines.filter((l) => DONG_KB.test(l)).length >= 0.8 * lines.length && lines.some((l) => /^[A-Z](?:'{1,2}|_?\d+)?\s*=\s*\(/.test(l));
+  // khối ```toanviet-mon (biểu đồ, sơ đồ theo môn — src/khtn.js): "loai: bdcot" rồi các dòng "trường: giá trị";
+  // trường nhiều dòng (dulieu, kichban, kieuhinh) viết "dulieu:" rồi các dòng dữ liệu ngay bên dưới
+  function khoiMon(body) {
+    const KH = root.KhoaHoc || (typeof globalThis !== 'undefined' && globalThis.KhoaHoc);
+    const lines = String(body || '').normalize('NFC').replace(/\r\n?/g, '\n').replace(/[   ]/g, ' ').replace(/^\s*`{3,}.*$/gm, '')
+      .replace(/\\([_*#[\]()|])/g, '$1').split('\n').map((l) => l.replace(/\s+$/, ''))
+      .filter((l) => l.trim() && !/^\s*(?:toanviet[\w-]*|copy(?: code)?|sao chép(?: mã)?)\s*$/i.test(l));
+    const sp = { type: 'khtn' };
+    let key = '';
+    lines.forEach((l) => {
+      const m = l.match(/^\s*(loai|[a-z][a-z0-9]*)\s*:\s*(.*)$/);
+      if (m && (m[1] === 'loai' || !KH || (KH.FIELDS[(KH.KINDS[sp.kind] || [])[1] ? KH.KINDS[sp.kind][1].ve : ''] || []).some((f) => f[0] === m[1]) || ['w', 'h'].includes(m[1]))) {
+        key = m[1];
+        if (key === 'loai') sp.kind = m[2].trim();
+        else sp[key] = m[2].trim();
+        return;
+      }
+      if (key && key !== 'loai') sp[key] = (sp[key] ? sp[key] + '\n' : '') + l.trim();
+    });
+    if (!sp.kind || (KH && !KH.KINDS[sp.kind])) return null;
+    // kiểu của trường theo mẫu: số, đúng / sai
+    if (KH) {
+      const base = KH.KINDS[sp.kind][1];
+      for (const k in sp) {
+        if (typeof base[k] === 'number') { const v = parseFloat(String(sp[k]).replace(',', '.')); if (isFinite(v)) sp[k] = v; }
+        else if (typeof base[k] === 'boolean') sp[k] = /^(co|có|true|1|yes|x)$/i.test(String(sp[k]).trim());
+      }
+      ['w', 'h'].forEach((k) => { sp[k] = +sp[k] || base[k]; });
+      sp.ve = base.ve;
+    }
+    sp.scale = 0.75;
+    return sp;
+  }
   // nội dung khối → đối tượng hình ToanViet (phẳng / không gian: theo nhãn, hoặc toạ độ có ba số)
   function khoiSpec(kg, body) {
+    if (kg === 'mon') return khoiMon(body);
     const lines = tachDong(chuanHoaKB(String(body || '').replace(/^\s*`{3,}.*$/gm, '').replace(/`+/g, ''))).split('\n').map((l) => l.replace(/^\s*[-*•]\s+/, '').trim()).filter(Boolean);
     const script = lines.join('\n');
     if (!script || !/=/.test(script)) return null; // khối trống / chỉ có "…" (lời nhắc mẫu)
@@ -93,7 +127,7 @@
     // nhãn ngôn ngữ: "toanviet…" (kể cả khi kịch bản dồn cùng dòng) hoặc một từ đứng riêng trên dòng mở khối
     const rf = /`{3,}[ \t]*(toanviet[\w-]*|[A-Za-z][\w-]*(?=[ \t]*\n))?[ \t]*\n?([\s\S]*?)`{3,}/gi;
     while ((m = rf.exec(t))) {
-      const lang = (m[1] || '').toLowerCase(), tv = /^toanviet/.test(lang), kg = /kh[oô]ng|gian|kg|3d/.test(lang);
+      const lang = (m[1] || '').toLowerCase(), tv = /^toanviet/.test(lang), kg = /^toanviet-(mon|khtn)/.test(lang) ? 'mon' : /kh[oô]ng|gian|kg|3d/.test(lang);
       if (tv) { add(m.index, m.index + m[0].length, kg, m[2]); continue; }
       if (!lang || /^(text|plaintext|txt|plain|code)$/.test(lang)) { const ls = tachDong(chuanHoaKB(m[2])).split('\n').map((l) => l.trim()).filter(Boolean); if (coKB(ls)) add(m.index, m.index + m[0].length, false, m[2]); }
     }
@@ -122,7 +156,11 @@
   const docKhoi = (text) => khoiCau(text).map((k) => k.sp);
   // dòng kịch bản lỗi của một hình (dùng bộ dựng hình của phần mềm)
   function loiKhoi(sp) {
-    const M = sp.type === 'space' ? (root.Space || (typeof globalThis !== 'undefined' && globalThis.Space)) : (root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane));
+    if (sp.type === 'khtn') {
+      const KH = root.KhoaHoc || (typeof globalThis !== 'undefined' && globalThis.KhoaHoc);
+      try { return KH ? KH.render(sp, sp.w, sp.h).errors : []; } catch (e) { return [e && e.message ? e.message : String(e)]; }
+    }
+    const M =sp.type === 'space' ? (root.Space || (typeof globalThis !== 'undefined' && globalThis.Space)) : (root.Plane || (typeof globalThis !== 'undefined' && globalThis.Plane));
     try { return M && M.loi ? M.loi(sp.script) : []; } catch (e) { return [e && e.message ? e.message : String(e)]; }
   }
 

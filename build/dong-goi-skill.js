@@ -16,6 +16,9 @@ const want = {
   'scripts/mathexpr.js': fs.readFileSync(path.join(root, 'src', 'mathexpr.js'), 'utf8'),
   'scripts/space.js': fs.readFileSync(path.join(root, 'src', 'space.js'), 'utf8'),
   'scripts/baigiai-chuyen.js': fs.readFileSync(path.join(root, 'src', 'baigiai-chuyen.js'), 'utf8'),
+  // biểu đồ, sơ đồ theo môn (khối ```toanviet-mon) và ký hiệu linh kiện của mạch điện
+  'scripts/khtn.js': fs.readFileSync(path.join(root, 'src', 'khtn.js'), 'utf8'),
+  'scripts/sgk.js': fs.readFileSync(path.join(root, 'src', 'sgk.js'), 'utf8'),
 };
 const stale = Object.keys(want).filter((k) => { const f = path.join(dir, k); return !fs.existsSync(f) || fs.readFileSync(f, 'utf8') !== want[k]; });
 if (check) {

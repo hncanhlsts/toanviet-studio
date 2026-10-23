@@ -36,7 +36,7 @@
       <div><label>Minh hoạ</label><select id="mhKind" title="Hình minh hoạ: sơ đồ đoạn thẳng, phân số, đồng hồ, lịch, cân, biểu đồ, hình khai triển…"></select><button data-cmd="ins-minhhoa" title="Chèn hình minh hoạ đã chọn">Chèn</button></div>
     </div></div><span>Tiểu học (lớp 1–5)</span>
   </div>
-  <div class="grp th-hide g-dai">
+  <div class="grp th-hide g-dai" data-ten="Đại số &amp; Giải tích">
     <div class="btns">
       <button data-cmd="ins-graph" title="Đồ thị hàm số"><i>📈</i>Đồ thị</button>
       <button data-cmd="ins-bbt" title="Bảng biến thiên (lập tự động)"><i>⤴</i>Biến thiên</button>
@@ -52,6 +52,12 @@
       <div class="r-hinh"><label>Hình phẳng</label><select id="planeKind" title="Chọn hình phẳng mẫu (đổi được thông số ở khung Thuộc tính)"></select><button data-cmd="ins-plane" title="Chèn hình phẳng đã chọn">Chèn</button><button class="nc" data-cmd="ins-kichban" title="Chèn hình (phẳng / không gian) theo kịch bản — dán khối hình AI dựng, hoặc chép lệnh nhờ AI dựng hình">Kịch bản</button></div>
       <div class="th-hide"><label>Ký hiệu SGK</label><select id="symKind" title="Ký hiệu, hình vẽ thường gặp trong SGK Vật lí, Hoá học, Sinh học"></select><button data-cmd="ins-sym" title="Chèn ký hiệu đã chọn">Chèn</button></div>
     </div><span id="gHinhLbl">Hình học và ký hiệu Lí – Hoá – Sinh</span>
+  </div>
+  <div class="grp th-hide g-mon" data-ten="Biểu đồ, sơ đồ theo môn">
+    <div class="stack">
+      <div><label id="khLbl">Thống kê</label><select id="khKind" title="Biểu đồ, sơ đồ của môn đang chọn (chọn môn ở góc dưới bên phải)"></select><button data-cmd="ins-khtn" title="Chèn hình đã chọn; sửa số liệu ở khung Thuộc tính">Chèn</button></div>
+      <div class="chi-hoa"><label>Phản ứng</label><button data-cmd="ptpu" title="Gõ phương trình hoá học như viết tay (Fe + HCl -> FeCl2 + H2↑): tự viết chỉ số, mũi tên, kiểm tra và cân bằng hệ số">⚗ Phương trình hoá học…</button></div>
+    </div><span id="gMonLbl">Thống kê – xác suất</span>
   </div>
   <div class="grp">
     <div class="btns">
@@ -141,6 +147,8 @@
 <script src="solid.js"></script>
 <script src="plane.js"></script>
 <script src="sgk.js"></script>
+<script src="khtn.js"></script>
+<script src="hoahoc.js"></script>
 <script src="numline.js"></script>
 <script src="space.js"></script>
 <script src="tieuhoc.js"></script>

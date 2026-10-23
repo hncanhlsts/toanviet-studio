@@ -1,6 +1,6 @@
 ---
 name: toanviet-ve-hinh
-description: Chuyển đề hình học (phẳng lớp 6–12 và không gian lớp 8–12) do giáo viên viết thành kịch bản hình ToanViet Studio trong khối mã ```toanviet (hình không gian: ```toanviet-khonggian), để ToanViet vẽ đúng hình khi dán bài vào Bài giải AI. Dùng skill này bất cứ khi nào người dùng đưa đề / bài giải có hình học phẳng (tam giác, tứ giác, đường tròn, tia, góc, song song, vuông góc, hình chóp, lăng trụ…) và muốn vẽ hình, soạn bài giải để dán vào ToanViet, hoặc nhắc tới ToanViet, "vẽ hình cho đề", "kịch bản hình" — kể cả khi không nói rõ chữ "skill".
+description: Chuyển đề hình học (phẳng lớp 6–12 và không gian lớp 8–12) (và biểu đồ thống kê, mạch điện, thấu kính, sơ đồ lai, phả hệ…) do giáo viên viết thành kịch bản hình ToanViet Studio trong khối mã ```toanviet (hình không gian: ```toanviet-khonggian; biểu đồ, sơ đồ theo môn: ```toanviet-mon), để ToanViet vẽ đúng hình khi dán bài vào Bài giải AI. Dùng skill này bất cứ khi nào người dùng đưa đề / bài giải có hình học phẳng (tam giác, tứ giác, đường tròn, tia, góc, song song, vuông góc, hình chóp, lăng trụ…) và muốn vẽ hình, soạn bài giải để dán vào ToanViet, hoặc nhắc tới ToanViet, "vẽ hình cho đề", "kịch bản hình" — kể cả khi không nói rõ chữ "skill".
 ---
 
 # Vẽ hình học phẳng và không gian cho ToanViet Studio
@@ -18,6 +18,8 @@ trợ lí AI vào, phần mềm trình bày lại theo SGK và đặt hình vào
    lệnh vẽ, quy ước SGK (đoạn / đường thẳng / tia ở lớp 6–7, tên tia viết thường, nét đứt, kí hiệu bằng nhau, góc vuông)
    và các ví dụ mẫu.
    Hình không gian: mục 6 của tệp đó (toạ độ ba số, mp, chop, langtru…), khối mã ```toanviet-khonggian.
+   Biểu đồ thống kê, sơ đồ cây xác suất, mạch điện, thấu kính, đồ thị số liệu, cấu hình electron, công thức cấu tạo,
+   sơ đồ lai, khung Punnett, phả hệ: mục 7 của tệp đó, khối mã ```toanviet-mon ("loai: …" rồi "trường: giá trị").
    Giáo viên chỉ nhờ dựng hình (không cần giải): chỉ trả về khối hình.
 3. Nếu chạy được Node.js, kiểm tra kịch bản bằng đúng bộ dựng hình của ToanViet:
    ```

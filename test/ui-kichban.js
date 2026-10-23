@@ -487,6 +487,50 @@
     ok('khung Thuộc tính báo lỗi bằng lời', pe && /Không dựng được điểm D: đường thẳng kẻ qua B song song với đường thẳng AH/.test(pe.textContent) && /giao\(B, Z1, A, H\)/.test(pe.title), pe && pe.textContent);
   });
 
+  await step('Hình theo môn (biểu đồ, mạch điện, sơ đồ lai), phương trình hoá học, trình chiếu dựng hình từng nét', async () => {
+    const sel = document.getElementById('modeBadge'), chon = async (m) => { sel.value = m; sel.dispatchEvent(new Event('change')); await w(120); };
+    const vis = (q) => { const e = document.querySelector(q); return !!(e && e.offsetParent); };
+    __clear(); await w(50);
+    await chon('toan');
+    const kk = document.getElementById('khKind'), opts = () => [...kk.options].map((o) => o.value);
+    ok('Toán: danh sách thống kê – xác suất', opts().includes('bdcot') && opts().includes('sodocay') && !opts().includes('machdien'), opts().join());
+    kk.value = 'bdcot'; window.__run('ins-khtn'); await w(150);
+    let o = __get(document.querySelector('#page .obj.sel').dataset.id);
+    ok('chèn biểu đồ cột, không lỗi, khung Thuộc tính có ô dữ liệu', o.type === 'khtn' && o.ve === 'bieudo' && !o._err && !!document.querySelector('#props textarea'), o._err);
+    await chon('li');
+    ok('Vật lí: mạch điện, thấu kính; không có phương trình hoá học', opts().includes('machdien') && opts().includes('thaukinh') && !vis('[data-cmd="ptpu"]'), opts().join());
+    kk.value = 'machdien'; window.__run('ins-khtn'); await w(150);
+    o = __get(document.querySelector('#page .obj.sel').dataset.id);
+    ok('chèn mạch điện: có ký hiệu linh kiện, không lỗi', !o._err && document.querySelectorAll('#page .obj.sel svg g[transform*="rotate"]').length >= 4, o._err);
+    await chon('hoa');
+    ok('Hoá học: có nút Phương trình hoá học', vis('[data-cmd="ptpu"]'));
+    window.__run('ptpu'); await w(200);
+    const src = document.getElementById('ptsrc');
+    src.value = 'Al + O2 ->[t°] Al2O3'; src.dispatchEvent(new Event('input')); await w(80);
+    ok('chưa cân bằng: báo lệch', /Chưa cân bằng/.test(document.getElementById('ptstat').textContent), document.getElementById('ptstat').textContent);
+    document.getElementById('ptcb').click(); await w(80);
+    ok('cân bằng hệ số: 4Al + 3O2 → 2Al2O3', src.value === '4Al + 3O2 ->[t°] 2Al2O3' && /Đã cân bằng/.test(document.getElementById('ptstat').textContent), src.value);
+    document.getElementById('ptok').click(); await w(150);
+    o = __get(document.querySelector('#page .obj.sel').dataset.id);
+    ok('chèn thành công thức (sửa được, sang Word thành Equation)', o.type === 'formula' && /xrightarrow\{t\^\{\\circ\}\}/.test(o.latex) && !document.getElementById('ptdlg').open, o.latex);
+    await chon('sinh');
+    kk.value = 'punnett'; window.__run('ins-khtn'); await w(150);
+    o = __get(document.querySelector('#page .obj.sel').dataset.id);
+    ok('Sinh học: khung Punnett không lỗi', o.type === 'khtn' && o.ve === 'punnett' && !o._err, o._err);
+    await chon('toan');
+    // trình chiếu hiện dần: hình phẳng hiện từng nét
+    __clear(); await w(50);
+    const id = __add('plane', 'tamgiac', { script: 'A = (0, 0)\nB = (4, 0)\nC = (1, 3)\ndoan AB\ndoan BC\ndoan CA', x: 40, y: 40, w: 240, h: 200 });
+    window.__run('present-step'); await w(300);
+    const keyR = () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    const lines = () => document.querySelectorAll('#page [data-id="' + id + '"] svg line').length;
+    keyR(); await w(120);
+    const n1 = lines(); keyR(); await w(120); const n2 = lines(); keyR(); await w(120); const n3 = lines();
+    ok('hiện dần: hình phẳng thêm từng nét 1 → 2 → 3', n1 === 1 && n2 === 2 && n3 === 3, [n1, n2, n3].join());
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); await w(200);
+    ok('thoát trình chiếu: hình đầy đủ trở lại', lines() === 3 && __get(id)._buoc === undefined);
+  });
+
   await step('Chèn hình theo kịch bản (nút Kịch bản): hình không gian, hình phẳng; kịch bản lỗi không chèn', async () => {
     __clear(); await w(50);
     const S_count = () => document.querySelectorAll('#page .obj').length;

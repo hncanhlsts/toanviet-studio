@@ -322,7 +322,7 @@
         if (!src.value.trim()) { stat.textContent = ''; return; }
         if (!sp) { stat.innerHTML = '<span class="bgerr">Chưa thấy kịch bản hình</span>'; return; }
         const er = BaiGiai.loiKhoi(sp);
-        stat.innerHTML = (sp.type === 'space' ? 'Hình không gian' : 'Hình phẳng') + ', ' + sp.script.split('\n').length + ' dòng' + (er.length ? ' — <span class="bgerr" title="' + esc(er.join('\n')) + '">' + esc(deHieu(er).join(' ')) + '</span>' : ' — không có lỗi');
+        stat.innerHTML = (sp.type === 'khtn' ? esc(KhoaHoc.KINDS[sp.kind][0]) : (sp.type === 'space' ? 'Hình không gian' : 'Hình phẳng') + ', ' + sp.script.split('\n').length + ' dòng') + (er.length ? ' — <span class="bgerr" title="' + esc(er.join('\n')) + '">' + esc(deHieu(er).join(' ')) + '</span>' : ' — không có lỗi');
       };
       src.addEventListener('input', show);
       $('#kbchep').onclick = () => {
@@ -335,10 +335,11 @@
         if (!sp) { msg('Chưa thấy kịch bản hình — dán khối mã ```toanviet AI trả về', true); return; }
         const er = BaiGiai.loiKhoi(sp);
         if (er.length) { msg('Kịch bản còn lỗi: ' + deHieu(er)[0], true); return; }
-        C.insert(sp.type, sp.kind, { script: sp.script, w: sp.w, h: sp.h });
+        // hình theo môn (```toanviet-mon): mọi trường của mẫu; hình học: kịch bản
+        if (sp.type === 'khtn') { const o = Object.assign({}, sp); delete o.type; delete o.scale; C.insert('khtn', sp.kind, o); } else C.insert(sp.type, sp.kind, { script: sp.script, w: sp.w, h: sp.h });
         C.commit();
         d.close();
-        msg('Đã chèn ' + (sp.type === 'space' ? 'hình không gian' : 'hình phẳng') + ' theo kịch bản — sửa tiếp kịch bản ở khung Thuộc tính');
+        msg('Đã chèn ' + (sp.type === 'khtn' ? KhoaHoc.KINDS[sp.kind][0].toLowerCase() : sp.type === 'space' ? 'hình không gian' : 'hình phẳng') + ' theo kịch bản — sửa tiếp ở khung Thuộc tính');
       };
       d.showModal();
       $('#kbde').focus();

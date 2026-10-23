@@ -243,6 +243,7 @@
         else if (o.type === 'venn') res = NumLine.renderVenn(o, o.w, o.h);
         else if (o.type === 'dattinh') { res = TieuHoc.renderDatTinh(o); o.w = res.w; o.h = res.h; }
         else if (o.type === 'minhhoa') res = MinhHoa.render(o, o.w, o.h);
+        else if (o.type === 'khtn') res = KhoaHoc.render(o, o.w, o.h);
         else res = { svg: connSvg || shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
@@ -301,6 +302,7 @@
       case 'dattinh': return Object.assign({ kind, expr: '356 + 278', size: 26, an: 'none', nan: 3, seed: 1, dapan: false, nho: false, kieuchia: 'day', thapphan: 0, color: '#111111', acolor: '#d62728', w: 100, h: 100 }, TieuHoc.DT_KINDS[kind][1]);
       case 'baitap': return Object.assign({ kind, de: '', text: '', size: 20, cols: 1, dapan: false, seed: 1, head: false, headcol: false, nrow: 4, color: '#111111', acolor: '#d62728', w: 640 }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[kind][1])));
       case 'minhhoa': return Object.assign({ kind, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[kind][1])));
+      case 'khtn': return Object.assign({ kind }, JSON.parse(JSON.stringify(KhoaHoc.KINDS[kind][1])));
       case 'shape':
         // ô chữ (sơ đồ): nền trắng, chữ ở giữa; đường nối: cong, mũi tên một đầu
         if (kind === 'box') return { kind, w: 160, h: 56, color: '#2e86c1', sw: 1.8, dash: false, nofill: false, fill: '#ffffff', text: 'Ô chữ', tsize: 16, tcolor: '#111111', bold: false };
@@ -1169,16 +1171,18 @@
       if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('kieude', 'Cách ghi đề bài', 'sel', { sgk: 'Như sách: số bài trong hình tròn, "Số" trong ô vàng', thuong: 'Chữ "Bài 1." in đậm' }));
       add(field('phong', 'Phông chữ', 'sel', { sgk: 'Như sách giáo khoa (không chân)', times: 'Times New Roman' }));
       row(field('size', 'Cỡ chữ', 'num', 1), field('color', 'Màu chữ', 'color'), field('acolor', 'Màu đáp án', 'color'));
-    } else if (o.type === 'minhhoa') {
-      const kinds = { __on: (k) => { Object.keys(o).forEach((key) => { if (!/^(id|type|x|y|grp)$/.test(key)) delete o[key]; }); Object.assign(o, { kind: k, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[k][1]))); } };
-      for (const k in MinhHoa.KINDS) kinds[k] = MinhHoa.KINDS[k][0];
+    } else if (o.type === 'minhhoa' || o.type === 'khtn') {
+      // hình minh hoạ tiểu học (src/minhhoa.js), hình theo môn THCS – THPT (src/khtn.js): cùng một cách nhập
+      const MH = o.type === 'khtn' ? KhoaHoc : MinhHoa, base = o.type === 'khtn' ? {} : { color: '#222222' };
+      const kinds = { __on: (k) => { Object.keys(o).forEach((key) => { if (!/^(id|type|x|y|grp)$/.test(key)) delete o[key]; }); Object.assign(o, { kind: k }, base, JSON.parse(JSON.stringify(MH.KINDS[k][1]))); } };
+      for (const k in MH.KINDS) if (o.type !== 'khtn' || KhoaHoc.MON[k] === KhoaHoc.MON[o.kind]) kinds[k] = MH.KINDS[k][0];
       add(field('kind', 'Mẫu (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
-      (MinhHoa.FIELDS[o.ve] || []).filter((f) => MinhHoa.fieldUse(o, f[0])).forEach((f) => {
-        const el = add(field(f[0], MinhHoa.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: 4 } : f[3]));
+      (MH.FIELDS[o.ve] || []).filter((f) => MH.fieldUse(o, f[0])).forEach((f) => {
+        const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: o.ve === 'machdien' ? 9 : 5 } : f[3]));
         if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
       });
-      if (MinhHoa.HELP[o.ve]) help(MinhHoa.HELP[o.ve]);
-      add(field('color', 'Màu chữ, màu nét', 'color'));
+      if (MH.HELP[o.ve]) help(MH.HELP[o.ve]);
+      if (o.type === 'minhhoa') add(field('color', 'Màu chữ, màu nét', 'color'));
       help('Kéo ô vuông ở góc để đổi kích thước. Hình được vẽ lại bằng nét, in rõ ở mọi cỡ.');
     } else if (o.type === 'shape') {
       if (sodo.CLOSED.includes(o.kind)) {
@@ -1221,7 +1225,7 @@
   // ---------- Thư viện của tôi, báo lỗi / góp ý: src/mod/thuvien.js ----------
   let modal, libThumb, openLib, openReport;
   // ---------- Soạn đề kiểm tra theo cấu trúc 2025, xuất sang Word: src/mod/soande.js ----------
-  let openExam, openBaiGiai, makeBaiGiai, openKichBan;
+  let openExam, openBaiGiai, makeBaiGiai, openKichBan, openPhuongTrinh;
   // ---------- Trình chiếu tương tác, mẫu theo bài sách Kết nối tri thức: src/mod/trinhchieu.js ----------
   let startPresent, stopPresent, openMau, isPresenting;
   function setFormulaFont(times) {
@@ -1256,7 +1260,15 @@
       yk.replaceChildren(...symGroups.filter((og) => !M.kyhieu || og.label.startsWith(M.kyhieu)));
       if (!yk.value && yk.options.length) yk.selectedIndex = 0;
     }
+    // biểu đồ, sơ đồ theo môn (src/khtn.js): Toán — thống kê, xác suất; Lí, Hoá, Sinh — sơ đồ của môn
+    const kk = $('#khKind'), mk = m === 'tieuhoc' ? '' : M.kyhieu ? m : 'toan';
+    if (kk && window.KhoaHoc) {
+      kk.replaceChildren(...KhoaHoc.GROUPS.filter((g) => g[1] === mk).map((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[2]) { const op = document.createElement('option'); op.value = k; op.textContent = g[2][k][0]; og.appendChild(op); } return og; }));
+      $('#khLbl').textContent = M.kyhieu ? M.ten : 'Thống kê';
+      $('#gMonLbl').textContent = M.kyhieu ? 'Sơ đồ, đồ thị ' + M.ten : 'Thống kê – xác suất';
+    }
     const lb = $('#gHinhLbl'); if (lb) lb.textContent = M.kyhieu ? 'Ký hiệu ' + M.ten : 'Hình học và ký hiệu Lí – Hoá – Sinh';
+    fitRibbon(); // danh sách mới làm đổi bề rộng các nhóm: thu gọn lại thanh công cụ
     const ld = document.querySelector('.g-dai > span'); if (ld) ld.textContent = m === 'li' ? 'Đồ thị' : 'Đại số & Giải tích';
     const b = $('#modeBadge'); if (b && b.value !== m) b.value = m;
     try { localStorage.setItem('tvs-mon', m); localStorage.removeItem('tvs-tieuhoc'); } catch (e) { /* bỏ qua */ }
@@ -1305,6 +1317,8 @@
     'ins-venn': () => { insert('venn', 'phantu'); commit(); },
     'ins-dattinh': () => { insert('dattinh', $('#dtKind').value); commit(); },
     'ins-baitap': () => { insert('baitap', $('#btKind').value); commit(); },
+    ptpu: () => openPhuongTrinh(),
+    'ins-khtn': () => { if ($('#khKind').value) { insert('khtn', $('#khKind').value); commit(); } },
     'ins-minhhoa': () => { const v = $('#mhKind').value; if (v === 'tiaso') insert('numline', 'tiaso'); else insert('minhhoa', v); commit(); },
     'ins-phieu': () => phieuMau(),
     mau: () => openMau(),
@@ -1434,7 +1448,7 @@
     const grps = [...rb.querySelectorAll(':scope > .grp')];
     const lbl = (g) => g.dataset.ten || (g.querySelector(':scope > span') || {}).textContent || ''; // tên nhóm cố định (nhãn đổi theo môn)
     // thứ tự thu gọn: nhóm ít dùng trước
-    const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo', 'Hình học và ký hiệu Lí – Hoá – Sinh', 'Tiểu học (lớp 1–5)'];
+    const ORDER = ['Sắp xếp', 'Xuất sang Word / in ấn', 'Word / PowerPoint', 'Tệp', 'Hình vẽ', 'Sơ đồ', 'Đại số & Giải tích', 'Soạn thảo', 'Biểu đồ, sơ đồ theo môn', 'Hình học và ký hiệu Lí – Hoá – Sinh', 'Tiểu học (lớp 1–5)'];
     const seq = ORDER.map((t) => grps.find((g) => lbl(g) === t)).filter(Boolean);
     const wraps = () => { const vis = grps.filter((g) => g.offsetParent !== null); return vis.length > 1 && vis.some((g) => g.offsetTop > vis[0].offsetTop + 4); };
     rb.classList.remove('gon', 'hep', 'cuon'); grps.forEach((g) => g.classList.remove('ic'));
@@ -1610,6 +1624,7 @@
   sodo = TVM.sodo({ S, get, renderObj, commit, select, setSel, buildProps, msg, insert, elOf });
   ({ modal, libThumb, openLib, openReport } = TVM.thuvien({ $, stage, api, S, esc, LOG, msg, cur, title, many, groupData, pasteGroup, select, paste }));
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
+  ({ openPhuongTrinh } = TVM.hoahoc({ $, esc, msg, modal, tex, insert, commit }));
   ({ openBaiGiai, makeBaiGiai, openKichBan } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults, insert, commit }));
   window.__baigiai = { open: () => openBaiGiai(), make: (t) => makeBaiGiai(t) }; // kiểm thử
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));

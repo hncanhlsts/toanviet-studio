@@ -22,7 +22,7 @@
     return c.toDataURL('image/png');
   };
   const LIBKEY = () => 'L' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-  const KIND_NAME = { group: 'Nhóm', formula: 'Công thức', text: 'Văn bản', graph: 'Đồ thị', bbt: 'Bảng', region: 'Miền nghiệm', solid: 'Khối', plane: 'Hình phẳng', space: 'Hình không gian', sym: 'Ký hiệu', numline: 'Trục số', venn: 'Biểu đồ Ven', dattinh: 'Đặt tính', baitap: 'Bài tập', minhhoa: 'Hình minh hoạ', shape: 'Hình vẽ' };
+  const KIND_NAME = { group: 'Nhóm', khtn: 'Hình theo môn', formula: 'Công thức', text: 'Văn bản', graph: 'Đồ thị', bbt: 'Bảng', region: 'Miền nghiệm', solid: 'Khối', plane: 'Hình phẳng', space: 'Hình không gian', sym: 'Ký hiệu', numline: 'Trục số', venn: 'Biểu đồ Ven', dattinh: 'Đặt tính', baitap: 'Bài tập', minhhoa: 'Hình minh hoạ', shape: 'Hình vẽ' };
   async function openLib() {
     if (!api) return;
     let items = await api.lib({ action: 'load' });

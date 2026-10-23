@@ -249,7 +249,50 @@ vuong SAB SAD
 diem O M
 ```
 
-## 7. Trước khi gửi, tự kiểm tra
+## 7. Biểu đồ, sơ đồ theo môn (thống kê, Vật lí, Hoá học, Sinh học)
+
+Dùng khối mã có nhãn toanviet-mon. Dòng đầu "loai: <mẫu>", các dòng sau "trường: giá trị". Trường nhiều dòng (dulieu, kichban, kieuhinh): viết "dulieu:" rồi mỗi dòng dữ liệu ở dòng dưới. Đúng / sai viết co / khong. Số thập phân dùng dấu phẩy trong dữ liệu (0,6).
+
+- Thống kê, xác suất: bangsl (dulieu: mỗi dòng một hàng, ô cách nhau bằng |), bdcot / bdcotkep / bddoan (tieude, dulieu: tên | số [| số], chuoi: tên các dãy cách nhau |, donvi, tentruc, hienso), bdquat (tieude, dulieu: tên | số, chuthich), ghepnhom (dulieu: [a; b) | tần số, dagiac), sodocay (dulieu: tên | xác suất, nhánh con thêm dấu - ở đầu dòng; tich: co).
+- Vật lí: machdien (kichban: nút "A = (0, 3)" theo ô lưới; linh kiện "dientro A B = R_1": dientro, bientro, nguon, bopin, den, khoa, khoadong, ampeke, vonke, tudien, cuoncam, diot; dây "day A B"), thaukinh / thaukinh2 (loai: hoitu hoặc phanki; f, d, hv là số cm; ten: AB), sodulieu (dulieu: x | y; tentrucx, tentrucy viết như công thức: t\,(\text{s}); noi: gapkhuc / thang / diem).
+- Hoá học: nguyentu (z: kí hiệu hoặc số hiệu, tới 36), cautao (ct: CH3-CH(CH3)-CH2-OH; liên kết đôi =, ba #). Phương trình phản ứng viết bằng công thức LaTeX thường: 2\mathrm{H_2} + \mathrm{O_2} \xrightarrow{t^{\circ}} 2\mathrm{H_2O}.
+- Sinh học: sodolai, punnett (p1, p2: kiểu gen viết liền như AaBb; kieuhinh: alen | tính trạng), phahe (dulieu: mỗi dòng một người "mã | nam/nữ | bệnh hoặc mang hoặc để trống | bố+mẹ").
+
+Ví dụ: Biểu đồ cột số học sinh đạt điểm giỏi của hai lớp 7A, 7B ở ba môn.
+
+```toanviet-mon
+loai: bdcotkep
+tieude: Số học sinh giỏi
+chuoi: Lớp 7A | Lớp 7B
+dulieu:
+Toán | 12 | 10
+Ngữ văn | 8 | 11
+Tiếng Anh | 9 | 7
+donvi: Số học sinh
+hienso: co
+```
+
+Ví dụ: Vật AB cao 2 cm đặt cách thấu kính hội tụ tiêu cự 12 cm một khoảng 30 cm.
+
+```toanviet-mon
+loai: thaukinh
+f: 12
+d: 30
+hv: 2
+```
+
+Ví dụ: Ở đậu Hà Lan, A: hạt vàng, a: hạt xanh. Cho Aa lai với aa.
+
+```toanviet-mon
+loai: sodolai
+p1: Aa
+p2: aa
+kieuhinh:
+A | vàng
+a | xanh
+```
+
+## 8. Trước khi gửi, tự kiểm tra
 
 - Mọi điểm dùng trong một dòng đã được dựng ở dòng trước. Tên phép dựng, tên lệnh viết đúng như bảng (không dấu, chữ thường).
 - Mọi quan hệ của đề đều có trong kịch bản (song song bằng tinhtien, vuông góc bằng chan / quay 90, giao bằng giao…).

@@ -256,6 +256,19 @@
     let sc = Math.min((w - 2 * M) / Math.max(1e-6, x1 - x0), (h - 2 * M) / Math.max(1e-6, y1 - y0)), vx = (x0 + x1) / 2, vy = (y0 + y1) / 2;
     // khi đang kéo điểm: giữ nguyên khung nhìn để hình không nhảy theo
     if (o._view && o._view.sc) { sc = o._view.sc; vx = o._view.cx; vy = o._view.cy; }
+    // trình chiếu dựng hình từng bước (src/mod/trinhchieu.js): khung nhìn tính theo cả hình (hình không nhảy),
+    // chỉ vẽ o._buoc nét đầu; điểm chưa có nét nào đi qua thì chưa ghi tên
+    const tongBuoc = cmds.length;
+    if (typeof o._buoc === 'number') {
+      const vis = cmds.slice(0, Math.max(0, o._buoc)), co = new Set();
+      vis.forEach((c) => {
+        ['a', 'b', 'c'].forEach((k) => { if (typeof c[k] === 'string') co.add(c[k]); });
+        (c.pts || []).forEach((n) => co.add(n));
+        if (c.k === 'circle') names.forEach((n) => { if (dist(P[n], c.c) < 1e-9) co.add(n); });
+      });
+      names.forEach((n) => { if (!co.has(n)) hidden.add(n); });
+      cmds.length = 0; vis.forEach((c) => cmds.push(c));
+    }
     const T = (p) => [w / 2 + (p[0] - vx) * sc, h / 2 - (p[1] - vy) * sc];
     const S = {}; names.forEach((n) => { S[n] = T(P[n]); });
     const cen = T([names.reduce((s, n) => s + P[n][0], 0) / names.length, names.reduce((s, n) => s + P[n][1], 0) / names.length]);
@@ -377,7 +390,7 @@
     let defs = '';
     vecCols.forEach((cc) => { defs += `<marker id="pv${o.id}${cc.replace('#', '')}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,1.5 L10,5 L0,8.5 L2.5,5 z" fill="${cc}"/></marker>`; });
     if (defs) defs = '<defs>' + defs + '</defs>';
-    return { svg: defs + fills.join('') + parts.join('') + marks.join(''), labels, errors, pts: S, view: { sc, cx: vx, cy: vy, dim: 2 } };
+    return { svg: defs + fills.join('') + parts.join('') + marks.join(''), labels, errors, pts: S, view: { sc, cx: vx, cy: vy, dim: 2 }, buoc: tongBuoc };
   }
 
   // Hình mẫu theo chương trình GDPT 2018 (nhóm -> tên -> kịch bản).
@@ -997,5 +1010,6 @@ diem O`],
   const points = (script) => build(script).P;
   // các dòng kịch bản lỗi (kiểm tra kịch bản hình do AI viết)
   const loi = (script) => build(script).errors;
-  root.Plane = { render, KINDS, scriptOf, params, setParam, points, placeNames, loi };
+  const soBuoc = (script) => build(script).cmds.length; // số nét vẽ (trình chiếu dựng hình từng bước)
+  root.Plane = { render, KINDS, scriptOf, params, setParam, points, placeNames, loi, soBuoc };
 })(window);

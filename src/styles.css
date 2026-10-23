@@ -433,3 +433,6 @@ body.coban #ribbon .nc { display: none !important; }
 body.coban #uiBadge { background: #e3f1e6; border-color: #7fb98d; color: #1d5a2c; }
 select#modeBadge { margin-left: 0 !important; height: 19px; padding: 0 4px; font: 11px "Segoe UI", sans-serif; }
 body.mon-khtn #modeBadge { background: #e8f0fb; border-color: #8fb0de; color: #1f4f8f; }
+/* hàng "Phương trình hoá học" chỉ hiện ở môn Hoá học */
+#ribbon .chi-hoa { display: none !important; }
+body.mon-hoa #ribbon .chi-hoa { display: flex !important; }

@@ -29,7 +29,7 @@
       if (step) { P.shown = 0; applyShown(); }
       setTimeout(fit, 120);
       window.addEventListener('resize', fit);
-      msg(step ? 'Trình chiếu hiện dần: bấm → hoặc Space để hiện phần tiếp theo; Esc để thoát' : 'Trình chiếu: Esc để thoát');
+      msg(step ? 'Trình chiếu hiện dần: bấm → hoặc Space để hiện phần tiếp theo (hình phẳng hiện từng nét); Esc để thoát' : 'Trình chiếu: nhấp vào hình phẳng để dựng lại từng nét; Esc để thoát');
     }
     function fit() {
       if (!P) return;
@@ -41,8 +41,26 @@
       const last = P.step && P.shown > 0 ? elOf(P.order[P.shown - 1]) : null;
       if (last) last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
-    function next() { if (!P) return; if (P.step && P.shown < P.order.length) { P.shown++; applyShown(); } }
-    function prev() { if (!P) return; if (P.step && P.shown > 0) { P.shown--; applyShown(); } }
+    // hình phẳng dựng từng nét (như vẽ trên bảng): khi hiện dần, mỗi lần bấm thêm một nét; đủ nét mới sang đối tượng sau
+    const isPlane = (o) => o && o.type === 'plane' && window.Plane && Plane.soBuoc;
+    const objAt = (i) => S.objs.find((o) => o.id === P.order[i]);
+    function next() {
+      if (!P || !P.step) return;
+      const cur = P.shown > 0 ? objAt(P.shown - 1) : null;
+      if (isPlane(cur) && typeof cur._buoc === 'number' && cur._buoc < Plane.soBuoc(cur.script)) { cur._buoc++; renderObj(cur); return; }
+      if (P.shown < P.order.length) {
+        P.shown++;
+        const o = objAt(P.shown - 1);
+        if (isPlane(o) && Plane.soBuoc(o.script) > 1) { o._buoc = 1; renderObj(o); }
+        applyShown();
+      }
+    }
+    function prev() {
+      if (!P || !P.step) return;
+      const cur = P.shown > 0 ? objAt(P.shown - 1) : null;
+      if (isPlane(cur) && typeof cur._buoc === 'number' && cur._buoc > 1) { cur._buoc--; renderObj(cur); return; }
+      if (P.shown > 0) { if (isPlane(cur)) { delete cur._buoc; renderObj(cur); } P.shown--; applyShown(); }
+    }
     function allAnswers() {
       if (!P) return;
       const any = S.objs.some((o) => isAnswerable(o) && !revealed(o));
@@ -72,6 +90,12 @@
       if (o.type === 'dattinh') {
         const r = TieuHoc.renderDatTinh(Object.assign({}, o, { _buoc: undefined }));
         o._buoc = (o._buoc || 0) >= r.buoc ? 0 : (o._buoc || 0) + 1;
+        renderObj(o);
+      } else if (isPlane(o) && !P.step) {
+        // nhấp vào hình phẳng: dựng lại từng nét (nét 1, 2, … rồi về hình đầy đủ)
+        const n = Plane.soBuoc(o.script);
+        o._buoc = typeof o._buoc !== 'number' ? 1 : o._buoc < n ? o._buoc + 1 : undefined;
+        if (o._buoc === undefined) delete o._buoc;
         renderObj(o);
       } else if (isAnswerable(o)) { setReveal(o, !revealed(o)); renderObj(o); }
     }
