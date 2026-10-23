@@ -618,7 +618,7 @@
     }
     ds.filter((n) => n.x === undefined).forEach((n, i) => { n.x = i * sp; });
     const minx = Math.min(...ds.map((n) => n.x)), maxx = Math.max(...ds.map((n) => n.x));
-    const left = 44, legH = o.chuthich ? 30 : 0, rowH = Math.min(96, (h - 24 - legH) / soThe);
+    const left = 44, legH = o.chuthich ? (w - 12 < 4 * 28 + tw('Nam bình thườngNam bị bệnhNữ bình thườngNữ bị bệnh', 12) ? 48 : 30) : 0, rowH = Math.min(96, (h - 24 - legH) / soThe);
     const sc = Math.min(1.3, (w - left - 30) / Math.max(sp, maxx - minx + sp * 0.6)), s = Math.min(26, rowH * 0.36) * Math.min(1, sc + 0.25);
     const X = (n) => left + 14 + (n.x - minx) * sc, Yh = (t) => 12 + rowH * t + s / 2;
     const col = o.color || '#111';
@@ -652,12 +652,17 @@
       hang[t].slice().sort((a, b) => a.x - b.x).forEach((n, i) => out.push(T(X(n), Yh(t) + s / 2 + 11, o.ghima ? n.ma : String(i + 1), { s: 12 })));
     }
     if (o.chuthich) {
-      const y = h - 14, k = 14;
-      let x = left;
-      [['nam', false, 'Nam bình thường'], ['nam', true, 'Nam bị bệnh'], ['nu', false, 'Nữ bình thường'], ['nu', true, 'Nữ bị bệnh']].forEach(([g, b, t]) => {
+      // chú thích: một hàng nếu đủ rộng, khung hẹp thì hai hàng (nam / nữ)
+      const k = 14, muc = [['nam', false, 'Nam bình thường'], ['nam', true, 'Nam bị bệnh'], ['nu', false, 'Nữ bình thường'], ['nu', true, 'Nữ bị bệnh']];
+      const rongMuc = (t) => k + 14 + tw(t, 12), haiHang = muc.reduce((a, m) => a + rongMuc(m[2]), 0) > w - 12;
+      const cot = haiHang ? Math.max(rongMuc(muc[0][2]), rongMuc(muc[2][2])) : 0;
+      let x = haiHang ? Math.max(6, (w - cot - rongMuc(muc[1][2])) / 2) : left, x0 = x;
+      muc.forEach(([g, b, t], i) => {
+        const y = haiHang ? h - 32 + (i % 2) * 18 : h - 14;
+        if (haiHang) x = x0 + (i < 2 ? 0 : cot); // cột trái: nam, cột phải: nữ
         out.push(g === 'nam' ? R(x, y - k / 2, k, k, b ? col : '#fff', col, 1.2) : C(x + k / 2, y, k / 2, b ? col : '#fff', col, 1.2));
         out.push(T(x + k + 5, y, t, { a: 'start', s: 12 }));
-        x += k + 14 + tw(t, 12);
+        if (!haiHang) x += rongMuc(t);
       });
     }
   }

@@ -277,6 +277,7 @@
 </div>
 
 <h2>Mục lục</h2>
+<p><b>Có gì mới trong bản 2.8.0</b> — tính năng mới cho Toán, Vật lí, Hoá học, Sinh học và cho mọi giáo viên (ngay sau mục lục).</p>
 <ol class="toc">
   <li>Cài đặt và mở phần mềm</li>
   <li>Mười phút đầu tiên</li>
@@ -293,6 +294,59 @@
   <li>Giới hạn hiện tại và xử lý sự cố</li>
 </ol>
 <p style="margin-top:14pt">Mức độ của từng phần được đánh dấu: <span class="level l1">Làm quen</span> <span class="level l2">Thường dùng</span> <span class="level l3">Nâng cao</span>. Các khung màu xanh lá "Thử ngay" là bài tập ngắn nên làm theo khi đọc.</p>
+
+<h2>Có gì mới trong bản 2.8.0</h2>
+<p>Bản 2.8.0 mở rộng ToanViet Studio từ phần mềm của giáo viên Toán thành công cụ cho cả <b>Toán, Vật lí, Hoá học, Sinh học</b>. Mỗi môn có nhóm nút riêng và các hình, sơ đồ vẽ tự động từ số liệu — chỉ cần nhập dữ liệu ở khung Thuộc tính, không phải vẽ tay từng nét. Mục này tóm tắt các tính năng mới; cách dùng chi tiết ở phần của từng môn.</p>
+<h3>Cho mọi giáo viên</h3>
+<table>
+  <tr><th style="width:30%">Tính năng</th><th>Cách dùng</th></tr>
+  <tr><td><b>Chọn môn</b></td><td>Ô chọn môn ở góc phải thanh trạng thái (hoặc <b>Xem ▸ Môn / cấp học</b>): Tiểu học, Toán THCS – THPT, Vật lí, Hoá học, Sinh học. Thanh công cụ chỉ còn các nhóm nút của môn đó; hộp công thức mở sẵn thẻ ký hiệu của môn. Phần mềm nhớ môn đã chọn.</td></tr>
+  <tr><td><b>Giao diện cơ bản</b></td><td>Nút <b>Giao diện đầy đủ</b> cạnh ô chọn môn (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>): ẩn các nút ít dùng, hợp với thầy cô mới làm quen. Nhấp lại để hiện đủ.</td></tr>
+  <tr><td><b>Lỗi hình báo bằng lời thường</b></td><td>Thay cho dòng kỹ thuật, ToanViet nói rõ điểm nào không dựng được và vì sao, ví dụ "đường thẳng kẻ qua B song song với AH nên hai đường không cắt nhau — kiểm tra lại đề". Rê chuột lên dòng lỗi để xem lỗi gốc.</td></tr>
+  <tr><td><b>Trình chiếu dựng hình từng nét</b></td><td><kbd>Shift</kbd>+<kbd>F5</kbd>: mỗi lần bấm, hình phẳng hiện thêm một nét như vẽ trên bảng. Khi trình chiếu thường (<kbd>F5</kbd>), nhấp vào hình để dựng lại từng nét.</td></tr>
+  <tr><td><b>AI viết hình theo môn</b></td><td>Lời nhắc cho AI và skill Claude có thêm khối mã <b>toanviet-mon</b>: ChatGPT, Gemini, Claude viết biểu đồ, mạch điện, thấu kính, sơ đồ lai… ToanViet vẽ đúng hình đó trong <b>Bài giải AI</b> và hộp <b>Kịch bản</b>.</td></tr>
+  <tr><td><b>Cập nhật bản sửa lỗi</b></td><td>Bản chỉ sửa lỗi giữ nguyên số phiên bản nhưng có <b>số bản dựng</b> mới (xem ở <b>Trợ giúp ▸ Giới thiệu</b>); chức năng kiểm tra bản mới trong thư mục dùng chung vẫn nhận ra bản sửa lỗi.</td></tr>
+</table>
+<figure><img src="img/moi-chon-mon.png"><figcaption>Đã chọn môn Vật lí: thanh công cụ còn Đồ thị, ký hiệu Vật lí và nhóm Sơ đồ, đồ thị Vật lí; khung Thuộc tính của hình thấu kính</figcaption></figure>
+<p>Các hình theo môn đều chèn theo cùng một cách: chọn môn → trong nhóm <b>Sơ đồ, đồ thị</b> chọn mẫu → bấm <b>Chèn</b> → sửa số liệu ở khung <b>Thuộc tính</b>, hình vẽ lại ngay. Hình in rõ ở mọi cỡ, chèn sang Word / PowerPoint như các hình khác.</p>
+<h3>Toán: thống kê và xác suất</h3>
+<table>
+  <tr><th style="width:30%">Tính năng</th><th>Cách dùng</th></tr>
+  <tr><td><b>Bảng số liệu, bảng tần số</b></td><td>Mỗi dòng một hàng, các ô cách nhau bằng <code>|</code>, ví dụ <code>Điểm | 5 | 6 | 7</code>. Tô hàng đầu / cột đầu làm tiêu đề; ô viết <code>$…$</code> là công thức.</td></tr>
+  <tr><td><b>Biểu đồ cột, cột kép</b></td><td>Mỗi dòng <code>tên | số</code>; cột kép <code>Toán | 12 | 10</code> và tên các dãy <code>Lớp 7A | Lớp 7B</code>. Khoảng chia trục tự chọn (số liệu đếm thì chia số nguyên), ghi số liệu trên cột, chú thích màu.</td></tr>
+  <tr><td><b>Biểu đồ đoạn thẳng</b></td><td>Cùng cách nhập như biểu đồ cột, chọn kiểu <b>Biểu đồ đoạn thẳng</b>; có thể kẻ đường gióng.</td></tr>
+  <tr><td><b>Biểu đồ hình quạt tròn</b></td><td>Mỗi dòng <code>tên | số</code>; ToanViet tự tính phần trăm, ghi tên trong hình hoặc ở bảng chú thích.</td></tr>
+  <tr><td><b>Biểu đồ tần số ghép nhóm (lớp 11)</b></td><td>Mỗi dòng <code>[150; 155) | 4</code>: các cột liền nhau, trục ngang ghi đầu mút các nhóm; bật <b>Vẽ đa giác tần số</b>.</td></tr>
+  <tr><td><b>Sơ đồ cây xác suất</b></td><td>Mỗi dòng một nhánh <code>A | 0,6</code>, nhánh con thêm dấu <code>-</code> ở đầu dòng. Bật <b>Ghi xác suất từng đường đi</b>: ToanViet nhân theo nhánh, phân số thì rút gọn (1/2 · 1/3 = 1/6).</td></tr>
+</table>
+<figure><img src="img/moi-toan.png" style="width:86%"><figcaption>Thống kê và xác suất: bảng tần số, biểu đồ cột kép, hình quạt, tần số ghép nhóm có đa giác tần số, sơ đồ cây</figcaption></figure>
+<h3>Vật lí: mạch điện, thấu kính, đồ thị số liệu</h3>
+<table>
+  <tr><th style="width:30%">Tính năng</th><th>Cách dùng</th></tr>
+  <tr><td><b>Mạch điện theo lưới</b></td><td>Viết kịch bản: đặt nút <code>A = (0, 3)</code>, nối linh kiện <code>dientro A B = R_1</code>, dây <code>day A B</code>. 15 linh kiện SGK (nguồn, khoá, đèn, điện trở, biến trở, ampe kế, vôn kế, tụ điện, cuộn cảm, điốt…). Linh kiện tự xoay theo dây, chỗ rẽ nhánh có chấm nối, nhãn đặt phía ngoài mạch.</td></tr>
+  <tr><td><b>Dựng ảnh qua thấu kính</b></td><td>Chọn hội tụ / phân kì, nhập tiêu cự f, khoảng cách d, chiều cao vật. ToanViet vẽ các tia đặc biệt, ảnh thật (nét liền) hoặc ảnh ảo (nét đứt), tính và ghi d', độ cao ảnh, tính chất ảnh; vật ở tiêu điểm thì báo ảnh ở vô cực.</td></tr>
+  <tr><td><b>Đồ thị theo số liệu</b></td><td>Mỗi dòng <code>x | y</code> cho đồ thị x – t, v – t, U – I…; tên trục viết như công thức <code>t\,(\text{s})</code>; có đường gióng, lưới.</td></tr>
+  <tr><td><b>Số liệu thí nghiệm</b></td><td>Chọn <b>Đường thẳng phù hợp nhất</b>: ToanViet vẽ đường thẳng gần các điểm đo nhất và ghi phương trình theo tên đại lượng (I = 0,2U + …).</td></tr>
+</table>
+<figure><img src="img/moi-ly.png" style="width:86%"><figcaption>Vật lí: mạch điện theo lưới, dựng ảnh qua thấu kính hội tụ, đồ thị v – t, số liệu thí nghiệm U – I</figcaption></figure>
+<h3>Hoá học: phương trình, cấu hình electron, cấu tạo</h3>
+<table>
+  <tr><th style="width:30%">Tính năng</th><th>Cách dùng</th></tr>
+  <tr><td><b>Phương trình hoá học</b></td><td>Nút <b>⚗ Phương trình hoá học…</b> (môn Hoá học). Gõ như viết tay <code>Fe + HCl -> FeCl2 + H2↑</code>: tự viết chỉ số dưới, điện tích <code>SO4^2-</code>, tinh thể ngậm nước <code>CuSO4.5H2O</code>, trạng thái, ↑ ↓, mũi tên thuận nghịch <code>&lt;=&gt;</code>, điều kiện <code>-&gt;[t°, xt]</code>.</td></tr>
+  <tr><td><b>Kiểm tra và tự cân bằng</b></td><td>Dòng dưới ô gõ báo <b>đã cân bằng</b> hay lệch nguyên tố nào. Nút <b>⚖ Cân bằng hệ số</b> tìm hệ số nhỏ nhất, cả phản ứng oxi hoá – khử (3Cu + 8HNO<sub>3</sub> → …) và phương trình ion. Phương trình chèn vào là công thức: sửa được, sang Word thành Equation.</td></tr>
+  <tr><td><b>Cấu hình electron</b></td><td>Nhập kí hiệu (Fe) hoặc số hiệu (26), tới Z = 36: cấu hình electron, ô orbital lớp ngoài cùng theo quy tắc Hund (đúng ngoại lệ Cr, Cu), sơ đồ các lớp electron.</td></tr>
+  <tr><td><b>Công thức cấu tạo thu gọn</b></td><td><code>CH3-CH(CH3)-CH2-OH</code>: mạch chính viết ngang, nhánh trong ngoặc vẽ thẳng đứng; liên kết đôi <code>=</code>, ba <code>≡</code> (hoặc <code>#</code>).</td></tr>
+</table>
+<figure><img src="img/moi-phuong-trinh.png"><figcaption>Hộp Phương trình hoá học: gõ như viết tay, bấm Cân bằng hệ số</figcaption></figure>
+<figure><img src="img/moi-hoa.png" style="width:86%"><figcaption>Hoá học: phương trình đã cân bằng, cấu hình electron của Fe, công thức cấu tạo thu gọn</figcaption></figure>
+<h3>Sinh học: sơ đồ lai, khung Punnett, phả hệ</h3>
+<table>
+  <tr><th style="width:30%">Tính năng</th><th>Cách dùng</th></tr>
+  <tr><td><b>Sơ đồ lai</b></td><td>Nhập kiểu gen hai bên P (<code>AaBb</code>, <code>aabb</code>) và tên tính trạng (<code>A | vàng</code>). ToanViet viết P, giao tử G ngay dưới bên P tạo ra, F<sub>1</sub> với tỉ lệ kiểu gen, tỉ lệ kiểu hình.</td></tr>
+  <tr><td><b>Khung Punnett</b></td><td>Cùng cách nhập; giao tử hai bên ở hàng và cột, ô tô màu theo kiểu hình, góc ghi ♀ ♂.</td></tr>
+  <tr><td><b>Sơ đồ phả hệ</b></td><td>Mỗi dòng một người <code>3 | nam | bệnh | 1+2</code>. Thế hệ I, II, III tự tính, vợ / chồng lấy vào tự xếp cạnh, đường hôn nhân và đường con cái tự vẽ, đánh số trong từng thế hệ, có chú thích kí hiệu.</td></tr>
+</table>
+<figure><img src="img/moi-sinh.png" style="width:86%"><figcaption>Sinh học: sơ đồ lai hai cặp tính trạng, khung Punnett tô màu theo kiểu hình, phả hệ ba thế hệ</figcaption></figure>
 
 <h2>1. Cài đặt và mở phần mềm <span class="level l1">Làm quen</span></h2>
 <ol>
