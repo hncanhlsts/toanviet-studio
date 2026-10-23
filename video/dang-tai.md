@@ -63,3 +63,37 @@ Mã nguồn: https://github.com/hncanhlsts/toanviet-studio (giấy phép MIT)
 ```
 
 Facebook nhận tệp MP4 trực tiếp. Video không có tiếng, nhưng phụ đề đã in trên hình nên người xem vẫn theo dõi được khi tắt tiếng. Với Zalo, nếu nhóm giới hạn dung lượng, có thể đăng liên kết YouTube thay cho tệp.
+
+---
+
+# Video hướng dẫn 2.8.0 (theo từng môn)
+
+Tệp: `ToanViet-Studio-huong-dan-2.8.0.mp4` — 9 phút 50 giây, 1920 × 1080, H.264, có nhạc nền (AAC 192 kbit/s; hai bài trong thư mục `video` phát lần lượt và lặp lại cho đến hết video), 106 MB. Kịch bản: `kich-ban-huong-dan-280.md`.
+
+**Tiêu đề YouTube** (gợi ý): ToanViet Studio 2.8.0 — Hướng dẫn cho giáo viên Tiểu học, Toán, Lí, Hoá, Sinh (miễn phí)
+
+**Mô tả** (dán nguyên văn):
+
+```
+Hướng dẫn từng bước ToanViet Studio 2.8.0 — phần mềm miễn phí, mã nguồn mở giúp thầy cô soạn công thức và hình vẽ cho Tiểu học, Toán, Vật lí, Hoá học, Sinh học, trình bày đúng SGK Việt Nam, chèn thẳng vào Word và PowerPoint.
+
+⬇ Tải bộ cài (Windows 10, 11): https://github.com/hncanhlsts/toanviet-studio/releases/latest
+
+Trong video:
+0:00 Giới thiệu, cài đặt
+0:26 Bắt đầu: chọn môn, giao diện cơ bản
+0:53 Giáo viên Tiểu học: đặt tính cột dọc, phiếu bài tập, trình chiếu giải từng bước, hình minh hoạ, mẫu theo bài
+2:04 Giáo viên Toán: công thức, bảng biến thiên, đồ thị, hình phẳng, hình không gian
+4:07 Toán: thống kê và xác suất (biểu đồ cột, quạt, ghép nhóm, sơ đồ cây)
+4:41 Giáo viên Vật lí: mạch điện theo lưới, dựng ảnh qua thấu kính, đồ thị số liệu
+5:38 Giáo viên Hoá học: phương trình hoá học tự cân bằng, cấu hình electron, công thức cấu tạo
+6:36 Giáo viên Sinh học: sơ đồ lai, khung Punnett, sơ đồ phả hệ
+7:25 Tính năng nâng cao: Bài giải AI → Word, tự đọc đề vẽ hình
+8:10 Dùng ngay trong Word: nhấp đúp để sửa, chuyển Equation → ToanViet
+8:47 AI viết hình theo môn
+9:02 Trình chiếu dựng hình từng nét, lỗi hình báo bằng lời
+
+Tài liệu hướng dẫn (PDF): phím F1 trong phần mềm, hoặc ở trang tải.
+Tác giả: Hoàng Ngọc Cảnh — Trường THCS - THPT Đinh Thiện Lý. Mã nguồn: https://github.com/hncanhlsts/toanviet-studio (giấy phép MIT)
+Nhạc nền: hai bản nhạc miễn phí bản quyền (cinematic-soul-uplifting "City Without Sleep", nastelbom "No Copyright Music").
+```

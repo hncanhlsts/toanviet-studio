@@ -64,3 +64,50 @@ async function typeInto(sel, text, per) {
   await window.api.testKeys([K('Backspace')]); await w(120);
   await type([text], per);
 }
+// ---- dùng cho các cảnh bản 2.8.0 ----
+// chọn một mục của ô chọn (di chuột tới ô, đổi giá trị như người dùng chọn)
+async function chonMuc(sel, value, ms) {
+  const e = typeof sel === 'string' ? document.querySelector(sel) : sel;
+  const [x, y] = at(e); await click(x, y, ms || 700); await w(250);
+  e.value = value; e.dispatchEvent(new Event('change', { bubbles: true })); await w(500);
+}
+// ô của khung Thuộc tính theo khoá (data-k)
+const oTT = (k) => document.querySelector('#props [data-k="' + k + '"]');
+// gõ lại nội dung một ô (xoá rồi gõ từng ký tự)
+async function goO(e, text, per) {
+  if (typeof e === 'string') e = oTT(e);
+  e.scrollIntoView({ block: 'nearest' }); await w(150);
+  const [x, y] = at(e); await click(x, y, 600); e.focus();
+  e.value = ''; e.dispatchEvent(new Event('input', { bubbles: true })); await w(200);
+  for (const ch of String(text)) { e.value += ch; e.dispatchEvent(new Event('input', { bubbles: true })); await w(per || 90); }
+  e.dispatchEvent(new Event('change', { bubbles: true })); await w(400);
+}
+// thêm chữ vào cuối ô nhiều dòng
+async function themO(e, text, per) {
+  if (typeof e === 'string') e = oTT(e);
+  e.scrollIntoView({ block: 'nearest' }); await w(150);
+  const r = e.getBoundingClientRect(); await click(r.x + 40, r.y + r.height - 14, 600); e.focus();
+  for (const ch of String(text)) { e.value += ch; e.dispatchEvent(new Event('input', { bubbles: true })); await w(per || 80); }
+  e.dispatchEvent(new Event('change', { bubbles: true })); await w(400);
+}
+// chèn một hình theo môn: chọn mẫu trong nhóm "Sơ đồ, đồ thị" rồi bấm Chèn; đặt chỗ, cỡ
+async function chenMon(kind, x, y, ww, hh) {
+  await chonMuc('#khKind', kind, 700);
+  await clickEl(cmdBtn('ins-khtn'), 600); await w(300);
+  const o = __get(document.querySelector('#page .obj.sel').dataset.id);
+  // đặt chỗ, cỡ qua các ô X, Y, Rộng, Cao của khung Thuộc tính (hình vẽ lại như khi người dùng sửa)
+  for (const [k, v] of [['x', x], ['y', y], ['w', ww], ['h', hh]]) { const e = oTT(k); if (e) { e.value = String(v); e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); } }
+  await w(300);
+  return o;
+}
+// đặt chỗ (và cỡ nếu có) cho đối tượng đang chọn qua khung Thuộc tính
+async function datCho(x, y, ww, hh) {
+  for (const [k, v] of [['x', x], ['y', y], ['w', ww], ['h', hh]]) { const e = oTT(k); if (e && v != null) { e.value = String(v); e.dispatchEvent(new Event('input', { bubbles: true })); e.dispatchEvent(new Event('change', { bubbles: true })); } }
+  await w(300);
+}
+// chọn mẫu trong một ô chọn của thanh công cụ rồi bấm nút Chèn tương ứng
+async function chenMau(selId, cmd, kind, x, y, ww, hh) {
+  await chonMuc('#' + selId, kind, 700);
+  await clickEl(cmdBtn(cmd), 600); await w(400);
+  await datCho(x, y, ww, hh); await w(500);
+}

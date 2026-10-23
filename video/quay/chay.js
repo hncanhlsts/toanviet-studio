@@ -17,7 +17,9 @@ fs.writeFileSync(path.join(tmp, 'canh.js'), script);
 const env = Object.assign({}, process.env, { TVS_WIN_SIZE: '1600x900', TVS_USERDATA: path.join(tmp, 'ud'), TVS_AUTO: path.join(tmp, 'auto.log'), TVS_NO_DEMO: '1', TVS_DOCX_OUT: path.join(tmp, 'bai-giai.docx') }, JSON.parse(process.env.TVS_QUAY_ENV || '{}'));
 // TVS_QUAY_ARGS: tham số thêm (JSON), vd mở như add-in Word gọi: ["--office=word","--mode=new","--wpid=1234"]
 const extra = JSON.parse(process.env.TVS_QUAY_ARGS || '[]');
-const r = spawnSync(require('electron'), ['.'].concat(extra, ['--shot=' + path.join(tmp, 'x.png'), '--evalfile=' + path.join(tmp, 'canh.js')]),{ cwd: root, env, encoding: 'utf8', timeout: 900000, maxBuffer: 1 << 28 });
+// cửa sổ bị che / nằm nền: Chromium hãm bộ đếm giờ và vẽ (còn ~1 khung mỗi giây) — tắt khi quay
+const NO_THROTTLE = ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'];
+const r = spawnSync(require('electron'), NO_THROTTLE.concat(['.'], extra, ['--shot=' + path.join(tmp, 'x.png'), '--evalfile=' + path.join(tmp, 'canh.js')]),{ cwd: root, env, encoding: 'utf8', timeout: 900000, maxBuffer: 1 << 28 });
 const txt = (r.stdout || '') + (r.stderr || '');
 const line = txt.split(/\r?\n/).find((l) => l.includes('REC-META '));
 txt.split(/\r?\n/).filter((l) => /\[renderer\] (LOG|ERR)/.test(l) || /Error/.test(l)).slice(0, 40).forEach((l) => console.log(l));

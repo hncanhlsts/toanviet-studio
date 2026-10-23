@@ -8,9 +8,10 @@ const fs = require('fs'), path = require('path'), { ipcRenderer } = require('ele
 const { WebmWriter } = require('./webm.js');
 const { Mp4Writer } = require('./mp4.js');
 const ROOT = path.join(__dirname, '..');
-const KB = require('./canh.js');
 const args = new URLSearchParams(location.search).get('args') || '';
 const arg = (n) => { const m = new RegExp('--' + n + '=(\\S+)').exec(args); return m ? m[1] : null; };
+// kịch bản dựng: --kb=canh-280 (mặc định canh.js — video giới thiệu)
+const KB = require('./' + (arg('kb') || 'canh') + '.js');
 const W = 1920, H = 1080, FPS = KB.fps || 30;
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const FONT = '"Segoe UI", "Segoe UI Variable", Arial, sans-serif';
@@ -40,7 +41,13 @@ async function img(file) {
 const SEG = []; let T = 0;
 KB.segments.filter((s) => !(s.rec && s.optional && !fs.existsSync(path.join(ROOT, 'khung', s.rec, 'meta.json')))).forEach((s) => {
   let dur = s.dur;
-  if (s.rec) { const m = recOf(s.rec); s.m = m; s.a = m.mark(s.from || 0); s.b = m.mark(s.to || 'het'); s.speed = s.speed || 1; if (!dur) dur = (s.b - s.a) / 1000 / s.speed + (s.hold || 0); }
+  if (s.rec) {
+    const m = recOf(s.rec); s.m = m; s.a = m.mark(s.from || 0); s.b = m.mark(s.to || 'het'); s.speed = s.speed || 1; if (!dur) dur = (s.b - s.a) / 1000 / s.speed + (s.hold || 0);
+    // phụ đề canh theo mốc khi quay: ['ten-moc', kéo dài, chữ] hoặc [['ten-moc', lệch giây], …] → giây của đoạn
+    (s.caps || []).forEach((c) => { if (typeof c[0] !== 'number') c[0] = Math.max(0, (m.mark(c[0]) - s.a) / 1000 / s.speed); });
+  }
+  // kéo dài 0: hiện tới phụ đề sau (hoặc hết đoạn)
+  (s.caps || []).forEach((c, i, a) => { if (c[1] === 0) c[1] = Math.max(1.5, (i + 1 < a.length ? a[i + 1][0] : dur) - c[0] - 0.15); });
   SEG.push(Object.assign(s, { t0: T, dur })); T += dur;
 });
 const TOTAL = T;
@@ -59,13 +66,15 @@ function richLine(line, cx, y, size, color) {
   parts.forEach((p, i) => { ctx.font = (i % 2 ? '700 ' : '500 ') + size + 'px ' + FONT; ctx.fillStyle = i % 2 ? C.gold : color; ctx.fillText(p, x, y); x += ctx.measureText(p).width; });
 }
 function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
-function caption(text, alpha) {
+// tren: phụ đề ở trên (khi phần cần xem nằm sát đáy khung)
+function caption(text, alpha, tren) {
   if (!text || alpha <= 0) return;
   ctx.save(); ctx.globalAlpha = alpha;
   const size = 42, lines = wrap(text, 1560, '500 ' + size + 'px ' + FONT), bh = 40 + lines.length * 58;
-  ctx.fillStyle = C.band; rrect(120, H - bh - 36, W - 240, bh, 18); ctx.fill();
+  const y0 = tren ? 36 : H - bh - 36;
+  ctx.fillStyle = C.band; rrect(120, y0, W - 240, bh, 18); ctx.fill();
   ctx.textBaseline = 'middle';
-  lines.forEach((l, i) => richLine(l, W / 2, H - bh - 36 + 20 + 29 + i * 58, size, '#ffffff'));
+  lines.forEach((l, i) => richLine(l, W / 2, y0 + 20 + 29 + i * 58, size, '#ffffff'));
   ctx.restore();
 }
 function chip(title, tag, alpha) {
@@ -154,6 +163,22 @@ function drawCard(s, u) {
     ctx.restore(); y += sz * 0.6;
   });
   ctx.restore(); ctx.textAlign = 'left';
+  // danh sách đánh số (slide mở đầu mỗi chương): c.items = ['…', …], hiện lần lượt
+  if (c.items) {
+    const x0 = c.listX || 330, top = c.listY || 360, gap = c.itemGap || 96, sz = c.itemSize || 42;
+    c.items.forEach((t, i) => {
+      const kk = ease(Math.min(1, Math.max(0, (u - 0.7 - i * (c.step || 0.55)) / 0.45)));
+      if (kk <= 0) return;
+      const y = top + i * gap;
+      ctx.save(); ctx.globalAlpha = kk; ctx.translate((1 - kk) * 40, 0); ctx.textBaseline = 'middle';
+      ctx.fillStyle = C.blue; ctx.beginPath(); ctx.arc(x0, y, 30, 0, 7); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '700 32px ' + FONT; ctx.fillText(String(i + 1), x0, y + 1);
+      ctx.textAlign = 'left';
+      const parts = t.split('**'); let x = x0 + 56;
+      parts.forEach((p, j) => { ctx.font = (j % 2 ? '700 ' : '500 ') + sz + 'px ' + FONT; ctx.fillStyle = j % 2 ? C.dark : '#33465f'; ctx.fillText(p, x, y); x += ctx.measureText(p).width; });
+      ctx.restore();
+    });
+  }
 }
 // lưới ảnh (màn kết): mỗi ô là một khung của cảnh đã quay, cắt theo cam, hiện lần lượt
 async function drawGrid(s, u) {
@@ -183,7 +208,7 @@ async function drawAt(t) {
   else if (s.img) { const bmp = await img(path.join(ROOT, s.img)); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); const k = Math.min(W / bmp.width, H / bmp.height); ctx.drawImage(bmp, (W - bmp.width * k) / 2, (H - bmp.height * k) / 2, bmp.width * k, bmp.height * k); }
   if (s.title) chip(s.title, s.tag, Math.min(1, u / 0.3, (3.6 - u) / 0.4));
   const cp = (s.caps || []).find(([a, d]) => u >= a && u < a + d);
-  if (cp) caption(cp[2], Math.min(1, (u - cp[0]) / 0.25, (cp[0] + cp[1] - u) / 0.25));
+  if (cp) caption(cp[2], Math.min(1, (u - cp[0]) / 0.25, (cp[0] + cp[1] - u) / 0.25), cp[3] === 'tren');
   // chuyển cảnh: mờ qua trắng ở ranh giới (trừ khi s.cut)
   const fin = 0.35;
   let fade = 0;
@@ -193,11 +218,53 @@ async function drawAt(t) {
   if (fade > 0) { ctx.fillStyle = 'rgba(255,255,255,' + fade + ')'; ctx.fillRect(0, 0, W, H); }
 }
 
+// ---------- nhạc nền (KB.nhac: các tệp mp3) ----------
+// phát lần lượt các bài, hết thì lặp lại từ bài đầu cho tới hết video; chuyển bài mờ dần (2 giây),
+// vào nhỏ dần lên (1,5 giây), kết thúc nhỏ dần (4 giây). Trả về hai kênh 48 kHz từ giây tu đến giây den.
+const RATE = 48000;
+async function nhacNen(tu, den) {
+  const ac = new OfflineAudioContext(2, 1, RATE), bai = [];
+  for (const f of KB.nhac) { const b = fs.readFileSync(path.join(ROOT, f)); bai.push(await ac.decodeAudioData(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength))); }
+  const N = Math.ceil(TOTAL * RATE), L = new Float32Array(N), R = new Float32Array(N), XF = 2 * RATE;
+  for (let pos = 0, i = 0; pos < N; i++) {
+    const b = bai[i % bai.length], c0 = b.getChannelData(0), c1 = b.numberOfChannels > 1 ? b.getChannelData(1) : c0, n = b.length;
+    for (let k = 0; k < n && pos + k < N; k++) {
+      let g = 1;
+      if (pos > 0 && k < XF) g = k / XF;
+      if (k > n - XF) g = Math.min(g, (n - k) / XF);
+      L[pos + k] += c0[k] * g; R[pos + k] += c1[k] * g;
+    }
+    pos += n - XF;
+  }
+  const vol = KB.amLuong || 0.85, vao = 1.5 * RATE, ra = 4 * RATE;
+  for (let k = 0; k < N; k++) { const g = vol * Math.min(1, k / vao, (N - k) / ra); L[k] *= g; R[k] *= g; }
+  const a = Math.round(tu * RATE), z = Math.min(N, Math.round(den * RATE));
+  console.log('Nhạc nền: ' + KB.nhac.length + ' bài (' + bai.map((b) => b.duration.toFixed(0) + ' giây').join(', ') + '), lặp cho đủ ' + TOTAL.toFixed(0) + ' giây');
+  return { L: L.subarray(a, z), R: R.subarray(a, z) };
+}
+// mã hoá AAC-LC 192 kbit/s, ghi vào luồng tiếng của tệp MP4
+async function ghiNhac(wr, tu, den) {
+  const { L, R } = await nhacNen(tu, den);
+  let err = null;
+  const enc = new AudioEncoder({ output: (ch, meta) => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); wr.addAudio(d, RATE, 2, meta && meta.decoderConfig && meta.decoderConfig.description); }, error: (e) => { err = e; } });
+  enc.configure({ codec: 'mp4a.40.2', sampleRate: RATE, numberOfChannels: 2, bitrate: 192000, aac: { format: 'aac' } });
+  const STEP = 4800;
+  for (let k = 0; k < L.length; k += STEP) {
+    if (err) throw err;
+    const n = Math.min(STEP, L.length - k), buf = new Float32Array(n * 2);
+    buf.set(L.subarray(k, k + n), 0); buf.set(R.subarray(k, k + n), n);
+    const ad = new AudioData({ format: 'f32-planar', sampleRate: RATE, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(k * 1e6 / RATE), data: buf });
+    enc.encode(ad); ad.close();
+    while (enc.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 2));
+  }
+  await enc.flush(); if (err) throw err;
+}
+
 (async () => {
   try {
     console.log('Tổng thời lượng: ' + TOTAL.toFixed(1) + ' giây, ' + SEG.length + ' đoạn');
     // --muc=1: in thời điểm bắt đầu các phần có tiêu đề (mốc chương khi đăng YouTube)
-    if (arg('muc')) { SEG.forEach((s) => { if (s.title) console.log('MUC ' + Math.floor(s.t0 / 60) + ':' + String(Math.floor(s.t0 % 60)).padStart(2, '0') + ' ' + s.title.replace(/^\d+\.\s*/, '')); }); console.log('MUC-TONG ' + TOTAL.toFixed(1)); ipcRenderer.send('xong', 0); return; }
+    if (arg('muc')) { SEG.forEach((s) => { const tt = s.title || (s.card && s.card.title); if (tt) console.log('MUC ' + Math.floor(s.t0 / 60) + ':' + String(Math.floor(s.t0 % 60)).padStart(2, '0') + ' ' + tt.replace(/^\d+\.\s*/, '') + (s.card ? ' [slide]' : '')); }); console.log('MUC-TONG ' + TOTAL.toFixed(1)); ipcRenderer.send('xong', 0); return; }
     const anh = arg('anh');
     if (anh) {
       const dir = path.join(ROOT, 'xem'); fs.mkdirSync(dir, { recursive: true });
@@ -205,7 +272,7 @@ async function drawAt(t) {
       ipcRenderer.send('xong', 0); return;
     }
     const tu = +(arg('tu') || 0), den = Math.min(TOTAL, +(arg('den') || TOTAL));
-    const out = arg('ra') || path.join(ROOT, (tu || den < TOTAL) ? 'xem-doan.webm' : 'ToanViet-Studio-gioi-thieu.webm');
+    const out = arg('ra') || path.join(ROOT, (tu || den < TOTAL) ? 'xem-doan.webm' : (KB.ra || 'ToanViet-Studio-gioi-thieu.webm'));
     // .mp4: H.264 (High, mọi trang mạng nhận); còn lại: WebM VP9
     const mp4 = /\.mp4$/i.test(out), wr = mp4 ? new Mp4Writer(W, H, FPS) : new WebmWriter(W, H); let err = null;
     const enc = new VideoEncoder({ output: (ch, meta) => { const d = new Uint8Array(ch.byteLength); ch.copyTo(d); try { if (mp4) wr.add({ data: d, key: ch.type === 'key', ts: ch.timestamp }, meta && meta.decoderConfig && meta.decoderConfig.description); else wr.add({ data: d, ms: Math.round(ch.timestamp / 1000), key: ch.type === 'key' }); } catch (e) { err = e; } }, error: (e) => { err = e; } });
@@ -220,6 +287,7 @@ async function drawAt(t) {
       if ((n - n0) % (FPS * 10) === 0) console.log('… ' + (n / FPS).toFixed(0) + ' / ' + den.toFixed(0) + ' giây (' + ((Date.now() - t0) / 1000).toFixed(0) + ' giây máy)');
     }
     await enc.flush(); if (err) throw err;
+    if (mp4 && KB.nhac && KB.nhac.length) await ghiNhac(wr, tu, den);
     fs.writeFileSync(out, mp4 ? wr.finish() : wr.finish((n1 - n0) * 1000 / FPS));
     console.log('XONG ' + out + ' ' + (fs.statSync(out).size / 1048576).toFixed(1) + ' MB');
     ipcRenderer.send('xong', 0);
