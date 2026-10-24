@@ -83,8 +83,10 @@ dialog::backdrop { background: rgba(20, 30, 45, .35); }
 body.capturing .obj { outline: none !important; }
 body.capturing .handle { display: none !important; }
 body.capturing #page { box-shadow: none; }
-/* khi chụp ảnh: vùng quanh trang cũng trắng — công thức nằm quá đáy trang không bị dính nền xám (lỗi "vết mờ" khi chuyển hàng loạt) */
-body.capturing, body.capturing #stage { background: #fff !important; }
+/* khi chụp ảnh: nền trong suốt (mặc định) để chèn lên trang, ô bảng, slide có màu; hoặc trắng (Xem ▸ Ảnh xuất ra: nền trắng).
+   Vùng quanh trang cũng theo nền này — công thức nằm quá đáy trang không bị dính nền xám (lỗi "vết mờ" khi chuyển hàng loạt) */
+body.capturing, body.capturing #stage, body.capturing #page { background: transparent !important; }
+body.capturing.nentrang, body.capturing.nentrang #stage, body.capturing.nentrang #page { background: #fff !important; }
 @media print {
   @page { size: A4; margin: 0; }
   #ribbon, #panel, #status { display: none !important; }

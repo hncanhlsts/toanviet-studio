@@ -93,6 +93,8 @@ function createWindow() {
       { type: 'separator' },
       { label: 'Phông công thức: kiểu Times New Roman', click: send('font-times') },
       { label: 'Phông công thức: mặc định', click: send('font-tex') },
+      { label: 'Ảnh xuất ra: nền trong suốt', click: send('nen-trong') },
+      { label: 'Ảnh xuất ra: nền trắng', click: send('nen-trang') },
       { type: 'separator' },
       { label: 'Toàn màn hình', role: 'togglefullscreen' },
       { label: 'Công cụ lập trình', role: 'toggleDevTools' },
@@ -204,7 +206,7 @@ async function capture(wc, target, scale) {
   const fresh = !dbg.isAttached();
   if (fresh) dbg.attach('1.3');
   try {
-    if (fresh) await dbg.sendCommand('Emulation.setDeviceMetricsOverride', { width: 1900, height: 2600, deviceScaleFactor: 1, mobile: false });
+    if (fresh) await capMode(dbg);
     const rect = await wc.executeJavaScript(`window.__prepCapture(${JSON.stringify(target)})`);
     if (!rect) throw new Error('Không có gì để xuất');
     capture.depthPt = rect.depthPt || 0;
@@ -219,6 +221,12 @@ async function capture(wc, target, scale) {
       try { dbg.detach(); } catch (e) { /* đã tách */ }
     }
   }
+}
+// chế độ chụp: khung nhìn rộng cố định; nền mặc định của trang trong suốt để ảnh PNG giữ kênh alpha
+// (nền trắng khi người dùng chọn do CSS body.nentrang vẽ)
+async function capMode(dbg) {
+  await dbg.sendCommand('Emulation.setDeviceMetricsOverride', { width: 1900, height: 2600, deviceScaleFactor: 1, mobile: false });
+  await dbg.sendCommand('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } });
 }
 
 ipcMain.handle('capture', async (e, { target, mode, name }) => {
@@ -495,7 +503,7 @@ ipcMain.handle('test-mouse', async (e, seq) => {
 ipcMain.handle('renderBatch', async (e, ids) => {
   const scale = 4, wc = e.sender, dbg = wc.debugger;
   capture.keep = true;
-  if (!dbg.isAttached()) { dbg.attach('1.3'); await dbg.sendCommand('Emulation.setDeviceMetricsOverride', { width: 1900, height: 2600, deviceScaleFactor: 1, mobile: false }); }
+  if (!dbg.isAttached()) { dbg.attach('1.3'); await capMode(dbg); }
   const rects = await wc.executeJavaScript(`window.__prepBatch(${JSON.stringify(ids)})`);
   const out = [];
   try {

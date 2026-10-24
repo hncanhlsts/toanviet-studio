@@ -1235,6 +1235,13 @@
     msg(times ? 'Công thức dùng phông kiểu Times New Roman (giống chữ trong Word)' : 'Công thức dùng phông mặc định');
   }
   try { if (localStorage.getItem('tvs-font-times') === '1') document.body.classList.add('ftimes'); } catch (e) { /* bỏ qua */ }
+  // Nền ảnh chụp (chèn Word / PowerPoint, sao chép, xuất PNG): mặc định trong suốt; chọn nền trắng khi cần in, dán sang phần mềm khác
+  function setNenTrang(trang) {
+    document.body.classList.toggle('nentrang', !!trang);
+    try { localStorage.setItem('tvs-nen-trang', trang ? '1' : '0'); } catch (e) { /* bỏ qua */ }
+    msg(trang ? 'Ảnh công thức, hình vẽ xuất ra có nền trắng' : 'Ảnh công thức, hình vẽ xuất ra có nền trong suốt (hợp với trang, ô bảng, slide có màu)');
+  }
+  try { if (localStorage.getItem('tvs-nen-trang') === '1') document.body.classList.add('nentrang'); } catch (e) { /* bỏ qua */ }
   // Môn / cấp học (chọn ở chân trang hoặc menu Xem): thanh công cụ chỉ hiện nhóm nút của môn đó.
   // Tiểu học: nhóm nút Tiểu học, công thức theo quy ước tiểu học. Vật lí / Hoá học / Sinh học: ẩn hình học và
   // bảng biến thiên…, danh sách ký hiệu chỉ còn của môn đó, bảng ký hiệu trong hộp công thức mở sẵn thẻ của môn.
@@ -1404,6 +1411,8 @@
     baigiai: () => openBaiGiai(),
     'font-times': () => setFormulaFont(true),
     'font-tex': () => setFormulaFont(false),
+    'nen-trong': () => setNenTrang(false),
+    'nen-trang': () => setNenTrang(true),
     report: () => openReport(),
     update: () => checkUpdate(true),
   };
