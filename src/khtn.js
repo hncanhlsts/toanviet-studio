@@ -8,7 +8,7 @@
   'use strict';
   const r1 = (v) => Math.round(v * 10) / 10;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const FONT = '"Times New Roman", Times, serif';
+  const FONT = "'Times New Roman', Times, serif"; // ngoặc đơn: chuỗi này nằm trong font-family="…", ngoặc kép lồng làm hỏng SVG khi xuất ảnh
   // màu biểu đồ: dịu, phân biệt được khi in đen trắng (đậm nhạt khác nhau)
   const PAL = ['#4472c4', '#ed7d31', '#70ad47', '#ffc000', '#5b9bd5', '#a5a5a5', '#c0504d', '#8064a2'];
   const T = (x, y, t, o) => {
