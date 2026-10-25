@@ -335,7 +335,7 @@
         marks.push(`<path d="M${r1(p1[0])},${r1(p1[1])}L${r1(p2[0])},${r1(p2[1])}L${r1(p3[0])},${r1(p3[1])}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.7)}"/>`);
       } else if (c.k === 'tick') {
         const p = S[c.a], q = S[c.b], m = mid(p, q), u = unit(p, q), nrm = [-u[1], u[0]];
-        for (let k = 0; k < c.n; k++) { const off = (k - (c.n - 1) / 2) * 3.6, ctr = add(m, mul(u, off)); marks.push(L(add(ctr, mul(nrm, 5)), sub(ctr, mul(nrm, 5)), ' stroke-width="' + Math.max(0.9, sw * 0.75) + '"')); }
+        for (let k = 0; k < c.n; k++) { const off = (k - (c.n - 1) / 2) * 3.6, ctr = add(m, mul(u, off)); marks.push(L(add(ctr, mul(nrm, 5)), sub(ctr, mul(nrm, 5)))); }
       } else if (c.k === 'par') {
         const p = S[c.a], q = S[c.b], m = mid(p, q), u = unit(p, q), nrm = [-u[1], u[0]], tip = add(m, mul(u, 5));
         marks.push(`<path d="M${r1(tip[0] - u[0] * 8 + nrm[0] * 4.5)},${r1(tip[1] - u[1] * 8 + nrm[1] * 4.5)}L${r1(tip[0])},${r1(tip[1])}L${r1(tip[0] - u[0] * 8 - nrm[0] * 4.5)},${r1(tip[1] - u[1] * 8 - nrm[1] * 4.5)}" fill="none" stroke="${col}" stroke-width="${Math.max(0.9, sw * 0.75)}"/>`);

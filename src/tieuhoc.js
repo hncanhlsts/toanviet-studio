@@ -327,7 +327,7 @@
       if (c === '{') {
         const j = s.indexOf('}', i); if (j < 0) { out += escH(s.slice(i)); break; }
         const t = s.slice(i + 1, j).trim();
-        out += `<span class="th-dots">${ans(t) || '&nbsp;'}</span>`;
+        out += `<span class="th-dots">${ans(t) || '&#160;'}</span>`;
         i = j + 1; continue;
       }
       if (c === '(' && s[i + 1] === '?' && s[i + 2] === ')') { out += `<span class="th-cir">${ctx && ctx.sign ? ans(ctx.sign) : ''}</span>`; i += 3; continue; }
@@ -431,7 +431,7 @@
             if (m) {
               const t = m[1].trim() !== '' ? m[1].trim() : (isFinite(v) ? fmtNum(v) : '');
               if (m[1].trim() !== '') v = evalExpr(m[1]);
-              html += `<span class="th-mbox${o.dauhoi ? ' th-hoi' : ''}">${o.dapan && t ? `<span class="th-ans" style="color:${red}">${escH(t)}</span>` : o.dauhoi ? '?' : '&nbsp;'}</span>`;
+              html += `<span class="th-mbox${o.dauhoi ? ' th-hoi' : ''}">${o.dapan && t ? `<span class="th-ans" style="color:${red}">${escH(t)}</span>` : o.dauhoi ? '?' : '&#160;'}</span>`;
             } else { v = evalExpr(p); html += `<span class="th-mbox${k === 0 ? ' th-first' : ''}">${inline(p, o)}</span>`; }
             if (k === 0 && !isFinite(v)) errors.push('Dòng ' + (li + 1) + ': số đầu tiên chưa đúng');
           }

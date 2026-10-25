@@ -41,6 +41,11 @@
   // so ảnh của hình với ảnh chuẩn đã lưu (chuỗi SVG + nhãn)
   const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); };
   window.anh = (key, res) => {
+    // nét vẽ phải là SVG (XML) hợp lệ: thuộc tính ghi trùng, ngoặc kép lồng… trình duyệt bỏ qua khi đặt vào trang,
+    // nhưng làm hình trắng trơn khi nạp thành ảnh SVG (lỗi Bảng Vẽ Toán báo, PR #1)
+    const doc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + res.svg + '</svg>', 'image/svg+xml');
+    const pe = doc.querySelector('parsererror');
+    if (pe) throw new Error('nét vẽ không phải SVG hợp lệ: ' + pe.textContent.replace(/\s+/g, ' ').slice(0, 160));
     const h = hash(res.svg + JSON.stringify(res.labels));
     snapsOut[key] = h;
     if (window.__UPDATE) return;
