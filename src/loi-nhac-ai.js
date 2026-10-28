@@ -310,7 +310,38 @@ a | xanh
   // nhiều câu ("Câu 1. …", "Câu 2. …"): mỗi câu có hình một khối, ghi "Câu n." trên khối để ToanViet đặt đúng chỗ
   const nhoDung = (de) => text() + '\n---\n\n# NHIỆM VỤ\n\nChỉ viết khối mã toanviet (hình phẳng), toanviet-khonggian (hình không gian) hoặc toanviet-mon (biểu đồ, sơ đồ theo môn) cho đề dưới đây, đúng theo hướng dẫn trên. Trả lời bằng chữ, không tự vẽ hình, không tạo ảnh. ' +
     'Đề có nhiều câu thì mỗi câu có hình một khối, ghi "Câu n." ngay trên khối. KHÔNG giải bài, không viết lời giải, không viết gì khác ngoài các khối mã hình.\n\nĐề bài:\n\n' + String(de || '').trim() + '\n';
-  const api = { text, nhoDung };
+  // lệnh nhờ AI CHÉP ĐỀ từ tệp PDF / ảnh chụp (đính kèm trong cuộc trò chuyện): đúng nguyên văn, không giải;
+  // công thức LaTeX, hình bằng khối kịch bản ở trên; chỗ không đọc rõ đánh dấu [KHÔNG RÕ: …], cuối bài "Tổng số câu: n"
+  // để hộp Chuyển đề đối chiếu (src/mod/baigiai.js)
+  const CHEP_DE = String.raw`# NHIỆM VỤ: CHÉP ĐỀ SANG VĂN BẢN CHO TOANVIET STUDIO
+
+Tôi gửi kèm tệp PDF / ảnh chụp một đề bài (đề kiểm tra, phiếu bài tập). Hãy CHÉP LẠI ĐỀ thành văn bản để tôi dán vào phần mềm ToanViet Studio, phần mềm sẽ dựng thành tài liệu Word.
+
+## Bắt buộc
+
+1. Chép ĐÚNG NGUYÊN VĂN: giữ nguyên từng chữ, số liệu, đơn vị, tên điểm, thứ tự câu, thứ tự phương án. KHÔNG giải, KHÔNG viết đáp án hay gợi ý, KHÔNG sửa chỗ bạn cho là sai, KHÔNG tóm tắt, KHÔNG bỏ câu nào. Đề có đáp án / lời giải in sẵn thì chép cả phần đó, đặt dưới dòng "Lời giải".
+2. Chỗ không đọc rõ (mờ, bị che, viết tay khó đọc): viết [KHÔNG RÕ: chữ bạn đoán]. Không tự bịa nội dung.
+3. Không viết lời chào, lời dẫn, nhận xét. Không đặt cả bài trong khối mã.
+
+## Cách viết
+
+- Dòng đầu: tên đề, bắt đầu bằng "# " (ví dụ: # ĐỀ KIỂM TRA GIỮA HỌC KÌ I – TOÁN 10). Thông tin trường, thời gian làm bài: mỗi thông tin một dòng.
+- Phần của đề: dòng bắt đầu bằng "## " (ví dụ: ## PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn).
+- Mỗi câu bắt đầu bằng nhãn đậm đúng như đề: **Câu 1.** nội dung… (hoặc **Bài 1.**).
+- Phương án trắc nghiệm: mỗi phương án một dòng, bắt đầu bằng A. B. C. D. Ý của câu đúng / sai, câu nhiều ý: mỗi ý một dòng, bắt đầu bằng a) b) c) d).
+- MỌI công thức, kể cả một chữ cái là biến, số có mũ, phân số, căn, góc, vectơ, đơn vị có mũ, viết bằng LaTeX trong $…$; công thức đứng riêng dòng viết $$…$$. Ví dụ: $x^2-5x+6=0$, $\dfrac{1}{2}$, $\sqrt{3}$, $\widehat{ABC}=60^\circ$, $\overrightarrow{AB}$, $9{,}8\ \text{m/s}^2$. Hệ phương trình dùng \begin{cases} … \end{cases}. Không dùng kí tự như ², √, ≤ ngoài công thức.
+- Số thập phân giữ dấu phẩy như đề: $2{,}5$.
+- Hoá học: công thức chất viết $\mathrm{H_2SO_4}$, $\mathrm{Fe^{3+}}$; phương trình phản ứng viết $$2\mathrm{H_2} + \mathrm{O_2} \xrightarrow{t^\circ} 2\mathrm{H_2O}$$.
+- Bảng (bảng số liệu, bảng tần số, bảng biến thiên, bảng xét dấu): viết thành bảng Markdown (dòng bắt đầu bằng |), công thức trong ô vẫn để trong $…$. Bảng biến thiên: dùng ↗ ↘ cho mũi tên.
+- Hình vẽ trong đề: vẽ lại bằng khối kịch bản ToanViet theo HƯỚNG DẪN VẼ HÌNH ở dưới, đặt khối ngay dưới câu có hình (hình học phẳng: '''toanviet; hình không gian: '''toanviet-khonggian; biểu đồ, mạch điện, thấu kính, sơ đồ lai…: '''toanviet-mon). Đặt điểm, số liệu đúng như hình trong đề.
+- Hình không vẽ được bằng kịch bản (ảnh chụp, tranh minh hoạ, hình phức tạp): viết một dòng [HÌNH: mô tả ngắn hình trong đề].
+- Dòng cuối cùng: Tổng số câu: n (n là số câu trong đề, đếm theo nhãn Câu / Bài).
+
+---
+
+`;
+  const chepDe = () => CHEP_DE.replace(/'''/g, '```') + text();
+  const api = { text, nhoDung, chepDe };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.LoiNhacAI = api;
 })(this);

@@ -175,7 +175,7 @@
     s = s.replace(/\[cite(?:_start|_end)?(?::[^\]]*)?\]/gi, '').replace(/【[^】]*】/g, '').replace(/\[\d+(?:,\s*\d+)*\](?=\s|$|[.,;])/g, '');
     if (s !== s0) note('bỏ đánh dấu trích dẫn của AI ([cite…])');
     // biểu tượng cảm xúc
-    const s1 = s; s = s.replace(/\p{Extended_Pictographic}\ufe0f?/gu, ''); if (s !== s1) note('bỏ biểu tượng cảm xúc');
+    const s1 = s; s = s.replace(/\p{Extended_Pictographic}\ufe0f?/gu, (m) => (/^[\u2190-\u21ff]/.test(m) ? m[0] : '')); if (s !== s1) note('bỏ biểu tượng cảm xúc'); // giữ mũi tên ↗ ↘ của bảng biến thiên
     // hình AI viết sẵn bằng kịch bản ToanViet (lời nhắc / skill "toanviet-ve-hinh"): khối mã ```toanviet … ```
     // (hình không gian: ```toanviet-khonggian), dạng cũ [HÌNH TOANVIET] … [/HÌNH TOANVIET] → vẽ đúng kịch bản, không đọc đề đoán hình
     let ktv = 0;

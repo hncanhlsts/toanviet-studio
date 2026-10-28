@@ -419,6 +419,27 @@
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });
 
+  // 2.9.0: chuyển đề PDF / ảnh — AI chép đề theo lời nhắc, ToanViet đối chiếu số câu, tô chỗ không rõ
+  await step('Chuyển đề PDF / ảnh: chép lời nhắc chép đề; dán đề AI chép → đủ câu, bảng biến thiên giữ mũi tên, chỗ không rõ được tô', async () => {
+    __clear(); await w(50);
+    window.__baigiai.openDe(); await w(300);
+    ok('hộp thoại chuyển đề mở', /Chuyển đề PDF/.test(document.querySelector('#bgdlg').textContent));
+    let chepDuoc = '';
+    const goc = navigator.clipboard.writeText; navigator.clipboard.writeText = async (t) => { chepDuoc = t; };
+    document.getElementById('bgchepde').click(); await w(100);
+    navigator.clipboard.writeText = goc;
+    ok('lời nhắc: chép nguyên văn, không giải, đánh dấu chỗ không rõ, kèm hướng dẫn vẽ hình', /ĐÚNG NGUYÊN VĂN/.test(chepDuoc) && /KHÔNG giải/.test(chepDuoc) && /\[KHÔNG RÕ:/.test(chepDuoc) && /Tổng số câu: n/.test(chepDuoc) && /toanviet-khonggian/.test(chepDuoc), chepDuoc.slice(0, 200));
+    const src = document.getElementById('bgsrc');
+    const dt = new DataTransfer();
+    dt.setData('text/plain', '# ĐỀ KIỂM TRA TOÁN 10\n\n## PHẦN I. Trắc nghiệm\n\n**Câu 1.** Nghiệm của $x^2-5x+6=0$ là\nA. $x=2$ hoặc $x=3$\nB. $x=[KHÔNG RÕ: 1]$\n\n**Câu 2.** Cho bảng biến thiên:\n\n| $x$ | $-\\infty$ | | $1$ | | $+\\infty$ |\n|---|---|---|---|---|---|\n| $y$ | $+\\infty$ | ↘ | $-2$ | ↗ | $+\\infty$ |\n\n[HÌNH: ảnh chụp cây cầu]\n\nTổng số câu: 3');
+    src.value = ''; src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500);
+    const nt = document.getElementById('bgnotes').textContent;
+    ok('dòng "Tổng số câu" được bỏ, báo lệch số câu (AI báo 3, có 2)', !/Tổng số câu/.test(src.value) && /AI báo đề có 3 câu, ToanViet nhận ra 2 câu/.test(nt), nt);
+    ok('bảng biến thiên giữ mũi tên ↗ ↘', /↘/.test(src.value) && /↗/.test(src.value), src.value);
+    ok('chỗ không rõ, hình không vẽ được: báo và tô vàng', /1 chỗ AI đọc không rõ/.test(nt) && /1 hình AI không vẽ lại được/.test(nt) && document.querySelectorAll('#bgview mark.bgkr').length >= 1, nt);
+    document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
+  });
+
   await step('Thanh công cụ một hàng; đoạn / mũi tên nằm ngang, kéo đầu mút để xoay (bắt thẳng, Shift 15°, gắn vào ô)', async () => {
     __clear(); await w(50);
     const grps = [...document.querySelectorAll('#ribbon > .grp')].filter((g) => g.offsetParent !== null);

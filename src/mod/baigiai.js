@@ -10,6 +10,7 @@
     // lỗi kịch bản hình viết bằng lời thường (src/loi-de-hieu.js); lệnh chép cho AI vẫn dùng lỗi gốc
     const deHieu = (er) => (root.LoiDeHieu ? root.LoiDeHieu.dich(er) : [].concat(er));
     let notes = {};
+    let tongCau = 0; // chế độ chuyển đề: số câu AI báo ở dòng cuối "Tổng số câu: n"
     const mergeNotes = (n) => { for (const k in n) notes[k] = (notes[k] || 0) + n[k]; };
     // dữ liệu ToanViet ghi kèm ảnh (giống lúc chèn công thức vào Word)
     const objToB64 = (o) => { const bytes = new TextEncoder().encode(JSON.stringify(o, (k, v) => (k[0] === '_' || k === 'id' ? undefined : v))); let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); }); return btoa(bin); };
@@ -128,15 +129,19 @@
     }
 
 
-    function openBaiGiai() {
-      notes = {}; loi = [];
-      const d = modal('bgdlg', 'Bài giải AI → tài liệu Word');
+    // mode "de": chuyển đề PDF / ảnh chụp sang Word — AI (ChatGPT, Gemini…) đọc tệp, chép nguyên văn đề theo lời nhắc
+    // LoiNhacAI.chepDe(); ToanViet đối chiếu số câu, tô vàng chỗ AI ghi [KHÔNG RÕ: …], [HÌNH: …]
+    function openBaiGiai(mode) {
+      notes = {}; loi = []; tongCau = 0;
+      const deMode = mode === 'de';
+      const d = modal('bgdlg', deMode ? 'Chuyển đề PDF / ảnh → tài liệu Word' : 'Bài giải AI → tài liệu Word');
       d.classList.add('bgdlg');
       const body = d.querySelector('.tvbody');
-      body.innerHTML =
-        '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
+      body.innerHTML = (deMode
+        ? '<p class="bghint"><b>Nhờ AI đọc đề:</b> ① Bấm <button type="button" id="bgchepde" class="bgnhac">📋 Chép lời nhắc chép đề cho AI</button> ② Mở ChatGPT, Gemini hoặc Claude, đính kèm tệp PDF hoặc ảnh chụp đề, dán lời nhắc (<kbd>Ctrl</kbd>+<kbd>V</kbd>) rồi gửi. ③ Chép câu trả lời của AI, bấm vào ô bên trái, nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. AI chỉ chép đề, không giải; công thức thành công thức ToanViet, hình thành hình ToanViet sửa được. ToanViet đối chiếu số câu và <mark class="bgkr">tô vàng</mark> chỗ AI đọc không rõ để thầy cô dò lại với đề gốc. Lưu ý: tệp đề được gửi tới trang AI thầy cô chọn.</p>'
+        : '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
         'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào. ' +
-        'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối mã <b>```toanviet</b>) dán vào ô bên trái: hình từng câu được thay.</p>' +
+        'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối mã <b>```toanviet</b>) dán vào ô bên trái: hình từng câu được thay. Có đề dạng PDF / ảnh chụp: <button type="button" id="bgsangde" class="bgnhac">📄 Chuyển đề PDF / ảnh</button></p>') +
         '<div class="bgrow"><div class="bgcol"><div class="bglab">Nội dung — sửa được <span>#C nhãn câu · #G lời giải · $…$ công thức · $$…$$ công thức riêng dòng · **đậm** · [FIG h1|Hình 1] chỗ đặt hình</span></div>' +
         '<textarea id="bgsrc" spellcheck="false" placeholder="Bấm vào đây rồi dán bài giải (Ctrl+V)…"></textarea></div>' +
         '<div class="bgcol"><div class="bglab">Xem trước</div><div id="bgview" class="bgview"></div></div></div>' +
@@ -147,20 +152,52 @@
       const src = $('#bgsrc'), view = $('#bgview');
       // chép lời nhắc vẽ hình (src/loi-nhac-ai.js) vào bộ nhớ tạm để dán cho ChatGPT, Gemini, Copilot…
       // chép lệnh nhờ AI dựng hình, gắn sẵn đề đang có trong ô (không cần lời giải); ô trống: chỉ chép lời nhắc
-      $('#bgnhac').onclick = () => {
+      if ($('#bgnhac')) $('#bgnhac').onclick = () => {
         if (!window.LoiNhacAI) return;
         const de = deCaBai(src.value);
         if (de) chep(LoiNhacAI.nhoDung(de)).then(() => msg('Đã chép lệnh kèm đề — dán (Ctrl+V) cho ChatGPT / Gemini; chép câu trả lời (các khối hình) rồi dán vào ô bên trái: hình từng câu được thay'));
         else chep(LoiNhacAI.text()).then(() => msg('Đã chép lời nhắc vẽ hình — dán (Ctrl+V) vào đầu cuộc trò chuyện với AI, rồi gửi đề bài'));
       };
+      if ($('#bgchepde')) $('#bgchepde').onclick = () => { if (window.LoiNhacAI) chep(LoiNhacAI.chepDe()).then(() => msg('Đã chép lời nhắc — đính kèm tệp PDF / ảnh đề cho ChatGPT, Gemini hoặc Claude, dán lời nhắc (Ctrl+V) rồi gửi')); };
+      if ($('#bgsangde')) $('#bgsangde').onclick = () => { d.close(); openBaiGiai('de'); };
       let tmr = 0;
+      // dòng cuối AI ghi "Tổng số câu: n": nhớ số câu để đối chiếu, bỏ khỏi nội dung
+      const layTong = () => {
+        const re = /^[ \t]*(?:\*\*)?Tổng số câu(?:\*\*)?\s*:?\s*(\d+)\s*\.?[ \t]*$\n?/im, m = re.exec(src.value);
+        if (m) { tongCau = +m[1]; src.value = src.value.replace(re, '').replace(/\n+$/, ''); }
+      };
+      // đối chiếu đề: số câu, chỗ không rõ, hình AI không vẽ lại được
+      const doiChieu = () => {
+        const v = src.value, soCau = (v.match(/^#C /gm) || []).length, kr = (v.match(/\[KHÔNG RÕ:/g) || []).length, hm = (v.match(/\[HÌNH:/g) || []).length;
+        let h = '';
+        if (tongCau) h += tongCau === soCau ? '<span class="bgfix">Đủ ' + soCau + ' câu như AI báo.</span> ' : '<span class="bgerr">AI báo đề có ' + tongCau + ' câu, ToanViet nhận ra ' + soCau + ' câu — dò lại câu bị thiếu hoặc nhãn câu viết sai.</span> ';
+        if (kr) h += '<span class="bgerr">' + kr + ' chỗ AI đọc không rõ (tô vàng) — dò với đề gốc rồi sửa trong ô bên trái.</span> ';
+        if (hm) h += '<span class="bgerr">' + hm + ' hình AI không vẽ lại được (tô vàng) — chèn ảnh vào tài liệu Word sau.</span> ';
+        return h;
+      };
+      // tô vàng "[KHÔNG RÕ: …]", "[HÌNH: …]" ở phần xem trước: đánh dấu đầu / cuối bằng kí tự ẩn trước khi dựng (bên trong
+      // có thể có công thức $…$, dấu ] của công thức không tính), dựng xong thay bằng thẻ <mark>
+      const danhDau = (v) => v.split('\n').map((ln) => {
+        let out = '', i = 0, toan = false;
+        while (i < ln.length) {
+          if (ln[i] === '$') toan = !toan;
+          if (!toan && /^\[(?:KHÔNG RÕ|HÌNH):/.test(ln.slice(i))) {
+            let j = i + 1, t2 = false;
+            while (j < ln.length && (t2 || ln[j] !== ']')) { if (ln[j] === '$') t2 = !t2; j++; }
+            if (j < ln.length) { out += '\u2063' + ln.slice(i, j + 1) + '\u2064'; i = j + 1; continue; }
+          }
+          out += ln[i++];
+        }
+        return out;
+      }).join('\n');
       const refresh = () => {
-        view.innerHTML = previewHtml(src.value);
+        layTong();
+        view.innerHTML = previewHtml(danhDau(src.value)).replace(/\u2063/g, '<mark class="bgkr">').replace(/\u2064/g, '</mark>');
         const list = BaiGiai.formulas(src.value), errs = list.filter(bad), nfig = Object.keys(figSpecs(src.value)).length;
         const fixed = Object.keys(notes).map((k) => k + (notes[k] > 1 ? ' (' + notes[k] + ')' : ''));
         $('#bgnotes').innerHTML = (list.length ? '<b>' + list.length + ' công thức' + (nfig ? ', ' + nfig + ' hình' : '') + '.</b> ' : '') +
           (errs.length ? '<span class="bgerr">' + errs.length + ' công thức có mã LaTeX lỗi (tô đỏ ở phần xem trước) — sửa trong ô bên trái: ' + errs.slice(0, 3).map((x) => '<code>' + esc(x.slice(0, 40)) + '</code>').join(', ') + '</span> ' : '') +
-          (fixed.length ? '<span class="bgfix">Đã làm: ' + esc(fixed.join(' · ').replace(/ · hình (?:phẳng|không gian) — chưa hiểu: "[^"]*"/g, '')) + '</span>' : '');
+          doiChieu() + (fixed.length ? '<span class="bgfix">Đã làm: ' + esc(fixed.join(' · ').replace(/ · hình (?:phẳng|không gian) — chưa hiểu: "[^"]*"/g, '')) + '</span>' : '');
         $('#bgloi').innerHTML = loiHtml();
       };
       // nhờ AI dựng hình: chép lệnh; dán khối AI trả về → thay hình của câu đó bằng hình theo kịch bản
@@ -242,8 +279,12 @@
       });
       src.addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(refresh, 300); });
       $('#bgfig').onclick = () => { const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg(f.count ? 'Đã dựng ' + f.count + ' hình' : 'Không nhận ra chỗ nào cần hình (miền nghiệm, bảng biến thiên, bảng xét dấu)'); };
-      $('#bgclear').onclick = () => { src.value = ''; notes = {}; loi = []; refresh(); src.focus(); };
-      $('#bgmake').onclick = () => make(src.value);
+      $('#bgclear').onclick = () => { src.value = ''; notes = {}; loi = []; tongCau = 0; refresh(); src.focus(); };
+      $('#bgmake').onclick = async () => {
+        const kr = (src.value.match(/\[KHÔNG RÕ:/g) || []).length;
+        if (kr) { const q = 'Còn ' + kr + ' chỗ AI đọc không rõ ([KHÔNG RÕ: …]). Vẫn tạo tài liệu Word?'; if (!(await (api && api.confirm ? api.confirm(q) : window.confirm(q)))) return; }
+        make(src.value);
+      };
       refresh();
       d.showModal();
       src.focus();

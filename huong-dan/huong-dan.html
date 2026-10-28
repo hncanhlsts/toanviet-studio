@@ -78,7 +78,7 @@
 <body>
 
 <div class="cover">
-  <div class="cv-top"><span>TÀI LIỆU HƯỚNG DẪN</span><span>Phiên bản 2.8.1 · © 2026 Hoàng Ngọc Cảnh</span></div>
+  <div class="cv-top"><span>TÀI LIỆU HƯỚNG DẪN</span><span>Phiên bản 2.9.0 · © 2026 Hoàng Ngọc Cảnh</span></div>
   <div class="cv-main">
     <div class="cv-kicker">Phần mềm soạn thảo Toán và Khoa học tự nhiên · Lớp 1 – 12</div>
     <h1>ToanViet Studio</h1>
@@ -277,7 +277,7 @@
 </div>
 
 <h2>Mục lục</h2>
-<p><b>Có gì mới trong bản 2.8</b> — ảnh nền trong suốt (2.8.1), tính năng mới cho Toán, Vật lí, Hoá học, Sinh học và cho mọi giáo viên (ngay sau mục lục).</p>
+<p><b>Có gì mới trong bản 2.8 – 2.9</b> — chuyển đề PDF / ảnh sang Word (2.9.0), ảnh nền trong suốt (2.8.1), tính năng mới cho Toán, Vật lí, Hoá học, Sinh học và cho mọi giáo viên (ngay sau mục lục).</p>
 <ol class="toc">
   <li>Cài đặt và mở phần mềm</li>
   <li>Mười phút đầu tiên</li>
@@ -295,7 +295,8 @@
 </ol>
 <p style="margin-top:14pt">Mức độ của từng phần được đánh dấu: <span class="level l1">Làm quen</span> <span class="level l2">Thường dùng</span> <span class="level l3">Nâng cao</span>. Các khung màu xanh lá "Thử ngay" là bài tập ngắn nên làm theo khi đọc.</p>
 
-<h2>Có gì mới trong bản 2.8</h2>
+<h2>Có gì mới trong bản 2.8 – 2.9</h2>
+<div class="tip"><b>Bản 2.9.0 — chuyển đề PDF / ảnh chụp sang Word.</b> Có đề dạng PDF hoặc ảnh chụp: vào <b>Tệp ▸ Chuyển đề PDF / ảnh → tài liệu Word</b> (hoặc nút <b>📄 Chuyển đề PDF / ảnh</b> trong hộp Bài giải AI), bấm <b>Chép lời nhắc chép đề cho AI</b>, gửi kèm tệp đề cho ChatGPT, Gemini hoặc Claude, rồi dán câu trả lời vào ToanViet. AI chép đúng nguyên văn đề (không giải); công thức thành công thức ToanViet, hình vẽ thành hình ToanViet sửa được. ToanViet đối chiếu số câu và tô vàng chỗ AI đọc không rõ. Cách dùng chi tiết ở mục 10.</div>
 <p>Bản 2.8.0 mở rộng ToanViet Studio từ phần mềm của giáo viên Toán thành công cụ cho cả <b>Toán, Vật lí, Hoá học, Sinh học</b>. Mỗi môn có nhóm nút riêng và các hình, sơ đồ vẽ tự động từ số liệu — chỉ cần nhập dữ liệu ở khung Thuộc tính, không phải vẽ tay từng nét. Mục này tóm tắt các tính năng mới; cách dùng chi tiết ở phần của từng môn.</p>
 <div class="tip"><b>Bản 2.8.1 — ảnh nền trong suốt.</b> Công thức, hình vẽ chèn vào Word, PowerPoint, sao chép hay xuất PNG nay có <b>nền trong suốt</b>: đặt lên trang, ô bảng tô màu, slide có màu không còn khối trắng bao quanh. Các chi tiết vốn tô trắng trong hình (chấm tròn rỗng trên trục số, ô trống phép tính Tiểu học) vẫn giữ nguyên. Cần nền trắng như trước (để in, dán sang phần mềm khác): <b>Xem ▸ Ảnh xuất ra: nền trắng</b>; trở lại bằng <b>Xem ▸ Ảnh xuất ra: nền trong suốt</b>. Bản này cũng sửa lỗi 12 mẫu hình phẳng có dấu "hai đoạn bằng nhau" bị trắng trơn khi phần mềm khác nạp nét vẽ thành ảnh SVG.</div>
 <h3>Cho mọi giáo viên</h3>
@@ -921,6 +922,16 @@ vecto OM = \vec{u} do</pre><figure><img src="img/trang-toan.png" style="width:74
     <li>Chuyển đổi hàng loạt chỉ có trong Word.</li>
   </ul>
 </div>
+<h3>Chuyển đề PDF / ảnh chụp sang Word (nhờ AI đọc đề)</h3>
+<p>PDF không lưu công thức mà chỉ lưu vị trí từng kí tự, nên phần mềm không tự đọc lại được số mũ, phân số, căn… một cách tin cậy; ảnh chụp lại càng khó. ToanViet nhờ trợ lí AI (ChatGPT, Gemini, Claude…) đọc đề, rồi tự dựng tài liệu Word:</p>
+<ol>
+  <li>Vào <b>Tệp ▸ Chuyển đề PDF / ảnh → tài liệu Word</b>. Bấm <b>📋 Chép lời nhắc chép đề cho AI</b>.</li>
+  <li>Mở trang AI, đính kèm tệp PDF hoặc ảnh chụp đề, dán lời nhắc (<kbd>Ctrl</kbd>+<kbd>V</kbd>) rồi gửi. Lời nhắc yêu cầu AI chép đúng nguyên văn, không giải, không sửa số liệu; viết công thức bằng LaTeX, bảng thành bảng, hình học, biểu đồ, mạch điện… thành khối kịch bản ToanViet.</li>
+  <li>Chép câu trả lời của AI, bấm vào ô bên trái của hộp, nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. Phần xem trước hiện đề như trên tài liệu Word.</li>
+  <li>Đọc dòng đối chiếu dưới hộp: <b>Đủ n câu như AI báo</b> (AI ghi tổng số câu ở cuối câu trả lời; lệch thì dò câu bị thiếu). Chỗ AI ghi <mark>[KHÔNG RÕ: …]</mark> được tô vàng — dò với đề gốc rồi sửa trong ô bên trái. Hình AI không vẽ lại được (ảnh chụp, tranh minh hoạ) ghi <mark>[HÌNH: …]</mark> — chèn ảnh vào tài liệu Word sau.</li>
+  <li>Bấm <b>Tạo tài liệu Word</b>.</li>
+</ol>
+<div class="note">Tệp đề được gửi tới trang AI thầy cô chọn — không gửi tài liệu có thông tin cá nhân của học sinh. AI có thể chép sai; luôn dò lại số liệu với đề gốc trước khi dùng. Đề có sẵn dạng Word thì mở tệp Word và dùng <b>Chuyển đổi hàng loạt</b> (công thức Equation, MathType) sẽ chính xác hơn.</div>
 <h3>Sửa công thức sau khi chuyển đổi</h3>
 <p>Công thức sau khi chuyển sang ToanViet vẫn sửa được như công thức soạn mới: <b>nhấp đúp</b> vào nó, hoặc chọn rồi bấm <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>E</kbd>, hoặc nhấp chuột phải ▸ <b>Sửa bằng ToanViet</b>. Thanh trạng thái của Word báo "ToanViet Studio đang mở công thức để sửa…"; lần đầu sau khi mở máy, phần mềm có thể cần vài giây để khởi động.</p>
 <p>Đã kiểm tra trọn vòng trên tài liệu 36 công thức MathType: MathType → ToanViet → sửa → lưu, đóng, mở lại → Equation → ToanViet → MathType → ToanViet; không mất công thức nào, nội dung công thức giữ nguyên.</p>

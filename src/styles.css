@@ -378,6 +378,7 @@ math-field { user-select: text; -webkit-user-select: text; }
 .bgnotes { margin: 8px 0 4px; font-size: 12px; line-height: 1.5; color: #33445a; min-height: 18px; }
 .bgnotes .bgerr { color: #b03a2e; }
 .bgnotes .bgfix { color: #1e6b41; }
+.bgkr { background: #ffe58a; color: inherit; padding: 0 2px; border-radius: 2px; }
 /* Bài giải AI: hình chưa vẽ đủ — gợi ý cách viết, viết lại câu, ghi nhớ cách vẽ */
 #bgloi .bgloi { margin: 4px 0 6px; padding: 8px 10px; border: 1px solid #f0c36d; background: #fff8e6; border-radius: 8px; font-size: 12.5px; color: #4a3b12; max-height: 230px; overflow-y: auto; }
 #bgloi .bgloic { margin-top: 6px; font-weight: 600; color: #7a4b00; } #bgloi .bgloic span { font-weight: 400; color: #8a7a55; }

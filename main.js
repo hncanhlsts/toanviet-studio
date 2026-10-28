@@ -66,6 +66,7 @@ function createWindow() {
       { label: 'Thư viện của tôi…', accelerator: 'Ctrl+L', click: send('lib') },
       { label: 'Soạn đề kiểm tra…', accelerator: 'Ctrl+Shift+D', click: send('exam') },
       { label: 'Bài giải AI → tài liệu Word…', accelerator: 'Ctrl+Shift+B', click: send('baigiai') },
+      { label: 'Chuyển đề PDF / ảnh → tài liệu Word (nhờ AI đọc đề)…', click: send('chuyende') },
       { label: 'Mẫu theo bài (Toán 1 – 5, Kết nối tri thức)…', accelerator: 'Ctrl+Shift+M', click: send('mau') },
       { type: 'separator' },
       { label: 'Thoát', accelerator: 'Ctrl+Q', role: 'quit' },

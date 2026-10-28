@@ -1409,6 +1409,7 @@
     lib: () => openLib(),
     exam: () => openExam(),
     baigiai: () => openBaiGiai(),
+    chuyende: () => openBaiGiai('de'),
     'font-times': () => setFormulaFont(true),
     'font-tex': () => setFormulaFont(false),
     'nen-trong': () => setNenTrang(false),
@@ -1635,7 +1636,7 @@
   ({ startPresent, stopPresent, openMau, isPresenting } = TVM.trinhchieu({ $, page, stage, S, esc, msg, insert, renderObj, renderAll, buildProps, commit, setSel, elOf, modal, setZoom }));
   ({ openPhuongTrinh } = TVM.hoahoc({ $, esc, msg, modal, tex, insert, commit }));
   ({ openBaiGiai, makeBaiGiai, openKichBan } = TVM.baigiai({ $, page, api, S, esc, msg, modal, tex, renderObj, renderAll, toPx, defaults, insert, commit }));
-  window.__baigiai = { open: () => openBaiGiai(), make: (t) => makeBaiGiai(t) }; // kiểm thử
+  window.__baigiai = { open: () => openBaiGiai(), openDe: () => openBaiGiai('de'), make: (t) => makeBaiGiai(t) }; // kiểm thử
   ({ openExam } = TVM.soande({ $, page, api, S, esc, msg, cur, title, textHtml, renderObj, many, cleanObj, elOf, groupData, select, dlg, openFx, modal, libThumb }));
 
   loadDoc([], null);
