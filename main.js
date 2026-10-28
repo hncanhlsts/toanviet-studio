@@ -67,6 +67,7 @@ function createWindow() {
       { label: 'Soạn đề kiểm tra…', accelerator: 'Ctrl+Shift+D', click: send('exam') },
       { label: 'Bài giải AI → tài liệu Word…', accelerator: 'Ctrl+Shift+B', click: send('baigiai') },
       { label: 'Chuyển đề PDF / ảnh → tài liệu Word (nhờ AI đọc đề)…', click: send('chuyende') },
+      { label: 'Mở tệp Markdown → tài liệu Word…', click: send('mo-md') },
       { label: 'Mẫu theo bài (Toán 1 – 5, Kết nối tri thức)…', accelerator: 'Ctrl+Shift+M', click: send('mau') },
       { type: 'separator' },
       { label: 'Thoát', accelerator: 'Ctrl+Q', role: 'quit' },
@@ -262,6 +263,12 @@ ipcMain.handle('open', async () => {
   const r = await dialog.showOpenDialog(win, { title: 'Mở tài liệu', properties: ['openFile'], filters: [{ name: 'ToanViet Studio', extensions: ['tvs', 'json'] }] });
   if (r.canceled || !r.filePaths[0]) return null;
   return { file: r.filePaths[0], data: fs.readFileSync(r.filePaths[0], 'utf8') };
+});
+// Chuyển đề: mở một hoặc nhiều tệp Markdown / văn bản AI chép đề (de-phan-1.md, de-phan-2.md…)
+ipcMain.handle('openMd', async () => {
+  const r = process.env.TVS_MDFILES ? { filePaths: process.env.TVS_MDFILES.split('|') } : await dialog.showOpenDialog(win, { title: 'Mở tệp Markdown của đề (chọn được nhiều tệp)', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Markdown, văn bản', extensions: ['md', 'markdown', 'txt'] }] });
+  if (r.canceled || !r.filePaths.length) return null;
+  return r.filePaths.map((f) => ({ name: path.basename(f), text: fs.readFileSync(f, 'utf8') }));
 });
 // ---------- Thư viện của tôi: các công thức, hình hay dùng (lưu trong thư mục dữ liệu của người dùng) ----------
 const libFile = () => path.join(app.getPath('userData'), 'thu-vien.json');

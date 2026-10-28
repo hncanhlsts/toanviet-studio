@@ -11,6 +11,11 @@ const env = Object.assign({}, process.env, {
   TVS_SHARED_DIR: path.join(tmp, 'to'), TVS_UPDATE_TEST: path.join(tmp, 'update.log'),
 });
 delete env.TVS_SHOT_PAGE;
+// chuyển đề: hai tệp Markdown của một đề chia 3 phần (thiếu phần 2), tên tệp ngược thứ tự phần
+const KB = '```toanviet\nA = (0, 0)\nB = (4, 0)\nC = (1, 3)\ndagiac ABC\n```\n';
+fs.writeFileSync(path.join(tmp, 'a-cuoi.md'), '[[PHẦN 3/3 – trang 9 đến 10]]\n\n**Câu 3.** Cho tam giác $ABC$.\n' + KB + '\nTổng số câu: 3\n');
+fs.writeFileSync(path.join(tmp, 'b-dau.md'), '﻿[[PHẦN 1/3 – trang 1 đến 4]]\n\n# ĐỀ ÔN TẬP\n\n**Câu 1.** Cho tam giác $ABC$ có $AB=4$.\n' + KB);
+env.TVS_MDFILES = path.join(tmp, 'a-cuoi.md') + '|' + path.join(tmp, 'b-dau.md');
 // thư mục dùng chung giả, có sẵn một "bộ cài" bản 99.0.0 (tệp giả) để thử phát hiện bản mới
 fs.mkdirSync(path.join(tmp, 'to')); fs.writeFileSync(path.join(tmp, 'to', 'ToanVietStudio-Setup-99.0.0.exe'), 'gia');
 const electron = require('electron'); // đường dẫn tới electron.exe

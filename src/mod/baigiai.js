@@ -11,6 +11,7 @@
     const deHieu = (er) => (root.LoiDeHieu ? root.LoiDeHieu.dich(er) : [].concat(er));
     let notes = {};
     let tongCau = 0; // chế độ chuyển đề: số câu AI báo ở dòng cuối "Tổng số câu: n"
+    let phan = { co: new Set(), tong: 0 }; // đề AI chép thành nhiều phần: dòng "[[PHẦN k/N – trang …]]"
     const mergeNotes = (n) => { for (const k in n) notes[k] = (notes[k] || 0) + n[k]; };
     // dữ liệu ToanViet ghi kèm ảnh (giống lúc chèn công thức vào Word)
     const objToB64 = (o) => { const bytes = new TextEncoder().encode(JSON.stringify(o, (k, v) => (k[0] === '_' || k === 'id' ? undefined : v))); let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); }); return btoa(bin); };
@@ -131,14 +132,18 @@
 
     // mode "de": chuyển đề PDF / ảnh chụp sang Word — AI (ChatGPT, Gemini…) đọc tệp, chép nguyên văn đề theo lời nhắc
     // LoiNhacAI.chepDe(); ToanViet đối chiếu số câu, tô vàng chỗ AI ghi [KHÔNG RÕ: …], [HÌNH: …]
+    // mode "md": như "de", mở ngay hộp chọn tệp Markdown (Tệp ▸ Mở tệp Markdown → tài liệu Word)
     function openBaiGiai(mode) {
-      notes = {}; loi = []; tongCau = 0;
-      const deMode = mode === 'de';
+      notes = {}; loi = []; tongCau = 0; phan = { co: new Set(), tong: 0 };
+      const deMode = mode === 'de' || mode === 'md';
       const d = modal('bgdlg', deMode ? 'Chuyển đề PDF / ảnh → tài liệu Word' : 'Bài giải AI → tài liệu Word');
       d.classList.add('bgdlg');
       const body = d.querySelector('.tvbody');
       body.innerHTML = (deMode
-        ? '<p class="bghint"><b>Nhờ AI đọc đề:</b> ① Bấm <button type="button" id="bgchepde" class="bgnhac">📋 Chép lời nhắc chép đề cho AI</button> ② Mở ChatGPT, Gemini hoặc Claude, đính kèm tệp PDF hoặc ảnh chụp đề, dán lời nhắc (<kbd>Ctrl</kbd>+<kbd>V</kbd>) rồi gửi. ③ Chép câu trả lời của AI, bấm vào ô bên trái, nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. AI chỉ chép đề, không giải; công thức thành công thức ToanViet, hình thành hình ToanViet sửa được. ToanViet đối chiếu số câu và <mark class="bgkr">tô vàng</mark> chỗ AI đọc không rõ để thầy cô dò lại với đề gốc. Lưu ý: tệp đề được gửi tới trang AI thầy cô chọn.</p>'
+        ? '<p class="bghint"><b>Nhờ AI đọc đề:</b> ① Bấm <button type="button" id="bgchepde" class="bgnhac">📋 Chép lời nhắc chép đề cho AI</button> ' +
+          '② Mở ChatGPT, Gemini hoặc Claude, đính kèm tệp PDF hoặc ảnh chụp đề, dán lời nhắc (<kbd>Ctrl</kbd>+<kbd>V</kbd>) rồi gửi. AI tạo tệp Markdown (đề dài: nhiều tệp theo trang, nhắn "tiếp" để AI làm phần sau). ' +
+          '③ Tải các tệp về rồi bấm <button type="button" id="bgmomd" class="bgnhac">📂 Mở tệp Markdown…</button> (chọn cùng lúc nhiều tệp, hoặc kéo thả tệp vào ô bên trái); AI không tạo được tệp thì chép câu trả lời, bấm vào ô bên trái, nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd> (nhiều phần: dán lần lượt). ' +
+          'AI chỉ chép đề, không giải; công thức thành công thức ToanViet, hình thành hình ToanViet sửa được. ToanViet ghép các phần, đối chiếu số câu và <mark class="bgkr">tô vàng</mark> chỗ AI đọc không rõ để thầy cô dò lại với đề gốc. Lưu ý: tệp đề được gửi tới trang AI thầy cô chọn.</p>'
         : '<p class="bghint">Sao chép bài giải từ ChatGPT, Gemini, Copilot… (nút <b>Sao chép</b> của trang, hoặc bôi đen cả bài rồi <kbd>Ctrl</kbd>+<kbd>C</kbd>), bấm vào ô bên trái rồi nhấn <kbd>Ctrl</kbd>+<kbd>V</kbd>. ' +
         'ToanViet tự bỏ phần thừa, dựng bố cục Câu – Lời giải, đổi ký hiệu theo SGK và <b>tự vẽ hình</b> ở chỗ SGK có hình (miền nghiệm, bảng biến thiên, bảng xét dấu). Không cần tài khoản AI nào. ' +
         'Hình chưa đúng ý đề: bấm <button type="button" id="bgnhac" class="bgnhac">📋 Chép lời nhắc vẽ hình cho AI</button> — lệnh gắn sẵn đề đang có trong ô, chỉ nhờ AI vẽ hình (không giải); dán cho ChatGPT / Gemini, rồi chép câu trả lời (các khối mã <b>```toanviet</b>) dán vào ô bên trái: hình từng câu được thay. Có đề dạng PDF / ảnh chụp: <button type="button" id="bgsangde" class="bgnhac">📄 Chuyển đề PDF / ảnh</button></p>') +
@@ -161,6 +166,28 @@
       if ($('#bgchepde')) $('#bgchepde').onclick = () => { if (window.LoiNhacAI) chep(LoiNhacAI.chepDe()).then(() => msg('Đã chép lời nhắc — đính kèm tệp PDF / ảnh đề cho ChatGPT, Gemini hoặc Claude, dán lời nhắc (Ctrl+V) rồi gửi')); };
       if ($('#bgsangde')) $('#bgsangde').onclick = () => { d.close(); openBaiGiai('de'); };
       let tmr = 0;
+      // dòng "[[PHẦN k/N – trang …]]" đầu mỗi phần (nhìn thấy được cả khi chép từ trang AI): nhớ phần đã có để báo
+      // phần còn thiếu, bỏ khỏi nội dung trước khi chuyển đổi
+      const PHAN = /^[ \t]*(?:\*\*)?\[\[\s*PH[ẦA]N\s*(\d+)\s*\/\s*(\d+)[^\]\n]*\]\](?:\*\*)?[ \t]*$\n?/gim;
+      const layPhan = (raw) => String(raw).replace(PHAN, (m0, k, n) => { phan.co.add(+k); phan.tong = Math.max(phan.tong, +n); return ''; });
+      // ghép nhiều phần / nhiều tệp: theo số phần ghi trong tệp, không có thì theo tên tệp (de-phan-2 trước de-phan-10)
+      const soPhan = (t) => { const m = /\[\[\s*PH[ẦA]N\s*(\d+)\s*\//i.exec(t); return m ? +m[1] : null; };
+      const napTep = (ds) => {
+        if (!ds || !ds.length) return;
+        const xs = ds.map((f) => ({ name: f.name, text: String(f.text).replace(/^\ufeff/, ''), k: soPhan(f.text) }))
+          .sort((a, b) => (a.k !== null && b.k !== null ? a.k - b.k : a.name.localeCompare(b.name, 'vi', { numeric: true })));
+        themVao(xs.map((x) => x.text).join('\n\n'));
+        msg('Đã mở ' + xs.length + ' tệp' + (xs.length > 1 ? ' (ghép theo thứ tự: ' + xs.map((x) => x.name).join(', ') + ')' : ''));
+      };
+      const moTep = async () => { if (api && api.openMd) napTep(await api.openMd()); };
+      if ($('#bgmomd')) $('#bgmomd').onclick = moTep;
+      src.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+      src.addEventListener('drop', async (e) => {
+        const fs0 = [...((e.dataTransfer && e.dataTransfer.files) || [])].filter((f) => /\.(md|markdown|txt)$/i.test(f.name));
+        if (!fs0.length) return;
+        e.preventDefault();
+        napTep(await Promise.all(fs0.map(async (f) => ({ name: f.name, text: await f.text() }))));
+      });
       // dòng cuối AI ghi "Tổng số câu: n": nhớ số câu để đối chiếu, bỏ khỏi nội dung
       const layTong = () => {
         const re = /^[ \t]*(?:\*\*)?Tổng số câu(?:\*\*)?\s*:?\s*(\d+)\s*\.?[ \t]*$\n?/im, m = re.exec(src.value);
@@ -170,6 +197,13 @@
       const doiChieu = () => {
         const v = src.value, soCau = (v.match(/^#C /gm) || []).length, kr = (v.match(/\[KHÔNG RÕ:/g) || []).length, hm = (v.match(/\[HÌNH:/g) || []).length;
         let h = '';
+        if (phan.tong) {
+          const thieu = []; for (let k = 1; k <= phan.tong; k++) if (!phan.co.has(k)) thieu.push(k);
+          h += thieu.length ? '<span class="bgerr">Đề có ' + phan.tong + ' phần, còn thiếu phần ' + thieu.join(', ') + ' — nhắn AI "tiếp" rồi mở (hoặc dán) phần còn lại.</span> ' : '<span class="bgfix">Đủ ' + phan.tong + ' phần.</span> ';
+        }
+        // chỗ nối hai phần: một câu bị chép hai lần liền nhau
+        const nhan = v.split('\n').filter((l) => /^#C /.test(l)), lap = nhan.filter((l, i) => i && l === nhan[i - 1]);
+        if (lap.length) h += '<span class="bgerr">' + lap.map((l) => l.slice(3).replace(/\.$/, '')).join(', ') + ' lặp lại liền nhau (chỗ nối hai phần?) — xoá bản thừa.</span> ';
         if (tongCau) h += tongCau === soCau ? '<span class="bgfix">Đủ ' + soCau + ' câu như AI báo.</span> ' : '<span class="bgerr">AI báo đề có ' + tongCau + ' câu, ToanViet nhận ra ' + soCau + ' câu — dò lại câu bị thiếu hoặc nhãn câu viết sai.</span> ';
         if (kr) h += '<span class="bgerr">' + kr + ' chỗ AI đọc không rõ (tô vàng) — dò với đề gốc rồi sửa trong ô bên trái.</span> ';
         if (hm) h += '<span class="bgerr">' + hm + ' hình AI không vẽ lại được (tô vàng) — chèn ảnh vào tài liệu Word sau.</span> ';
@@ -265,6 +299,21 @@
         msg('Đã đặt ' + (viec.length - khong - loi2.length) + ' hình theo kịch bản AI' + (khong ? '; ' + khong + ' khối không rõ của câu nào (ghi "Câu n." trên khối)' : '') + (loi2.length ? '; lỗi: ' + loi2.join(' · ') : ''), !!(khong || loi2.length));
         return true;
       }
+      // thêm nội dung AI chép (dán hoặc mở tệp): ô trống thì dựng mới, có rồi thì nối vào chỗ con trỏ;
+      // hình kịch bản của phần nối thêm đánh số tiếp (tv1, tv2… của phần sau không trùng phần trước)
+      function themVao(raw) {
+        raw = layPhan(raw);
+        if (!src.value.trim()) src.value = convert(raw);
+        else {
+          const r = BaiGiai.fromText(raw); mergeNotes(r.notes);
+          const n0 = Math.max(0, ...src.value.split('\n').map((l) => { const m = /^#FIG tv(\d+) /.exec(l); return m ? +m[1] : 0; }));
+          const mk = n0 ? r.markup.replace(/^(#FIG|\[FIG) tv(\d+)/gm, (m0, p, k) => p + ' tv' + (+k + n0)) : r.markup;
+          // nối vào giữa: phần chèn đứng thành dòng riêng, không dính vào dòng trước / sau
+          const a = src.selectionStart, b = src.selectionEnd;
+          src.setRangeText((a > 0 && src.value[a - 1] !== '\n' ? '\n' : '') + mk + (b < src.value.length && src.value[b] !== '\n' ? '\n' : ''), a, b, 'end');
+        }
+        refresh();
+      }
       // dán: ưu tiên bản HTML (giữ đúng mã LaTeX của công thức), không có thì dùng chữ thường
       src.addEventListener('paste', (e) => {
         const html = e.clipboardData.getData('text/html'), text = e.clipboardData.getData('text/plain');
@@ -272,14 +321,13 @@
         e.preventDefault();
         let raw = text;
         try { if (html && /<(p|div|span|h\d|li|math|annotation|table)\b/i.test(html)) raw = BaiGiai.fromHtml(html); } catch (err) { raw = text; }
-        if (src.value.trim() && ganKhoi(raw)) return; // câu trả lời AI chỉ có các khối hình: đặt vào từng câu
-        if (!src.value.trim()) src.value = convert(raw);
-        else { const r = BaiGiai.fromText(raw); mergeNotes(r.notes); src.setRangeText(r.markup, src.selectionStart, src.selectionEnd, 'end'); }
-        refresh();
+        // câu trả lời AI chỉ có các khối hình: đặt vào từng câu (phần đề nối thêm "[[PHẦN k/N…]]" thì không phải)
+        if (src.value.trim() && !soPhan(raw) && ganKhoi(raw)) return;
+        themVao(raw);
       });
       src.addEventListener('input', () => { clearTimeout(tmr); tmr = setTimeout(refresh, 300); });
       $('#bgfig').onclick = () => { const f = rebuildFigures(src.value); src.value = f.markup; refresh(); msg(f.count ? 'Đã dựng ' + f.count + ' hình' : 'Không nhận ra chỗ nào cần hình (miền nghiệm, bảng biến thiên, bảng xét dấu)'); };
-      $('#bgclear').onclick = () => { src.value = ''; notes = {}; loi = []; tongCau = 0; refresh(); src.focus(); };
+      $('#bgclear').onclick = () => { src.value = ''; notes = {}; loi = []; tongCau = 0; phan = { co: new Set(), tong: 0 }; refresh(); src.focus(); };
       $('#bgmake').onclick = async () => {
         const kr = (src.value.match(/\[KHÔNG RÕ:/g) || []).length;
         if (kr) { const q = 'Còn ' + kr + ' chỗ AI đọc không rõ ([KHÔNG RÕ: …]). Vẫn tạo tài liệu Word?'; if (!(await (api && api.confirm ? api.confirm(q) : window.confirm(q)))) return; }
@@ -288,6 +336,7 @@
       refresh();
       d.showModal();
       src.focus();
+      if (mode === 'md') moTep();
     }
 
     // ---------- Tạo tài liệu Word ----------

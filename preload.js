@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('api', {
   pdf: () => ipcRenderer.invoke('pdf'),
   save: (data, file) => ipcRenderer.invoke('save', { data, file }),
   open: () => ipcRenderer.invoke('open'),
+  openMd: () => ipcRenderer.invoke('openMd'),
   copyText: (t) => ipcRenderer.invoke('copyText', t),
   confirm: (msg) => ipcRenderer.invoke('confirm', msg),
   setTitle: (t) => ipcRenderer.send('title', t),

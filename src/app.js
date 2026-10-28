@@ -1410,6 +1410,7 @@
     exam: () => openExam(),
     baigiai: () => openBaiGiai(),
     chuyende: () => openBaiGiai('de'),
+    'mo-md': () => openBaiGiai('md'),
     'font-times': () => setFormulaFont(true),
     'font-tex': () => setFormulaFont(false),
     'nen-trong': () => setNenTrang(false),

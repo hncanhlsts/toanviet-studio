@@ -323,6 +323,15 @@ Tôi gửi kèm tệp PDF / ảnh chụp một đề bài (đề kiểm tra, phi
 2. Chỗ không đọc rõ (mờ, bị che, viết tay khó đọc): viết [KHÔNG RÕ: chữ bạn đoán]. Không tự bịa nội dung.
 3. Không viết lời chào, lời dẫn, nhận xét. Không đặt cả bài trong khối mã.
 
+## Cách trả về: tệp Markdown
+
+- Tạo TỆP Markdown (.md) để tôi tải về, đặt tên de-phan-1.md, de-phan-2.md… Nếu không tạo được tệp, viết thẳng nội dung trong câu trả lời.
+- Đề dài (khoảng 4 trang trở lên, hoặc bạn không chép hết được trong một lần trả lời): chia thành nhiều phần theo trang, mỗi lần trả lời MỘT phần. Dòng đầu tiên của mỗi phần ghi đúng dạng:
+  [[PHẦN 1/3 – trang 1 đến 4]]
+  (1 là số thứ tự phần, 3 là tổng số phần). Chép hết phần đó rồi DỪNG, chờ tôi nhắn "tiếp" mới chép phần sau.
+- Câu vắt qua hai trang: chép trọn ở phần trước, phần sau không chép lại. Không chép lặp câu đã chép.
+- Đề ngắn chép trong một lần: không cần dòng PHẦN.
+
 ## Cách viết
 
 - Dòng đầu: tên đề, bắt đầu bằng "# " (ví dụ: # ĐỀ KIỂM TRA GIỮA HỌC KÌ I – TOÁN 10). Thông tin trường, thời gian làm bài: mỗi thông tin một dòng.
@@ -335,7 +344,7 @@ Tôi gửi kèm tệp PDF / ảnh chụp một đề bài (đề kiểm tra, phi
 - Bảng (bảng số liệu, bảng tần số, bảng biến thiên, bảng xét dấu): viết thành bảng Markdown (dòng bắt đầu bằng |), công thức trong ô vẫn để trong $…$. Bảng biến thiên: dùng ↗ ↘ cho mũi tên.
 - Hình vẽ trong đề: vẽ lại bằng khối kịch bản ToanViet theo HƯỚNG DẪN VẼ HÌNH ở dưới, đặt khối ngay dưới câu có hình (hình học phẳng: '''toanviet; hình không gian: '''toanviet-khonggian; biểu đồ, mạch điện, thấu kính, sơ đồ lai…: '''toanviet-mon). Đặt điểm, số liệu đúng như hình trong đề.
 - Hình không vẽ được bằng kịch bản (ảnh chụp, tranh minh hoạ, hình phức tạp): viết một dòng [HÌNH: mô tả ngắn hình trong đề].
-- Dòng cuối cùng: Tổng số câu: n (n là số câu trong đề, đếm theo nhãn Câu / Bài).
+- Dòng cuối cùng của cả đề (phần cuối cùng nếu chia phần): Tổng số câu: n (n là số câu trong cả đề, đếm theo nhãn Câu / Bài).
 
 ---
 

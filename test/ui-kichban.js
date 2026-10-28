@@ -440,6 +440,24 @@
     document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
   });
 
+  await step('Chuyển đề: mở tệp Markdown nhiều phần — ghép theo số phần, báo phần thiếu; dán phần còn lại → đủ phần, hình không trùng số', async () => {
+    __clear(); await w(50);
+    window.__baigiai.openDe(); await w(300);
+    const src = document.getElementById('bgsrc');
+    document.getElementById('bgmomd').click(); await w(800);
+    const nt = () => document.getElementById('bgnotes').textContent;
+    ok('ghép phần 1 trước phần 3 (dù tên tệp ngược), tiêu đề giữ là tiêu đề đề', /^#T ĐỀ ÔN TẬP/.test(src.value) && src.value.indexOf('#C Câu 1.') < src.value.indexOf('#C Câu 3.') && !/\[\[PH/.test(src.value), src.value.slice(0, 200));
+    ok('báo thiếu phần 2', /còn thiếu phần 2/.test(nt()), nt());
+    src.setSelectionRange(src.value.indexOf('#C Câu 3.'), src.value.indexOf('#C Câu 3.'));
+    const dt = new DataTransfer();
+    dt.setData('text/plain', '[[PHẦN 2/3 – trang 5 đến 8]]\n\n**Câu 2.** Cho tam giác $MNP$.\n```toanviet\nM = (0, 0)\nN = (5, 0)\nP = (2, 3)\ndagiac MNP\n```\n');
+    src.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); await w(500);
+    const keys = (src.value.match(/^#FIG (tv\d+) /gm) || []);
+    ok('đủ 3 phần, đủ 3 câu, ba hình mang số khác nhau', /Đủ 3 phần/.test(nt()) && /Đủ 3 câu như AI báo/.test(nt()) && keys.length === 3 && new Set(keys).size === 3, nt() + ' | ' + keys.join(','));
+    ok('thứ tự câu 1, 2, 3', src.value.indexOf('#C Câu 1.') < src.value.indexOf('#C Câu 2.') && src.value.indexOf('#C Câu 2.') < src.value.indexOf('#C Câu 3.'));
+    document.querySelector('#bgdlg') && document.querySelector('#bgdlg').close();
+  });
+
   await step('Thanh công cụ một hàng; đoạn / mũi tên nằm ngang, kéo đầu mút để xoay (bắt thẳng, Shift 15°, gắn vào ô)', async () => {
     __clear(); await w(50);
     const grps = [...document.querySelectorAll('#ribbon > .grp')].filter((g) => g.offsetParent !== null);
