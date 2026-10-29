@@ -48,14 +48,28 @@
     if (/P phải là mặt phẳng/.test(loi)) return 'Dòng «' + dong + '»: chỗ tên mặt phẳng phải là một mặt phẳng đã khai báo (mp P: A B C).';
     return 'Dòng «' + dong + '»: ' + loi + '.';
   }
-  // cả danh sách lỗi: lỗi gốc trước; các lệnh chỉ hỏng vì thiếu điểm đã báo thì gộp lại
+  // cả danh sách lỗi: lỗi gốc trước; các lệnh chỉ hỏng vì thiếu điểm đã báo thì gộp lại (bao đóng bắc cầu trên DAG)
   function dich(errs) {
     const ds = (Array.isArray(errs) ? errs : String(errs || '').split('\n')).filter((x) => String(x).trim());
-    const hong = new Set(), goc = [], theo = {};
-    ds.forEach((e) => { const d = String(e).match(/^\s*([A-Z][A-Za-z0-9']*)\s*=/); if (d && /→/.test(e) && !/chưa có điểm/.test(e)) hong.add(d[1]); });
+    const rootOf = {}, goc = [], theo = {};
     ds.forEach((e) => {
-      const m = String(e).match(/→\s*chưa có điểm (\S+)/);
-      if (m && (hong.has(m[1]) || theo[m[1]])) { theo[m[1]] = (theo[m[1]] || 0) + 1; return; }
+      const s = String(e);
+      const d = s.match(/^\s*([A-Z][A-Za-z0-9']*)\s*=/);
+      const m = s.match(/→\s*chưa có điểm (\S+)/);
+      if (d && /→/.test(s) && !m) {
+        rootOf[d[1]] = d[1];
+      } else if (d && m && rootOf[m[1]]) {
+        rootOf[d[1]] = rootOf[m[1]];
+      }
+    });
+    ds.forEach((e) => {
+      const s = String(e);
+      const m = s.match(/→\s*chưa có điểm (\S+)/);
+      if (m && rootOf[m[1]]) {
+        const r = rootOf[m[1]];
+        theo[r] = (theo[r] || 0) + 1;
+        return;
+      }
       goc.push(e);
     });
     // lỗi kéo theo ghi ngay sau lỗi gốc

@@ -74,7 +74,7 @@
     const pt = (n) => { if (!P[n]) throw new Error('chưa có điểm ' + n); return P[n]; };
     const names = (s) => { const m = s.match(NAME_RE) || []; if (!m.length) throw new Error('thiếu tên điểm'); m.forEach(pt); return m; };
     const plane = (n) => { if (!PL[n]) throw new Error('chưa có mặt phẳng ' + n); return PL[n]; };
-    const arg = (a) => (NAME_FULL.test(a) && P[a] ? P[a] : PL[a] ? PL[a] : num(a));
+    const arg = (a) => (PL[a] ? PL[a] : NAME_FULL.test(a) ? pt(a) : num(a));
     let tickAuto = 0;
     String(script || '').split(/\n/).forEach((raw) => {
       const line = raw.replace(/#.*$/, '').replace(/[−–]/g, '-').trim(); // dấu trừ Unicode (chép từ trang AI)
