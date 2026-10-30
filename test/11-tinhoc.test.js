@@ -68,3 +68,21 @@ thu('khối Scratch: nhận diện song ngữ (tiếng Anh & tiếng Việt) và
   const doc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + rVi.svg + '</svg>', 'image/svg+xml');
   dung(!doc.querySelector('parsererror'), 'Scratch SVG không có lỗi XML');
 });
+
+thu('ký hiệu SGK Tin học: đầy đủ các nhóm thiết bị mạng, cổng logic, cấu trúc dữ liệu', () => {
+  const tinGroups = SGK.GROUPS.filter((g) => g[0].startsWith('Tin học'));
+  dung(tinGroups.length >= 3, 'có đủ ít nhất 3 nhóm ký hiệu Tin học');
+  const allKinds = [];
+  tinGroups.forEach((g) => {
+    Object.keys(g[1]).forEach((k) => {
+      allKinds.push(k);
+      const s = SGK.sizeOf(k);
+      const r = SGK.render({ id: 't', kind: k, color: '#1a5fb4', stroke: 2, label: 'Ký hiệu' }, s.w, s.h);
+      dung(!r.errors.length, k + ' có lỗi: ' + r.errors.join('; '));
+      dung(r.svg && r.svg.length > 20, k + ' svg rỗng');
+      const doc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + r.svg + '</svg>', 'image/svg+xml');
+      dung(!doc.querySelector('parsererror'), k + ' SVG bị lỗi cú pháp XML');
+    });
+  });
+  dung(allKinds.includes('pc') && allKinds.includes('router') && allKinds.includes('gate_and') && allKinds.includes('linked_node'), 'đầy đủ các ký hiệu tiêu biểu');
+});

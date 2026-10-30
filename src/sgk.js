@@ -61,6 +61,35 @@
       nst: ['Nhiễm sắc thể kép', [80, 120], 'K:M24,10Q46,60 24,110M56,10Q34,60 56,110;F:M40,60m-6,0a6,6 0 1 0 12,0a6,6 0 1 0 -12,0'],
       adn: ['Mạch kép ADN', [200, 70], 'P:M5,35C30,-10 55,-10 80,35S130,80 155,35S180,-10 195,20M5,35C30,80 55,80 80,35S130,-10 155,35S180,80 195,50;N:M20,19V51M35,10V60M50,10V60M65,19V51M95,19V51M110,10V60M125,10V60M140,19V51M170,19V51M185,13V57'],
     }],
+    ['Tin học – Thiết bị mạng & Máy tính', {
+      pc: ['Máy tính để bàn (PC)', [100, 100], 'P:M14,12H86V64H14ZM42,64L38,80H62L58,64M28,84H72;N:M18,16H82V60H18Z'],
+      laptop: ['Máy tính xách tay (Laptop)', [100, 100], 'P:M22,22H78V64H22ZM10,70H90L84,80H16ZM42,64H58V70H42Z;N:M26,26H74V60H26Z'],
+      server: ['Máy chủ (Server)', [100, 100], 'P:M28,8H72V92H28ZM28,32H72M28,56H72M28,80H72M36,20H52M36,44H52M36,68H52;F:M62,20a3,3 0 1 0 6,0a3,3 0 1 0 -6,0M62,44a3,3 0 1 0 6,0a3,3 0 1 0 -6,0M62,68a3,3 0 1 0 6,0a3,3 0 1 0 -6,0'],
+      netswitch: ['Bộ chuyển mạch (Switch)', [120, 60], 'P:M10,16H110V46H10ZM20,32H28M36,32H44M52,32H60M68,32H76M84,28H98M94,24L98,28L94,32M98,36H84M88,32L84,36L88,40;S:<text x="60" y="56" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="COL">SWITCH</text>'],
+      router: ['Bộ định tuyến (Router)', [120, 70], 'P:M10,32H110V56H10ZM30,32L24,10M90,32L96,10M20,44H40;F:M96,44a3,3 0 1 0 6,0a3,3 0 1 0 -6,0M84,44a3,3 0 1 0 6,0a3,3 0 1 0 -6,0;S:<text x="60" y="66" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="COL">ROUTER</text>'],
+      wifi: ['Điểm truy cập Wi-Fi (AP)', [100, 100], 'P:M36,64Q50,50 64,64M26,50Q50,26 74,50M16,36Q50,2 84,36M38,88H62;F:M46,78a4,4 0 1 0 8,0a4,4 0 1 0 -8,0'],
+      cloud: ['Internet (Đám mây)', [120, 80], 'P:M30,65Q10,65 12,48Q14,34 30,36Q34,14 60,14Q80,14 84,32Q105,30 105,48Q105,65 85,65Z;S:<text x="60" y="46" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="bold" fill="COL">Internet</text>'],
+      firewall: ['Tường lửa (Firewall)', [100, 90], 'P:M10,15H90V85H10ZM10,32.5H90M10,50H90M10,67.5H90M36,15V32.5M64,15V32.5M24,32.5V50M50,32.5V50M76,32.5V50M36,50V67.5M64,50V67.5M24,67.5V85M50,67.5V85M76,67.5V85'],
+      printer: ['Máy in (Printer)', [100, 100], 'P:M28,12H72V36H28ZM12,36H88V74H12ZM26,62H74V92H26ZM34,72H66M34,82H58M18,48H30'],
+      phone: ['Điện thoại thông minh', [80, 110], 'P:M20,8H60a8,8 0 0 1 8,8V94a8,8 0 0 1 -8,8H20a8,8 0 0 1 -8,-8V16a8,8 0 0 1 8,-8ZM34,14H46M32,96H48;N:M18,20H62V88H18Z'],
+      hub: ['Bộ chia mạng (Hub)', [100, 60], 'P:M10,18H90V44H10Z;F:M24,31a2.5,2.5 0 1 0 5,0a2.5,2.5 0 1 0 -5,0M36,31a2.5,2.5 0 1 0 5,0a2.5,2.5 0 1 0 -5,0M48,31a2.5,2.5 0 1 0 5,0a2.5,2.5 0 1 0 -5,0M60,31a2.5,2.5 0 1 0 5,0a2.5,2.5 0 1 0 -5,0;S:<text x="50" y="55" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="COL">HUB</text>'],
+    }],
+    ['Tin học – Cổng logic & Mạch số', {
+      gate_and: ['Cổng logic AND', [120, 60], 'P:M0,18H35M0,42H35M80,30H120M35,10V50H55A20,20 0 0 0 55,10Z', [[12, 13, 'A'], [12, 53, 'B'], [108, 25, 'Y']]],
+      gate_or: ['Cổng logic OR', [120, 60], 'P:M0,18H41M0,42H41M85,30H120M35,10Q45,30 35,50Q65,50 85,30Q65,10 35,10Z', [[12, 13, 'A'], [12, 53, 'B'], [108, 25, 'Y']]],
+      gate_not: ['Cổng logic NOT (Đảo)', [120, 60], 'P:M0,30H40M82,30H120M40,12V48L74,30Z;C:78,30,4', [[15, 24, 'A'], [108, 24, '\\bar{A}']]],
+      gate_nand: ['Cổng logic NAND', [120, 60], 'P:M0,18H35M0,42H35M35,10V50H55A20,20 0 0 0 55,10ZM83,30H120;C:79,30,4', [[12, 13, 'A'], [12, 53, 'B'], [108, 25, 'Y']]],
+      gate_nor: ['Cổng logic NOR', [120, 60], 'P:M0,18H41M0,42H41M35,10Q45,30 35,50Q65,50 85,30Q65,10 35,10ZM93,30H120;C:89,30,4', [[12, 13, 'A'], [12, 53, 'B'], [108, 25, 'Y']]],
+      gate_xor: ['Cổng logic XOR', [120, 60], 'P:M0,18H34M0,42H34M28,10Q38,30 28,50M35,10Q45,30 35,50Q65,50 85,30Q65,10 35,10ZM85,30H120', [[12, 13, 'A'], [12, 53, 'B'], [108, 25, 'Y']]],
+    }],
+    ['Tin học – Cấu trúc dữ liệu & Đồ thị', {
+      node_single: ['Nút đồ thị / cây (Node)', [80, 80], 'C:40,40,26', [[40, 45, 'u']]],
+      node_double: ['Nút đích / kết thúc (Double Node)', [80, 80], 'C:40,40,28;C:40,40,22', [[40, 45, 'q_f']]],
+      linked_node: ['Nút danh sách liên kết', [120, 60], 'P:M15,12H90V48H15ZM65,12V48M80,30H112M106,26L112,30L106,34;F:M75,30a3,3 0 1 0 6,0a3,3 0 1 0 -6,0;S:<text x="40" y="34" text-anchor="middle" font-family="sans-serif" font-size="12" fill="COL">data</text>'],
+      tree_node: ['Cây nhị phân (Nút gốc & 2 nhánh)', [120, 100], 'C:60,25,16;C:25,80,14;C:95,80,14;P:M48,36L33,68M72,36L87,68', [[60, 30, 'A'], [25, 85, 'B'], [95, 85, 'C']]],
+      db_table: ['Thực thể CSDL (Bảng quan hệ)', [120, 80], 'P:M10,10H110V70H10ZM10,26H110M10,48H110;S:<rect x="10" y="10" width="100" height="16" fill="COL" opacity="0.12"/><text x="60" y="22" text-anchor="middle" font-family="sans-serif" font-size="11" font-weight="bold" fill="COL">Table_Name</text><text x="16" y="41" text-anchor="start" font-family="sans-serif" font-size="10" fill="COL">id (PK)</text><text x="16" y="63" text-anchor="start" font-family="sans-serif" font-size="10" fill="COL">name (TEXT)</text>'],
+      stack_queue: ['Ngăn xếp (Stack)', [120, 70], 'P:M20,12V58H100V12M26,44H94V54H26ZM26,30H94V40H26ZM26,16H94V26H26Z;S:<text x="60" y="52" text-anchor="middle" font-family="sans-serif" font-size="9" fill="COL">Item 1</text><text x="60" y="38" text-anchor="middle" font-family="sans-serif" font-size="9" fill="COL">Item 2</text><text x="60" y="24" text-anchor="middle" font-family="sans-serif" font-size="9" fill="COL">Top</text>'],
+    }],
   ];
   const find = (kind) => { for (const g of G) if (g[1][kind]) return g[1][kind]; return null; };
 
