@@ -6,7 +6,7 @@
   const r1 = (v) => Math.round(v * 10) / 10;
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const FONT = "'Times New Roman', Times, serif";
-  const MONO = "Consolas, 'Cascadia Mono', 'Courier New', monospace";
+  const MONO = "'Cascadia Code', Consolas, 'Fira Code', 'Courier New', monospace";
   const FONT_SCRATCH = "Helvetica, Arial, 'DejaVu Sans', sans-serif";
 
   // ---------------- MÃ NGUỒN (CODE BLOCK) ----------------
@@ -206,41 +206,63 @@
   function codeBase(o) {
     const fs = +o.fs || 14;
     const lines = String(o.src || '').replace(/\t/g, '    ').split('\n');
-    const cw = fs * 0.6;
-    const maxLen = Math.max(8, ...lines.map((l) => l.length));
-    const gut = o.num === false ? fs * 0.6 : cw * (String(lines.length).length + 2);
-    const bar = o.title ? fs * 2.0 : 0;
-    const pad = fs * 0.7;
-    const lh = fs * 1.5;
-    const W = Math.max(fs * 12, gut + maxLen * cw + pad * 2);
-    const H = bar + lines.length * lh + pad * 2;
-    return { fs, lines, cw, gut, bar, pad, lh, w: W, h: H };
+    const bar = o.title ? Math.round(fs * 2.2) : 0;
+    const lh = Math.round(fs * 1.6);
+    const pad = Math.round(fs * 0.85);
+
+    // Bề rộng cột số dòng
+    const numDigits = String(lines.length).length;
+    const gut = o.num === false ? pad : Math.round(pad + (numDigits * 0.6 + 1.2) * fs);
+    const codeX = o.num === false ? pad : Math.round(gut + fs * 0.5);
+
+    // Ước lượng bề rộng cần thiết dựa trên dòng dài nhất
+    const maxChars = Math.max(10, ...lines.map((l) => l.length));
+    const neededW = Math.round(codeX + maxChars * (fs * 0.62) + pad * 1.5);
+    const neededH = Math.round(bar + pad + lines.length * lh + pad * 0.8);
+
+    return { fs, lines, bar, lh, pad, gut, codeX, neededW, neededH };
   }
 
   function renderCode(o, w, h, out) {
     const b = codeBase(o);
     const P = CODE_PAL[o.th === 'toi' ? 'toi' : 'sang'] || CODE_PAL.sang;
     const hl = hlSet(o.hl);
-    const sx = w / b.w, sy = h / b.h;
 
-    out.push(`<g transform="scale(${r1(sx)},${r1(sy)})">`);
-    // Thẻ nền bo góc
-    out.push(`<rect x="0" y="0" width="${r1(b.w)}" height="${r1(b.h)}" rx="${r1(b.fs * 0.4)}" fill="${P.bg}" stroke="${P.border}" stroke-width="1.2"/>`);
+    // Kích thước mong muốn
+    const targetW = w || o.w || b.neededW;
+    const targetH = h || o.h || b.neededH;
 
-    // Thanh tiêu đề macOS nếu có title
-    if (b.bar) {
-      const r = r1(b.fs * 0.4);
-      out.push(`<path d="M 0,${r} A ${r},${r} 0 0 1 ${r},0 L ${r1(b.w - r)},0 A ${r},${r} 0 0 1 ${r1(b.w)},${r} L ${r1(b.w)},${r1(b.bar)} L 0,${r1(b.bar)} Z" fill="${P.bar}"/>`);
-      out.push(`<line x1="0" y1="${r1(b.bar)}" x2="${r1(b.w)}" y2="${r1(b.bar)}" stroke="${P.border}" stroke-width="1"/>`);
-      ['#ff5f57', '#febc2e', '#28c840'].forEach((cl, i) => {
-        out.push(`<circle cx="${r1(b.fs * (1.0 + i * 0.85))}" cy="${r1(b.bar / 2)}" r="${r1(b.fs * 0.28)}" fill="${cl}"/>`);
+    // Tỉ lệ co giãn đồng dạng (UNIFORM) nếu khung quá nhỏ, KHÔNG co giãn méo chữ
+    const scale = Math.min(targetW / b.neededW, targetH / b.neededH, 1.0);
+    const cardW = Math.max(b.neededW, Math.round(targetW / scale));
+    const cardH = Math.max(b.neededH, Math.round(targetH / scale));
+
+    const ox = (targetW - cardW * scale) / 2;
+    const oy = (targetH - cardH * scale) / 2;
+
+    out.push(`<g transform="translate(${r1(ox)},${r1(oy)}) scale(${r1(scale)})">`);
+
+    // Hộp chứa nền bo góc
+    const rx = 8;
+    out.push(`<rect x="0" y="0" width="${r1(cardW)}" height="${r1(cardH)}" rx="${rx}" fill="${P.bg}" stroke="${P.border}" stroke-width="1.2"/>`);
+
+    // Thanh tiêu đề macOS
+    if (b.bar > 0) {
+      out.push(`<path d="M 0,${rx} A ${rx},${rx} 0 0 1 ${rx},0 L ${r1(cardW - rx)},0 A ${rx},${rx} 0 0 1 ${r1(cardW)},${rx} L ${r1(cardW)},${r1(b.bar)} L 0,${r1(b.bar)} Z" fill="${P.bar}"/>`);
+      out.push(`<line x1="0" y1="${r1(b.bar)}" x2="${r1(cardW)}" y2="${r1(b.bar)}" stroke="${P.border}" stroke-width="1"/>`);
+
+      // 3 chấm điều khiển
+      const dots = ['#ff5f56', '#ffbd2e', '#27c93f'];
+      dots.forEach((cl, i) => {
+        out.push(`<circle cx="${r1(16 + i * 14)}" cy="${r1(b.bar / 2)}" r="4.5" fill="${cl}"/>`);
       });
+
       if (o.title) {
-        out.push(`<text x="${r1(b.w / 2)}" y="${r1(b.bar / 2)}" text-anchor="middle" dominant-baseline="central" font-family="${FONT}" font-size="${r1(b.fs * 0.8)}" fill="${P.num}">${esc(o.title)}</text>`);
+        out.push(`<text x="${r1(cardW / 2)}" y="${r1(b.bar / 2)}" text-anchor="middle" dominant-baseline="central" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="${r1(Math.max(11, b.fs * 0.82))}" font-weight="500" fill="${P.num}">${esc(o.title)}</text>`);
       }
     }
 
-    // Từng dòng mã
+    // Các dòng mã
     const st = {};
     b.lines.forEach((ln, i) => {
       const yMid = b.bar + b.pad + i * b.lh + b.lh / 2;
@@ -248,28 +270,27 @@
 
       // Tô sáng dòng
       if (hl.has(i + 1)) {
-        out.push(`<rect x="1" y="${r1(yTop)}" width="${r1(b.w - 2)}" height="${r1(b.lh)}" fill="${P.hl}"/>`);
-        if (o.th !== 'toi') {
-          out.push(`<rect x="1" y="${r1(yTop)}" width="${r1(b.fs * 0.22)}" height="${r1(b.lh)}" fill="#e3b341"/>`);
-        }
+        out.push(`<rect x="1" y="${r1(yTop)}" width="${r1(cardW - 2)}" height="${r1(b.lh)}" fill="${P.hl}"/>`);
+        out.push(`<rect x="1" y="${r1(yTop)}" width="3" height="${r1(b.lh)}" fill="${o.th === 'toi' ? '#4ec9b0' : '#eab308'}"/>`);
       }
 
       // Số dòng
       if (o.num !== false) {
-        out.push(`<text x="${r1(b.gut - b.cw)}" y="${r1(yMid)}" text-anchor="end" dominant-baseline="central" font-family="${MONO}" font-size="${r1(b.fs)}" fill="${P.num}">${i + 1}</text>`);
+        out.push(`<text x="${r1(b.gut - b.fs * 0.6)}" y="${r1(yMid)}" text-anchor="end" dominant-baseline="central" font-family="${MONO}" font-size="${r1(b.fs * 0.88)}" fill="${P.num}">${i + 1}</text>`);
       }
 
-      // Tô màu từng từ
+      // Các token của dòng mã (dùng tspan liền mạch, không chia nhỏ toạ độ x từng chữ)
       const toks = codeTokens(ln, o.lang || 'python', st);
-      let xPos = b.gut + b.pad * 0.4;
+      let lineSpans = '';
       toks.forEach(([text, kd]) => {
         if (!text) return;
         const col = P[kd] || P.fg;
-        const weight = kd === 'kw' ? 'bold' : 'normal';
-        const style = kd === 'com' ? 'italic' : 'normal';
-        out.push(`<text x="${r1(xPos)}" y="${r1(yMid)}" text-anchor="start" dominant-baseline="central" font-family="${MONO}" font-size="${r1(b.fs)}" font-weight="${weight}" font-style="${style}" fill="${col}" xml:space="preserve">${esc(text)}</text>`);
-        xPos += text.length * b.cw;
+        const bold = kd === 'kw' ? ' font-weight="bold"' : '';
+        const italic = kd === 'com' ? ' font-style="italic"' : '';
+        lineSpans += `<tspan fill="${col}"${bold}${italic}>${esc(text)}</tspan>`;
       });
+
+      out.push(`<text x="${r1(b.codeX)}" y="${r1(yMid)}" dominant-baseline="central" font-family="${MONO}" font-size="${r1(b.fs)}" xml:space="preserve">${lineSpans}</text>`);
     });
 
     out.push('</g>');
@@ -917,11 +938,11 @@
 
   const GROUPS = [
     ['Mã nguồn', 'tin', {
-      codePython: ['Khối mã Python', { ve: 'code', lang: 'python', src: 'n = int(input("Nhập n: "))\ns = 0\nfor i in range(1, n + 1):\n    s = s + i\nprint("Tổng =", s)', title: 'main.py', th: 'sang', num: true, fs: 14, w: 420, h: 200 }],
-      codeCpp: ['Khối mã C++', { ve: 'code', lang: 'cpp', src: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int n, s = 0;\n    cin >> n;\n    for (int i = 1; i <= n; i++)\n        s += i;\n    cout << "Tổng = " << s << endl;\n    return 0;\n}', title: 'solution.cpp', th: 'sang', num: true, fs: 14, w: 460, h: 240 }],
-      codePascal: ['Khối mã Pascal', { ve: 'code', lang: 'pascal', src: "program TinhTong;\nvar n, i, s: integer;\nbegin\n  readln(n);\n  s := 0;\n  for i := 1 to n do\n    s := s + i;\n  writeln('Tong = ', s);\nend.", title: 'bai1.pas', th: 'sang', num: true, fs: 14, w: 420, h: 220 }],
-      codeSql: ['Khối truy vấn SQL', { ve: 'code', lang: 'sql', src: 'SELECT MaHS, HoTen, DiemTB\nFROM HocSinh\nWHERE DiemTB >= 8.0\nORDER BY DiemTB DESC;', title: 'query.sql', th: 'sang', num: true, fs: 14, w: 420, h: 170 }],
-      codePseudo: ['Mã giả thuật toán', { ve: 'code', lang: 'pseudo', src: 'Bước 1: Nhập n\nBước 2: Gán s ← 0, i ← 1\nBước 3: Trong khi i ≤ n làm\n    s ← s + i\n    i ← i + 1\nBước 4: Xuất s\nBước 5: Kết thúc', title: 'ThuatToan.txt', th: 'sang', num: false, fs: 14, w: 420, h: 180 }]
+      codePython: ['Khối mã Python', { ve: 'code', lang: 'python', src: 'n = int(input("Nhập n: "))\ns = 0\nfor i in range(1, n + 1):\n    s = s + i\nprint("Tổng =", s)', title: 'main.py', th: 'sang', num: true, fs: 14, w: 360, h: 180 }],
+      codeCpp: ['Khối mã C++', { ve: 'code', lang: 'cpp', src: '#include <iostream>\nusing namespace std;\n\nint main() {\n    int n, s = 0;\n    cin >> n;\n    for (int i = 1; i <= n; i++)\n        s += i;\n    cout << "Tổng = " << s << endl;\n    return 0;\n}', title: 'solution.cpp', th: 'sang', num: true, fs: 14, w: 400, h: 280 }],
+      codePascal: ['Khối mã Pascal', { ve: 'code', lang: 'pascal', src: "program TinhTong;\nvar n, i, s: integer;\nbegin\n  readln(n);\n  s := 0;\n  for i := 1 to n do\n    s := s + i;\n  writeln('Tong = ', s);\nend.", title: 'bai1.pas', th: 'sang', num: true, fs: 14, w: 360, h: 230 }],
+      codeSql: ['Khối truy vấn SQL', { ve: 'code', lang: 'sql', src: 'SELECT MaHS, HoTen, DiemTB\nFROM HocSinh\nWHERE DiemTB >= 8.0\nORDER BY DiemTB DESC;', title: 'query.sql', th: 'sang', num: true, fs: 14, w: 360, h: 160 }],
+      codePseudo: ['Mã giả thuật toán', { ve: 'code', lang: 'pseudo', src: 'Bước 1: Nhập n\nBước 2: Gán s ← 0, i ← 1\nBước 3: Trong khi i ≤ n làm\n    s ← s + i\n    i ← i + 1\nBước 4: Xuất s\nBước 5: Kết thúc', title: 'ThuatToan.txt', th: 'sang', num: false, fs: 14, w: 360, h: 190 }]
     }],
     ['Sơ đồ khối', 'tin', {
       flowMau: ['Sơ đồ khối tuần tự (tính tổng)', { ve: 'flow', code: 'a = int(input())\nb = int(input())\ns = a + b\nprint(s)', fs: 14, w: 340, h: 420 }],
