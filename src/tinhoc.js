@@ -589,6 +589,25 @@
   }
 
   // ---------------- KHỐI LỆNH SCRATCH (SCRATCH BLOCKS) ----------------
+  function sbViFix(SB) {
+    if (!SB || !SB.allLanguages) return SB;
+    const vi = SB.allLanguages.vi;
+    if (vi && !vi.aliases['kết thúc']) {
+      Object.assign(vi.aliases, {
+        'kết thúc': 'scratchblocks:end',
+        'khi bấm vào lá cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi bấm vào cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi nhấn vào lá cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi nhấn vào cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi bấm lá cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi nhấn cờ xanh': 'EVENT_WHENFLAGCLICKED',
+        'khi click cờ xanh': 'EVENT_WHENFLAGCLICKED'
+      });
+      SB.loadLanguages({ vi });
+    }
+    return SB;
+  }
+
   const SCRATCH_CAT = {
     events: { fill: '#ffbf00', border: '#d9a300', text: '#ffffff' },
     ctl: { fill: '#ffab19', border: '#d99115', text: '#ffffff' },
@@ -686,7 +705,34 @@
     return tokens.filter((t) => t.val !== '');
   }
 
-  function renderScratch(o, w, h, out) {
+  function renderScratch(o, w, h, out, errs) {
+    const SB = (typeof window !== 'undefined' && window.scratchblocks) ? window.scratchblocks : null;
+    if (SB) {
+      try {
+        sbViFix(SB);
+        const src = String(o.src || '').trim() || 'when flag clicked\nrepeat (10)\n  move (10) steps\nend\nsay [Hoàn thành!] for (2) seconds';
+        const doc = SB.parse(src, { languages: ['en', 'vi'] });
+        const view = SB.newView(doc, { style: 'scratch3', scale: 1 });
+        const svgEl = view.render();
+        const s = view.exportSVGString();
+
+        const mw = s.match(/width="([\d.]+)"/), mh = s.match(/height="([\d.]+)"/);
+        const origW = mw ? parseFloat(mw[1]) : (parseFloat(svgEl.getAttribute('width')) || 300);
+        const origH = mh ? parseFloat(mh[1]) : (parseFloat(svgEl.getAttribute('height')) || 200);
+
+        const pad = 8;
+        const k = Math.min((w - pad * 2) / origW, (h - pad * 2) / origH, 1.4);
+        const ox = (w - origW * k) / 2;
+        const oy = (h - origH * k) / 2;
+
+        const inner = s.replace(/^<svg[^>]*>/i, '').replace(/<\/svg>\s*$/i, '');
+        out.push(`<g transform="translate(${r1(ox)},${r1(oy)}) scale(${r1(k)})">${inner}</g>`);
+        return;
+      } catch (e) {
+        if (errs) errs.push('Lỗi dựng scratchblocks: ' + e.message);
+      }
+    }
+
     const rawLines = String(o.src || '').split('\n').map((l) => l.trim()).filter((l) => l);
     if (!rawLines.length) {
       rawLines.push('when flag clicked', 'repeat (10)', '  move (10) steps', 'end', 'say [Hoàn thành!] for (2) seconds');

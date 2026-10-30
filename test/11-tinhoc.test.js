@@ -63,7 +63,8 @@ thu('khối Scratch: nhận diện song ngữ (tiếng Anh & tiếng Việt) và
   const rVi = TinHoc.render({ ve: 'scratch', src: viScript }, 360, 240);
   dung(!rVi.errors.length, 'Scratch tiếng Việt: ' + rVi.errors.join('; '));
 
-  // Kiểm tra SVG hợp lệ
+  // Kiểm tra SVG hợp lệ và dùng chuẩn scratchblocks scratch.mit.edu
+  dung(/sb3-|scratchblocks/.test(rVi.svg), 'Scratch dùng chuẩn scratchblocks scratch.mit.edu');
   const doc = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + rVi.svg + '</svg>', 'image/svg+xml');
   dung(!doc.querySelector('parsererror'), 'Scratch SVG không có lỗi XML');
 });
