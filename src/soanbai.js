@@ -65,22 +65,22 @@
       muctieu: ['Mục tiêu bài học',  { ve: 'badge', kieu: 'pill', icon: 'target', tieuDe: 'Mục tiêu', so: '', mau: 'xanhduong', noiDung: '', w: 135, h: 42 }],
     }],
     ['Đơn vị lý thuyết SGK', 'all', {
-      khainiem: ['Khái niệm / Định nghĩa', { ve: 'badge', kieu: 'box', icon: 'book', tieuDe: 'Định nghĩa', so: '', mau: 'xanhduong', noiDung: 'Nội dung định nghĩa hoặc khái niệm cơ bản...', w: 320, h: 100 }],
-      dinhly:   ['Định lý / Tính chất',     { ve: 'badge', kieu: 'box', icon: 'lightbulb', tieuDe: 'Định lý', so: '1', mau: 'cam', noiDung: 'Nội dung định lý, tính chất quan trọng...', w: 320, h: 100 }],
-      quytac:   ['Quy tắc / Công thức',    { ve: 'badge', kieu: 'box', icon: 'compass', tieuDe: 'Quy tắc', so: '', mau: 'ngoc', noiDung: 'Nội dung quy tắc, công thức tính toán...', w: 320, h: 100 }],
-      chuy:     ['Chú ý / Lưu ý',          { ve: 'badge', kieu: 'pill', icon: 'warning', tieuDe: 'Chú ý', so: '', mau: 'do', noiDung: '', w: 125, h: 42 }],
-      ghinho:   ['Ghi nhớ / Trọng tâm',     { ve: 'badge', kieu: 'box', icon: 'pin', tieuDe: 'Ghi nhớ', so: '', mau: 'vang', noiDung: 'Kiến thức cốt lõi học sinh cần ghi nhớ...', w: 320, h: 100 }],
+      khainiem: ['Khái niệm / Định nghĩa', { ve: 'badge', kieu: 'box', icon: 'book', tieuDe: 'Định nghĩa', so: '', mau: 'xanhduong', noiDung: 'Cho tam giác $ABC$ vuông tại $A$. Cạnh huyền là $BC$, hai cạnh góc vuông là $AB$ và $AC$.', chuyi: '', coChu: 15, w: 380, h: 120 }],
+      dinhly:   ['Định lý / Tính chất',     { ve: 'badge', kieu: 'box', icon: 'lightbulb', tieuDe: 'Định lý', so: '1', mau: 'cam', noiDung: 'Trong một tam giác vuông, bình phương của cạnh huyền bằng tổng các bình phương của hai cạnh góc vuông:\n$$a^2 = b^2 + c^2$$', chuyi: 'Định lý này còn được gọi là Định lý Pythagore.', coChu: 15, w: 380, h: 165 }],
+      quytac:   ['Quy tắc / Công thức',    { ve: 'badge', kieu: 'box', icon: 'compass', tieuDe: 'Quy tắc', so: '', mau: 'ngoc', noiDung: 'Muốn nhân hai luỹ thừa cùng cơ số, ta giữ nguyên cơ số và cộng các số mũ:\n$$a^m \\cdot a^n = a^{m+n}\\quad (a \\ne 0)$$', chuyi: 'Quy ước: $a^0 = 1$ với mọi $a \\ne 0$.', coChu: 15, w: 380, h: 165 }],
+      chuy:     ['Chú ý / Lưu ý',          { ve: 'badge', kieu: 'pill', icon: 'warning', tieuDe: 'Chú ý', so: '', mau: 'do', noiDung: '', chuyi: '', w: 125, h: 42 }],
+      ghinho:   ['Ghi nhớ / Trọng tâm',     { ve: 'badge', kieu: 'box', icon: 'pin', tieuDe: 'Ghi nhớ', so: '', mau: 'vang', noiDung: 'Phương trình bậc hai $ax^2 + bx + c = 0\\ (a \\ne 0)$ có biệt thức:\n$$\\Delta = b^2 - 4ac$$', chuyi: 'Nếu $\\Delta > 0$: 2 nghiệm phân biệt; $\\Delta = 0$: nghiệm kép; $\\Delta < 0$: vô nghiệm.', coChu: 15, w: 380, h: 165 }],
     }],
     ['Thực hành, Bài tập & Đề thi', 'all', {
-      vidu:     ['Ví dụ mẫu',        { ve: 'badge', kieu: 'pill', icon: 'magnifier', tieuDe: 'Ví dụ', so: '1', mau: 'xanhla', noiDung: '', w: 125, h: 42 }],
-      cau:      ['Câu hỏi (Câu 1, Câu 2...)', { ve: 'badge', kieu: 'pill', icon: 'question', tieuDe: 'Câu', so: '1', mau: 'xanhduong', noiDung: '', w: 120, h: 42 }],
-      baitap:   ['Bài tập (Bài 1, Bài 2...)', { ve: 'badge', kieu: 'pill', icon: 'paper', tieuDe: 'Bài', so: '1', mau: 'xanhduong', noiDung: '', w: 120, h: 42 }],
-      hoatdong: ['Hoạt động nhóm / Thảo luận', { ve: 'badge', kieu: 'pill', icon: 'users', tieuDe: 'Hoạt động nhóm', so: '', mau: 'tim', noiDung: '', w: 175, h: 42 }],
-      trochoi:  ['Trò chơi / Thử thách', { ve: 'badge', kieu: 'pill', icon: 'trophy', tieuDe: 'Thử thách', so: '', mau: 'cam', noiDung: '', w: 145, h: 42 }],
+      vidu:     ['Ví dụ mẫu',        { ve: 'badge', kieu: 'pill', icon: 'magnifier', tieuDe: 'Ví dụ', so: '1', mau: 'xanhla', noiDung: '', chuyi: '', w: 125, h: 42 }],
+      cau:      ['Câu hỏi (Câu 1, Câu 2...)', { ve: 'badge', kieu: 'pill', icon: 'question', tieuDe: 'Câu', so: '1', mau: 'xanhduong', noiDung: '', chuyi: '', w: 120, h: 42 }],
+      baitap:   ['Bài tập (Bài 1, Bài 2...)', { ve: 'badge', kieu: 'pill', icon: 'paper', tieuDe: 'Bài', so: '1', mau: 'xanhduong', noiDung: '', chuyi: '', w: 120, h: 42 }],
+      hoatdong: ['Hoạt động nhóm / Thảo luận', { ve: 'badge', kieu: 'pill', icon: 'users', tieuDe: 'Hoạt động nhóm', so: '', mau: 'tim', noiDung: '', chuyi: '', w: 175, h: 42 }],
+      trochoi:  ['Trò chơi / Thử thách', { ve: 'badge', kieu: 'pill', icon: 'trophy', tieuDe: 'Thử thách', so: '', mau: 'cam', noiDung: '', chuyi: '', w: 145, h: 42 }],
     }],
     ['Hướng dẫn & Lời giải', 'all', {
-      loigiai:    ['Lời giải',          { ve: 'badge', kieu: 'pill', icon: 'pencil', tieuDe: 'Lời giải', so: '', mau: 'xanhla', noiDung: '', w: 130, h: 42 }],
-      phuongphap: ['Phương pháp giải',  { ve: 'badge', kieu: 'box', icon: 'key', tieuDe: 'Phương pháp', so: '', mau: 'cam', noiDung: 'Các bước giải hoặc phương pháp tư duy bài toán...', w: 320, h: 100 }],
+      loigiai:    ['Lời giải',          { ve: 'badge', kieu: 'pill', icon: 'pencil', tieuDe: 'Lời giải', so: '', mau: 'xanhla', noiDung: '', chuyi: '', w: 130, h: 42 }],
+      phuongphap: ['Phương pháp giải',  { ve: 'badge', kieu: 'box', icon: 'key', tieuDe: 'Phương pháp', so: '', mau: 'cam', noiDung: 'Bước 1: Tìm tập xác định của phương trình.\nBước 2: Biến đổi về dạng cơ bản $f(x) = g(x)$.\nBước 3: Giải và đối chiếu điều kiện.', chuyi: 'Luôn luôn kiểm tra điều kiện trước khi kết luận nghiệm.', coChu: 15, w: 380, h: 165 }],
     }],
   ];
 
@@ -95,7 +95,7 @@
   // ---------------- THUỘC TÍNH CHỈNH SỬA Ở KHUNG PHẢI ----------------
   const FIELDS = {
     badge: [
-      ['tieuDe', 'Tiêu đề thẻ (vd: Định lý, Câu, Khởi động...)'],
+      ['tieuDe', 'Tiêu đề thẻ (vd: Định nghĩa, Định lý, Khởi động...)'],
       ['so', 'Số thứ tự (để trống nếu không có số)'],
       ['kieu', 'Kiểu dáng hiển thị', 'sel', {
         pill: 'Thẻ viên thuốc (Pill Badge)',
@@ -131,20 +131,67 @@
         question: '❓ Dấu hỏi (Câu hỏi)',
         star: '⭐ Ngôi sao (Vận dụng)',
       }],
-      ['noiDung', 'Nội dung ghi chú (chỉ dùng cho kiểu Khung kiến thức SGK)', 'area'],
-      ['dam', 'Chữ đậm', 'chk'],
+      ['noiDung', 'Nội dung kiến thức (gõ công thức giữa $...$ hoặc $$...$$)', 'area'],
+      ['chuyi', 'Chú ý / Lưu ý / Nhận xét (tùy chọn, gõ công thức giữa $...$)', 'area'],
+      ['coChu', 'Cỡ chữ nội dung (px)', 'num'],
+      ['dam', 'Chữ tiêu đề in đậm', 'chk'],
     ],
   };
 
   const HELP = {
-    badge: '<b>Thẻ đề mục & Icon bài học chuẩn SGK GDPT 2018</b>: Giúp đồng bộ giao diện giáo án, tài liệu học tập, phiếu bài tập và đề thi. Hỗ trợ 4 hoạt động dạy học Công văn 5512 (Khởi động, Khám phá, Luyện tập, Vận dụng) và các đơn vị kiến thức (Định nghĩa, Định lý, Ví dụ, Lời giải...).',
+    badge: '<b>Thẻ đề mục & Icon bài học chuẩn SGK GDPT 2018</b>: Hỗ trợ gõ công thức toán học giữa hai dấu <code>$...$</code> (trong dòng) hoặc <code>$$...$$</code> (dòng riêng căn giữa), chèn phần <b>Chú ý / Lưu ý</b> trang nhã và đồng bộ màu sắc chuẩn SGK.',
   };
 
-  const fieldUse = (o, k) => (k === 'noiDung' ? o.kieu === 'box' : true);
+  const fieldUse = (o, k) => {
+    if (k === 'noiDung' || k === 'chuyi' || k === 'coChu') return o.kieu === 'box';
+    return true;
+  };
   const fieldLabel = (o, k, d) => d;
 
-  // ---------------- HÀM VẼ (RENDER SVG) ----------------
-  function render(o, w, h) {
+  // ---------------- HÀM ĐỊNH DẠNG CÔNG THỨC TOÁN HỌC ----------------
+  function formatMathHtml(str, texFn) {
+    if (!str) return '';
+    const lines = String(str).split(/\r?\n/);
+    const getTex = (expr, inline) => {
+      if (texFn) return texFn(expr, inline);
+      if (typeof window !== 'undefined' && typeof window.tex === 'function') return window.tex(expr, inline);
+      if (typeof MathLive !== 'undefined' && MathLive.convertLatexToMarkup) {
+        try { return MathLive.convertLatexToMarkup(expr, { defaultMode: inline ? 'inline-math' : 'math' }); } catch (_) {}
+      }
+      return '<span class="tex-raw">' + String(expr).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
+    };
+
+    const outLines = lines.map((line) => {
+      const trimmed = line.trim();
+      // Toàn bộ dòng là công thức display $$...$$
+      const mDisp = trimmed.match(/^\$\$([\s\S]+?)\$\$$/);
+      if (mDisp) {
+        return `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(mDisp[1])}" title="Nhấp đúp để sửa công thức" style="text-align:center;margin:6px 0;">${getTex(mDisp[1], false)}</div>`;
+      }
+      // Tách $...$ và $$...$$ trong dòng
+      let out = '', last = 0;
+      const rx = /\$\$([\s\S]+?)\$\$|\$([^$]*)\$/g;
+      let m;
+      while ((m = rx.exec(line))) {
+        if (m.index > last) out += line.slice(last, m.index).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const isD = m[1] !== undefined;
+        const code = isD ? m[1] : m[2];
+        if (isD) {
+          out += `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(code)}" title="Nhấp đúp để sửa công thức" style="text-align:center;margin:6px 0;">${getTex(code, false)}</div>`;
+        } else {
+          out += `<span class="ifx" data-tex="${encodeURIComponent(code)}" title="Nhấp đúp để sửa công thức">${getTex(code, true)}</span>`;
+        }
+        last = m.index + m[0].length;
+      }
+      if (last < line.length) out += line.slice(last).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return out;
+    });
+
+    return outLines.join('<br>');
+  }
+
+  // ---------------- HÀM VẼ (RENDER SVG & HTML) ----------------
+  function render(o, w, h, opt) {
     const W = Math.max(40, w || o.w || 140);
     const H = Math.max(28, h || o.h || 42);
     const th = THEMES[o.mau] || THEMES.xanhduong;
@@ -158,25 +205,22 @@
     const errors = [];
     const labels = [];
     let svg = '';
+    let html = '';
 
     // 1. KIỂU VIÊN THUỐC (PILL BADGE) - Rất trang nhã, chuẩn mực
     if (kieu === 'pill') {
       const r = Math.min(H / 2, 22);
-      // Nền viên thuốc bo tròn mềm mại
       svg += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="${r}" fill="${th.bg}" stroke="${th.border}" stroke-width="1.6"/>`;
-      // Vòng tròn trắng chứa Icon bên trái
       const iconPad = 4;
       const iconDiam = H - iconPad * 2;
       const iconRadius = iconDiam / 2;
       const iconCX = iconPad + iconRadius;
       const iconCY = H / 2;
       svg += `<circle cx="${iconCX}" cy="${iconCY}" r="${iconRadius}" fill="#ffffff" stroke="${th.border}" stroke-width="1.2"/>`;
-      // Icon vector ở giữa vòng tròn trắng
       const scaleIcon = (iconDiam * 0.6) / 24;
       const tx = iconCX - 12 * scaleIcon;
       const ty = iconCY - 12 * scaleIcon;
       svg += `<g transform="translate(${tx}, ${ty}) scale(${scaleIcon})">${drawIcon(th.main)}</g>`;
-      // Chữ tiêu đề
       const fontSize = Math.max(12, Math.min(18, Math.round(H * 0.42)));
       const textX = iconCX + iconRadius + 8;
       const textY = H / 2 + fontSize * 0.36;
@@ -186,19 +230,16 @@
     // 2. KIỂU RUY BĂNG VẠT CỜ (RIBBON BANNER) - Thích hợp cho Chủ đề, Bài học
     else if (kieu === 'ribbon') {
       const r = 6;
-      const vCut = 12; // Góc khoét đuôi cờ bên phải
+      const vCut = 12;
       const p = `M 1,1 L ${W - vCut},1 L ${W - 2},${H / 2} L ${W - vCut},${H - 1} L 1,${H - 1} Z`;
       svg += `<path d="${p}" fill="${th.main}" stroke="${th.dark}" stroke-width="1.2"/>`;
-      // Dải trang trí sọc trắng nhẹ
       svg += `<path d="M 5,1 L 1,${H / 2} L 5,${H - 1}" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-opacity="0.4"/>`;
-      // Vòng tròn nhỏ chứa icon
       const iconDiam = H - 12;
       const iconCX = 10 + iconDiam / 2;
       const iconCY = H / 2;
       svg += `<circle cx="${iconCX}" cy="${iconCY}" r="${iconDiam / 2}" fill="#ffffff"/>`;
       const scaleIcon = (iconDiam * 0.65) / 24;
       svg += `<g transform="translate(${iconCX - 12 * scaleIcon}, ${iconCY - 12 * scaleIcon}) scale(${scaleIcon})">${drawIcon(th.main)}</g>`;
-      // Chữ trắng in hoa trang trọng
       const fontSize = Math.max(12, Math.min(18, Math.round(H * 0.4)));
       const textX = iconCX + iconDiam / 2 + 8;
       const textY = H / 2 + fontSize * 0.36;
@@ -209,23 +250,24 @@
     else if (kieu === 'box') {
       const r = 8;
       const accentW = 6;
-      // Khung nền chính
       svg += `<rect x="1" y="1" width="${W - 2}" height="${H - 2}" rx="${r}" fill="${th.bg}" stroke="${th.border}" stroke-width="1.2"/>`;
-      // Dải màu nhấn mép trái (Accent bar) bo góc tròn theo khung
       svg += `<path d="M 1,${r} Q 1,1 ${r},1 L ${accentW + 1},1 L ${accentW + 1},${H - 1} L ${r},${H - 1} Q 1,${H - 1} 1,${H - r} Z" fill="${th.main}"/>`;
-      // Tiêu đề phía trên kèm Icon
-      const headerY = 26;
+      const headerY = 24;
       const scaleIcon = 0.85;
-      svg += `<g transform="translate(${accentW + 10}, ${headerY - 18}) scale(${scaleIcon})">${drawIcon(th.main)}</g>`;
+      svg += `<g transform="translate(${accentW + 10}, ${headerY - 17}) scale(${scaleIcon})">${drawIcon(th.main)}</g>`;
       svg += `<text x="${accentW + 36}" y="${headerY}" font-family="Segoe UI, -apple-system, Roboto, sans-serif" font-size="15" font-weight="700" fill="${th.dark}">${textStr}</text>`;
-      // Đường phân cách mờ
-      svg += `<line x1="${accentW + 8}" y1="${headerY + 8}" x2="${W - 14}" y2="${headerY + 8}" stroke="${th.border}" stroke-width="1" stroke-dasharray="3 3"/>`;
-      // Nội dung bên dưới
-      const content = o.noiDung || 'Nhập nội dung vào khung này ở bảng Thuộc tính...';
-      const lines = content.split('\n');
-      lines.slice(0, 4).forEach((line, i) => {
-        svg += `<text x="${accentW + 12}" y="${headerY + 28 + i * 19}" font-family="Segoe UI, -apple-system, Roboto, sans-serif" font-size="13" fill="${th.text}">${line}</text>`;
-      });
+      svg += `<line x1="${accentW + 8}" y1="35" x2="${W - 14}" y2="35" stroke="${th.border}" stroke-width="1" stroke-dasharray="3 3"/>`;
+
+      // HTML Overlay cho nội dung văn bản + công thức toán học + chú ý
+      const texFn = opt && opt.tex;
+      const fs = o.coChu || 15;
+      const bodyHtml = formatMathHtml(o.noiDung || '', texFn);
+      const chuyiHtml = o.chuyi ? formatMathHtml(o.chuyi, texFn) : '';
+
+      html = `<div class="sb-body" style="position:absolute;left:${accentW + 14}px;top:42px;right:14px;bottom:10px;overflow-y:auto;pointer-events:auto;user-select:text;font-family:'Times New Roman',Cambria,serif;font-size:${fs}px;line-height:1.55;color:${th.text};">` +
+        `<div class="sb-noidung">${bodyHtml}</div>` +
+        (chuyiHtml ? `<div class="sb-chuyi" style="margin-top:8px;padding:5px 10px;background:${th.border}33;border-left:3.5px solid ${th.main};border-radius:4px;font-size:${Math.max(12, fs - 1.5)}px;color:${th.dark};line-height:1.45;"><span style="font-weight:700;margin-right:5px;">⚠️ Chú ý:</span><span>${chuyiHtml}</span></div>` : '') +
+        `</div>`;
     }
 
     // 4. KIỂU ICON ĐỘC LẬP (STANDALONE ICON)
@@ -239,7 +281,7 @@
       svg += `<g transform="translate(${cx - 12 * scaleIcon}, ${cy - 12 * scaleIcon}) scale(${scaleIcon})">${drawIcon(th.main)}</g>`;
     }
 
-    return { svg, labels, errors };
+    return { svg, html, labels, errors };
   }
 
   root.SoanBai = {

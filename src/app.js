@@ -119,6 +119,7 @@
     }
     return mkCache.get(key);
   }
+  window.tex = tex;
   // nhật ký ngắn các thông báo gần đây (đưa vào tệp báo lỗi)
   const LOG = [];
   const logPush = (t) => { LOG.push(new Date().toLocaleTimeString('vi-VN') + '  ' + t); if (LOG.length > 40) LOG.shift(); };
@@ -245,10 +246,10 @@
         else if (o.type === 'minhhoa') res = MinhHoa.render(o, o.w, o.h);
         else if (o.type === 'khtn') res = KhoaHoc.render(o, o.w, o.h);
         else if (o.type === 'tinhoc') res = TinHoc.render(o, o.w, o.h);
-        else if (o.type === 'soanbai') res = SoanBai.render(o, o.w, o.h);
+        else if (o.type === 'soanbai') res = SoanBai.render(o, o.w, o.h, { tex });
         else res = { svg: connSvg || shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
-        html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
+        html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + (res.html || '') + labelsHtml(res.labels);
         // chữ trong ô (sơ đồ, sơ đồ tư duy): canh giữa, tự xuống dòng, có công thức $…$
         if (o.type === 'shape' && sodo.CLOSED.includes(o.kind) && o.text) html += `<div class="shtext" style="font-size:${o.tsize || 16}px;color:${o.tcolor || '#111'};font-weight:${o.bold ? 700 : 400};${o.kind === 'diamond' ? 'padding:0 22%;' : o.kind === 'ellipse' ? 'padding:0 12%;' : ''}">${textHtml(o)}</div>`;
         o._err = res.errors.join('\n');
@@ -820,6 +821,20 @@
       const g = textSegs(o.text)[+fx.dataset.i];
       if (!g || g.m === undefined) return editText(o);
       openFx(g.m, (v) => { if (v === null) return; const q = g.disp ? '$$' : '$'; o.text = o.text.slice(0, g.s) + q + v + q + o.text.slice(g.e); renderObj(o); buildProps(); commit(); });
+    } else if (o.type === 'soanbai' && o.kieu === 'box') {
+      const fx = e.target.closest('.ifx');
+      if (fx && fx.dataset.tex) {
+        const rawTex = decodeURIComponent(fx.dataset.tex);
+        openFx(rawTex, (v) => {
+          if (v === null) return;
+          const q = fx.classList.contains('disp') ? '$$' : '$';
+          const oldStr = q + rawTex + q;
+          const newStr = q + v + q;
+          if (o.noiDung && o.noiDung.includes(oldStr)) o.noiDung = o.noiDung.replace(oldStr, newStr);
+          else if (o.chuyi && o.chuyi.includes(oldStr)) o.chuyi = o.chuyi.replace(oldStr, newStr);
+          renderObj(o); buildProps(); commit();
+        });
+      }
     }
   });
   stage.addEventListener('pointerdown', (e) => { if (e.target === stage) select(null); });

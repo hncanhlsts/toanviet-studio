@@ -36,10 +36,30 @@ thu('các kiểu dáng hiển thị: pill, ribbon, box, icon', () => {
   dung(kRibbon.svg.includes('<path d="M 1,1 L'), 'Ribbon có vạt cờ');
 
   const kBox = SoanBai.render({ ve: 'badge', kieu: 'box', icon: 'lightbulb', tieuDe: 'Định lý', so: '1', noiDung: 'Nội dung định lý' }, 320, 100);
-  dung(kBox.svg.includes('Nội dung định lý'), 'Box có chứa nội dung định lý');
+  dung(kBox.html && kBox.html.includes('Nội dung định lý'), 'Box HTML có chứa nội dung định lý');
 
   const kIcon = SoanBai.render({ ve: 'badge', kieu: 'icon', icon: 'target' }, 40, 40);
   dung(kIcon.svg.includes('circle'), 'Icon độc lập vẽ trên nền tròn');
+});
+
+thu('khung Định lý / Định nghĩa: hỗ trợ công thức Toán học và khối Chú ý', () => {
+  const dly = SoanBai.render({
+    ve: 'badge',
+    kieu: 'box',
+    icon: 'lightbulb',
+    tieuDe: 'Định lý',
+    so: 'Pythagore',
+    mau: 'cam',
+    noiDung: 'Trong tam giác vuông: $$a^2 = b^2 + c^2$$\nVới $a$ là độ dài cạnh huyền.',
+    chuyi: 'Chỉ áp dụng với góc vuông $90^\\circ$.',
+  }, 380, 160);
+
+  dung(dly.html.includes('sb-body'), 'Có phần thân HTML sb-body');
+  dung(dly.html.includes('sb-disp-fx'), 'Có công thức display căn giữa sb-disp-fx');
+  dung(dly.html.includes('ifx'), 'Có thẻ inline formula ifx');
+  dung(dly.html.includes('sb-chuyi'), 'Có khối chú ý sb-chuyi');
+  dung(dly.html.includes('⚠️ Chú ý:'), 'Có nhãn ⚠️ Chú ý');
+  dung(dly.html.includes('90^\\circ') || dly.html.includes('90'), 'Chú ý chứa công thức toán');
 });
 
 thu('bảng màu nhận diện SGK phong phú và đồng bộ', () => {

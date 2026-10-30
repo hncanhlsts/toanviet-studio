@@ -37,6 +37,10 @@ main { flex: 1; display: flex; min-height: 0; }
 .obj.formula .empty { color: #9aa5b1; font: italic 14px "Segoe UI"; }
 .obj.text { font-family: "Times New Roman", Cambria, serif; line-height: 1.5; white-space: pre-wrap; overflow-wrap: break-word; padding: 2px 4px; }
 .obj.text.editing { cursor: text; outline: 1.5px solid #e67e22; user-select: text; font-family: Consolas, monospace; font-size: 14px !important; font-weight: normal !important; font-style: normal !important; background: #fffdf5; }
+.obj.soanbai .sb-body { box-sizing: border-box; }
+.obj.soanbai .ifx { border-radius: 3px; display: inline-block; padding: 0 1px; }
+.obj.soanbai .ifx:hover { background: rgba(31, 95, 191, .14); cursor: pointer; }
+.obj.soanbai .sb-disp-fx { text-align: center; margin: 6px 0; }
 .handle { position: absolute; right: -7px; bottom: -7px; width: 11px; height: 11px; background: #fff; border: 1.5px solid #1f5fbf; border-radius: 2px; cursor: nwse-resize; display: none; }
 .obj.sel .handle { display: block; }
 .obj.text .handle { bottom: calc(50% - 6px); cursor: ew-resize; }
