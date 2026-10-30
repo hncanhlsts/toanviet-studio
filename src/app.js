@@ -244,6 +244,7 @@
         else if (o.type === 'dattinh') { res = TieuHoc.renderDatTinh(o); o.w = res.w; o.h = res.h; }
         else if (o.type === 'minhhoa') res = MinhHoa.render(o, o.w, o.h);
         else if (o.type === 'khtn') res = KhoaHoc.render(o, o.w, o.h);
+        else if (o.type === 'tinhoc') res = TinHoc.render(o, o.w, o.h);
         else res = { svg: connSvg || shapeSvg(o), labels: [], errors: [] };
         el.style.cssText += `width:${o.w}px;height:${o.h}px;`;
         html = `<svg width="${o.w}" height="${o.h}" viewBox="0 0 ${o.w} ${o.h}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>` + labelsHtml(res.labels);
@@ -303,6 +304,7 @@
       case 'baitap': return Object.assign({ kind, de: '', text: '', size: 20, cols: 1, dapan: false, seed: 1, head: false, headcol: false, nrow: 4, color: '#111111', acolor: '#d62728', w: 640 }, JSON.parse(JSON.stringify(TieuHoc.BT_KINDS[kind][1])));
       case 'minhhoa': return Object.assign({ kind, color: '#222222' }, JSON.parse(JSON.stringify(MinhHoa.KINDS[kind][1])));
       case 'khtn': return Object.assign({ kind }, JSON.parse(JSON.stringify(KhoaHoc.KINDS[kind][1])));
+      case 'tinhoc': return Object.assign({ kind }, JSON.parse(JSON.stringify(TinHoc.KINDS[kind][1])));
       case 'shape':
         // ô chữ (sơ đồ): nền trắng, chữ ở giữa; đường nối: cong, mũi tên một đầu
         if (kind === 'box') return { kind, w: 160, h: 56, color: '#2e86c1', sw: 1.8, dash: false, nofill: false, fill: '#ffffff', text: 'Ô chữ', tsize: 16, tcolor: '#111111', bold: false };
@@ -1171,14 +1173,14 @@
       if (o.kind !== 'tieude' && o.kind !== 'oly') add(field('kieude', 'Cách ghi đề bài', 'sel', { sgk: 'Như sách: số bài trong hình tròn, "Số" trong ô vàng', thuong: 'Chữ "Bài 1." in đậm' }));
       add(field('phong', 'Phông chữ', 'sel', { sgk: 'Như sách giáo khoa (không chân)', times: 'Times New Roman' }));
       row(field('size', 'Cỡ chữ', 'num', 1), field('color', 'Màu chữ', 'color'), field('acolor', 'Màu đáp án', 'color'));
-    } else if (o.type === 'minhhoa' || o.type === 'khtn') {
-      // hình minh hoạ tiểu học (src/minhhoa.js), hình theo môn THCS – THPT (src/khtn.js): cùng một cách nhập
-      const MH = o.type === 'khtn' ? KhoaHoc : MinhHoa, base = o.type === 'khtn' ? {} : { color: '#222222' };
+    } else if (o.type === 'minhhoa' || o.type === 'khtn' || o.type === 'tinhoc') {
+      // hình minh hoạ tiểu học (src/minhhoa.js), hình theo môn THCS – THPT (src/khtn.js), Tin học (src/tinhoc.js): cùng một cách nhập
+      const MH = o.type === 'tinhoc' ? TinHoc : (o.type === 'khtn' ? KhoaHoc : MinhHoa), base = (o.type === 'khtn' || o.type === 'tinhoc') ? {} : { color: '#222222' };
       const kinds = { __on: (k) => { Object.keys(o).forEach((key) => { if (!/^(id|type|x|y|grp)$/.test(key)) delete o[key]; }); Object.assign(o, { kind: k }, base, JSON.parse(JSON.stringify(MH.KINDS[k][1]))); } };
-      for (const k in MH.KINDS) if (o.type !== 'khtn' || KhoaHoc.MON[k] === KhoaHoc.MON[o.kind]) kinds[k] = MH.KINDS[k][0];
+      for (const k in MH.KINDS) if (o.type === 'minhhoa' || MH.MON[k] === MH.MON[o.kind]) kinds[k] = MH.KINDS[k][0];
       add(field('kind', 'Mẫu (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
       (MH.FIELDS[o.ve] || []).filter((f) => MH.fieldUse(o, f[0])).forEach((f) => {
-        const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: o.ve === 'machdien' ? 9 : 5 } : f[3]));
+        const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: (o.ve === 'machdien' || o.ve === 'code' || o.ve === 'flow' || o.ve === 'scratch') ? 8 : 5 } : f[3]));
         if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
       });
       if (MH.HELP[o.ve]) help(MH.HELP[o.ve]);
@@ -1251,6 +1253,7 @@
     li: { ten: 'Vật lí', the: 'Đơn vị đo', kyhieu: 'Vật lí', loi: 'Môn Vật lí: ký hiệu mạch điện, quang học, cơ học; đồ thị; bảng đơn vị đo trong hộp công thức' },
     hoa: { ten: 'Hoá học', the: 'Mũi tên & Hoá học', kyhieu: 'Hoá học', loi: 'Môn Hoá học: dụng cụ thí nghiệm, vòng benzen, ô lượng tử; mũi tên phản ứng trong hộp công thức' },
     sinh: { ten: 'Sinh học', the: 'Cơ bản', kyhieu: 'Sinh học', loi: 'Môn Sinh học: ký hiệu phả hệ, nhiễm sắc thể, ADN' },
+    tin: { ten: 'Tin học', the: 'Cơ bản', kyhieu: 'Tin học', loi: 'Môn Tin học: mã nguồn, sơ đồ khối thuật toán, khối lệnh Scratch' },
   };
   let monHien = 'toan', symGroups = null;
   function setMon(m, quiet) {
@@ -1258,7 +1261,7 @@
     monHien = m;
     const M = MON[m], bd = document.body.classList;
     bd.toggle('tieuhoc', m === 'tieuhoc');
-    ['li', 'hoa', 'sinh'].forEach((k) => bd.toggle('mon-' + k, m === k));
+    ['li', 'hoa', 'sinh', 'tin'].forEach((k) => bd.toggle('mon-' + k, m === k));
     bd.toggle('mon-khtn', !!M.kyhieu);
     fTab = Math.max(0, PALETTE.findIndex((t) => t.name === M.the));
     // danh sách ký hiệu SGK: chỉ các nhóm của môn đang chọn
@@ -1267,12 +1270,13 @@
       yk.replaceChildren(...symGroups.filter((og) => !M.kyhieu || og.label.startsWith(M.kyhieu)));
       if (!yk.value && yk.options.length) yk.selectedIndex = 0;
     }
-    // biểu đồ, sơ đồ theo môn (src/khtn.js): Toán — thống kê, xác suất; Lí, Hoá, Sinh — sơ đồ của môn
+    // biểu đồ, sơ đồ theo môn (src/khtn.js, src/tinhoc.js): Toán — thống kê, xác suất; Lí, Hoá, Sinh, Tin — sơ đồ của môn
     const kk = $('#khKind'), mk = m === 'tieuhoc' ? '' : M.kyhieu ? m : 'toan';
-    if (kk && window.KhoaHoc) {
-      kk.replaceChildren(...KhoaHoc.GROUPS.filter((g) => g[1] === mk).map((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[2]) { const op = document.createElement('option'); op.value = k; op.textContent = g[2][k][0]; og.appendChild(op); } return og; }));
+    if (kk && (window.KhoaHoc || window.TinHoc)) {
+      const srcGroups = (m === 'tin' && window.TinHoc) ? TinHoc.GROUPS : (window.KhoaHoc ? KhoaHoc.GROUPS.filter((g) => g[1] === mk) : []);
+      kk.replaceChildren(...srcGroups.map((g) => { const og = document.createElement('optgroup'); og.label = g[0]; for (const k in g[2]) { const op = document.createElement('option'); op.value = k; op.textContent = g[2][k][0]; og.appendChild(op); } return og; }));
       $('#khLbl').textContent = M.kyhieu ? M.ten : 'Thống kê';
-      $('#gMonLbl').textContent = M.kyhieu ? 'Sơ đồ, đồ thị ' + M.ten : 'Thống kê – xác suất';
+      $('#gMonLbl').textContent = M.kyhieu ? 'Sơ đồ, đối tượng ' + M.ten : 'Thống kê – xác suất';
     }
     const lb = $('#gHinhLbl'); if (lb) lb.textContent = M.kyhieu ? 'Ký hiệu ' + M.ten : 'Hình học và ký hiệu Lí – Hoá – Sinh';
     fitRibbon(); // danh sách mới làm đổi bề rộng các nhóm: thu gọn lại thanh công cụ
@@ -1325,14 +1329,24 @@
     'ins-dattinh': () => { insert('dattinh', $('#dtKind').value); commit(); },
     'ins-baitap': () => { insert('baitap', $('#btKind').value); commit(); },
     ptpu: () => openPhuongTrinh(),
-    'ins-khtn': () => { if ($('#khKind').value) { insert('khtn', $('#khKind').value); commit(); } },
+    'ins-khtn': () => {
+      const v = $('#khKind').value;
+      if (v) {
+        if (window.TinHoc && TinHoc.KINDS[v]) insert('tinhoc', v);
+        else insert('khtn', v);
+        commit();
+      }
+    },
+    'ins-tin-code': () => { insert('tinhoc', 'codePython'); commit(); },
+    'ins-tin-flow': () => { insert('tinhoc', 'flowMau'); commit(); },
+    'ins-tin-scratch': () => { insert('tinhoc', 'scratchMau'); commit(); },
     'ins-minhhoa': () => { const v = $('#mhKind').value; if (v === 'tiaso') insert('numline', 'tiaso'); else insert('minhhoa', v); commit(); },
     'ins-phieu': () => phieuMau(),
     mau: () => openMau(),
     present: () => startPresent(false),
     'present-step': () => startPresent(true),
     tieuhoc: () => setTieuHoc(!document.body.classList.contains('tieuhoc')),
-    'mon-tieuhoc': () => setMon('tieuhoc'), 'mon-toan': () => setMon('toan'), 'mon-li': () => setMon('li'), 'mon-hoa': () => setMon('hoa'), 'mon-sinh': () => setMon('sinh'),
+    'mon-tieuhoc': () => setMon('tieuhoc'), 'mon-toan': () => setMon('toan'), 'mon-li': () => setMon('li'), 'mon-hoa': () => setMon('hoa'), 'mon-sinh': () => setMon('sinh'), 'mon-tin': () => setMon('tin'),
     coban: () => setCoBan(!document.body.classList.contains('coban')),
     // đoạn, mũi tên: nằm ngang khi chèn; kéo hai đầu mút (nút tròn) để xoay về hướng cần chỉ
     'ins-line': () => insLine('none'),

@@ -439,3 +439,6 @@ body.mon-khtn #modeBadge { background: #e8f0fb; border-color: #8fb0de; color: #1
 /* hàng "Phương trình hoá học" chỉ hiện ở môn Hoá học */
 #ribbon .chi-hoa { display: none !important; }
 body.mon-hoa #ribbon .chi-hoa { display: flex !important; }
+/* hàng "Khối Tin" chỉ hiện ở môn Tin học */
+#ribbon .chi-tin { display: none !important; }
+body.mon-tin #ribbon .chi-tin { display: flex !important; }

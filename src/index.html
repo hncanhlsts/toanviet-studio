@@ -57,6 +57,7 @@
     <div class="stack">
       <div><label id="khLbl">Thống kê</label><select id="khKind" title="Biểu đồ, sơ đồ của môn đang chọn (chọn môn ở góc dưới bên phải)"></select><button data-cmd="ins-khtn" title="Chèn hình đã chọn; sửa số liệu ở khung Thuộc tính">Chèn</button></div>
       <div class="chi-hoa"><label>Phản ứng</label><button data-cmd="ptpu" title="Gõ phương trình hoá học như viết tay (Fe + HCl -> FeCl2 + H2↑): tự viết chỉ số, mũi tên, kiểm tra và cân bằng hệ số">⚗ Phương trình hoá học…</button></div>
+      <div class="chi-tin"><label>Khối Tin</label><button data-cmd="ins-tin-code" title="Chèn khối mã nguồn (Python, C++, Pascal, SQL, mã giả)">💻 Mã nguồn</button><button data-cmd="ins-tin-flow" title="Chèn sơ đồ khối thuật toán SGK">🔀 Sơ đồ khối</button><button data-cmd="ins-tin-scratch" title="Chèn khối lệnh Scratch">🧩 Scratch</button></div>
     </div><span id="gMonLbl">Thống kê – xác suất</span>
   </div>
   <div class="grp">
@@ -110,7 +111,7 @@
   <div id="stage"><div id="page"></div></div>
   <aside id="panel"><h3>Thuộc tính</h3><div id="props"></div></aside>
 </main>
-<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><button id="uiBadge" title="Giao diện cơ bản: chỉ hiện các nút hay dùng. Nhấp để chuyển giữa cơ bản và đầy đủ (Ctrl+Shift+G)">Giao diện đầy đủ</button><select id="modeBadge" title="Chọn môn / cấp học: thanh công cụ chỉ hiện các nhóm nút của môn đó"><option value="tieuhoc">Tiểu học</option><option value="toan">Toán THCS – THPT</option><option value="li">Vật lí</option><option value="hoa">Hoá học</option><option value="sinh">Sinh học</option></select><span id="zoomlbl">100%</span></footer>
+<footer id="status"><span id="msg">Sẵn sàng</span><a id="credit" title="Thiết kế bởi: Thầy Hoàng Ngọc Cảnh — Giáo viên trường THCS - THPT Đinh Thiện Lý — canhld@gmail.com">© Thầy Hoàng Ngọc Cảnh · THCS - THPT Đinh Thiện Lý</a><button id="uiBadge" title="Giao diện cơ bản: chỉ hiện các nút hay dùng. Nhấp để chuyển giữa cơ bản và đầy đủ (Ctrl+Shift+G)">Giao diện đầy đủ</button><select id="modeBadge" title="Chọn môn / cấp học: thanh công cụ chỉ hiện các nhóm nút của môn đó"><option value="tieuhoc">Tiểu học</option><option value="toan">Toán THCS – THPT</option><option value="li">Vật lí</option><option value="hoa">Hoá học</option><option value="sinh">Sinh học</option><option value="tin">Tin học</option></select><span id="zoomlbl">100%</span></footer>
 
 <div id="fxback" hidden></div>
 <button type="button" id="kbClose" hidden title="Ẩn bàn phím toán">✕ Đóng bàn phím</button>
@@ -148,6 +149,7 @@
 <script src="plane.js"></script>
 <script src="sgk.js"></script>
 <script src="khtn.js"></script>
+<script src="tinhoc.js"></script>
 <script src="hoahoc.js"></script>
 <script src="numline.js"></script>
 <script src="space.js"></script>
