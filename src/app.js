@@ -706,6 +706,7 @@
   }
 
   function editSoanBai(o) {
+    if (typeof dlg !== 'undefined' && dlg && dlg.open) closeFx(false);
     let d = document.getElementById('sbdlg');
     if (!d) {
       d = document.createElement('dialog');
@@ -786,22 +787,25 @@
       const s1 = ta.selectionStart, s2 = ta.selectionEnd;
       const selText = ta.value.slice(s1, s2).trim();
       let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
+      d.close();
       openFx(initTex, (latex) => {
-        if (latex === null) return;
-        let ins;
-        if (isDisplay) {
-          const before = ta.value.slice(0, s1);
-          const needsNlBefore = before.length > 0 && !before.endsWith('\n');
-          const after = ta.value.slice(s2);
-          const needsNlAfter = after.length > 0 && !after.startsWith('\n');
-          ins = (needsNlBefore ? '\n' : '') + '$$' + latex + '$$' + (needsNlAfter ? '\n' : '');
-        } else {
-          ins = '$' + latex + '$';
+        d.showModal();
+        if (latex !== null) {
+          let ins;
+          if (isDisplay) {
+            const before = ta.value.slice(0, s1);
+            const needsNlBefore = before.length > 0 && !before.endsWith('\n');
+            const after = ta.value.slice(s2);
+            const needsNlAfter = after.length > 0 && !after.startsWith('\n');
+            ins = (needsNlBefore ? '\n' : '') + '$$' + latex + '$$' + (needsNlAfter ? '\n' : '');
+          } else {
+            ins = '$' + latex + '$';
+          }
+          ta.setRangeText(ins, s1, s2, 'end');
+          updatePrev();
         }
-        ta.setRangeText(ins, s1, s2, 'end');
-        updatePrev();
         ta.focus();
-      });
+      }, null, isDisplay ? 'Chèn công thức riêng dòng' : 'Chèn công thức vào dòng');
     };
 
     d.querySelector('#sbDlgFxBtn').onclick = (e) => { e.preventDefault(); doFx(bodyIn, false); };
@@ -971,26 +975,6 @@
       if (!g || g.m === undefined) return editText(o);
       openFx(g.m, (v) => { if (v === null) return; const q = g.disp ? '$$' : '$'; o.text = o.text.slice(0, g.s) + q + v + q + o.text.slice(g.e); renderObj(o); buildProps(); commit(); });
     } else if (o.type === 'soanbai' && o.kieu === 'box') {
-      const fx = e.target.closest('.ifx');
-      if (fx && fx.dataset.tex) {
-        const rawTex = decodeURIComponent(fx.dataset.tex);
-        openFx(rawTex, (v) => {
-          if (v === null) return;
-          const q = fx.classList.contains('disp') ? '$$' : '$';
-          const oldStr = q + rawTex + q;
-          const newStr = q + v + q;
-          if (o.noiDung && o.noiDung.includes(oldStr)) o.noiDung = o.noiDung.replace(oldStr, newStr);
-          else if (o.chuyi && o.chuyi.includes(oldStr)) o.chuyi = o.chuyi.replace(oldStr, newStr);
-          else {
-            const escaped = rawTex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const re = new RegExp(q.replace(/\$/g, '\\$') + '\\s*' + escaped + '\\s*' + q.replace(/\$/g, '\\$'));
-            if (o.noiDung && re.test(o.noiDung)) o.noiDung = o.noiDung.replace(re, newStr);
-            else if (o.chuyi && re.test(o.chuyi)) o.chuyi = o.chuyi.replace(re, newStr);
-          }
-          renderObj(o); buildProps(); commit();
-        });
-        return;
-      }
       editSoanBai(o);
     }
   });
