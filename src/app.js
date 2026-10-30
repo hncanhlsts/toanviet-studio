@@ -736,7 +736,6 @@
               <button type="button" id="sbDlgDispFxBtn" style="padding:4px 9px;font-size:12px;border:1px solid #9fb3cd;border-radius:5px;cursor:pointer;background:#f0f4f8;">➕ Khối riêng ($$)</button>
             </div>
           </div>
-          <div class="sb-pills-row" id="sbDlgPills" style="margin-bottom:6px;"></div>
           <textarea id="sbDlgBody" rows="5" spellcheck="false" style="width:100%;padding:8px 10px;border:1px solid #9fb3cd;border-radius:6px;font-family:'Times New Roman',serif;font-size:15px;line-height:1.5;box-sizing:border-box;">${esc(o.noiDung || '')}</textarea>
           <div style="font-size:12px;color:#667a92;margin-top:3px;">💡 Nhấn <b>📐 Soạn công thức trực quan</b> hoặc phím tắt <b>Ctrl+M</b> để mở bảng gõ công thức MathLive trực quan, không cần nhớ mã LaTeX.</div>
         </div>
@@ -801,35 +800,6 @@
     d.querySelector('#sbDlgFxBtn').onclick = (e) => { e.preventDefault(); doFx(bodyIn, false); };
     d.querySelector('#sbDlgDispFxBtn').onclick = (e) => { e.preventDefault(); doFx(bodyIn, true); };
     d.querySelector('#sbDlgChuyiFxBtn').onclick = (e) => { e.preventDefault(); doFx(chuyiIn, false); };
-
-    const pills = [
-      { l: 'x²', v: '$x^2$' },
-      { l: 'a/b', v: '$\\frac{a}{b}$' },
-      { l: '√x', v: '$\\sqrt{x}$' },
-      { l: 'Â', v: '$\\widehat{A}$' },
-      { l: 'AB⃗', v: '$\\overrightarrow{AB}$' },
-      { l: '≤', v: '$\\le$' },
-      { l: '≥', v: '$\\ge$' },
-      { l: '≠', v: '$\\ne$' },
-      { l: '∈', v: '$\\in$' },
-      { l: 'π', v: '$\\pi$' },
-      { l: 'α, β', v: '$\\alpha, \\beta$' },
-      { l: '∆', v: '$\\Delta$' },
-    ];
-    const pillsBox = d.querySelector('#sbDlgPills');
-    pills.forEach((p) => {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = p.l;
-      b.title = 'Chèn ' + p.v;
-      b.onclick = (e) => {
-        e.preventDefault();
-        bodyIn.setRangeText(p.v, bodyIn.selectionStart, bodyIn.selectionEnd, 'end');
-        updatePrev();
-        bodyIn.focus();
-      };
-      pillsBox.appendChild(b);
-    });
 
     [titleIn, numIn, bodyIn, chuyiIn].forEach((input) => {
       input.addEventListener('input', updatePrev);
@@ -1058,76 +1028,6 @@
     const btn = (label, fn, primary) => { const b = mk('button', primary ? 'primary' : '', label); b.onclick = fn; return add(b); };
     const help = (html) => add(mk('div', 'help', html));
     const h4 = (t) => add(mk('h4', '', t));
-    function attachSoanBaiMathHelper(wrap, o, key) {
-      const ta = wrap.querySelector('textarea');
-      if (!ta) return;
-      const bar = mk('div', 'sb-math-bar');
-      const btnFx = mk('button', 'primary', '📐 Soạn công thức trực quan (MathLive)');
-      btnFx.type = 'button';
-      btnFx.title = 'Mở bảng gõ công thức trực quan (MathLive), không cần nhớ mã LaTeX';
-      const doFx = (isDisplay) => {
-        const s1 = ta.selectionStart, s2 = ta.selectionEnd;
-        const selText = ta.value.slice(s1, s2).trim();
-        let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
-        openFx(initTex, (latex) => {
-          if (latex === null) return;
-          const q = isDisplay ? '\n$$' : '$';
-          const qEnd = isDisplay ? '$$\n' : '$';
-          const ins = q + latex + qEnd;
-          ta.setRangeText(ins, s1, s2, 'end');
-          o[key] = ta.value;
-          renderObj(o); sodo.refreshConns([o.id]); commit();
-          ta.focus();
-        });
-      };
-      btnFx.onclick = (e) => { e.preventDefault(); doFx(false); };
-
-      const btnDisp = mk('button', '', '➕ Khối riêng ($$)');
-      btnDisp.type = 'button';
-      btnDisp.title = 'Chèn công thức riêng một dòng (căn giữa)';
-      btnDisp.onclick = (e) => { e.preventDefault(); doFx(true); };
-
-      bar.append(btnFx, btnDisp);
-
-      const pills = [
-        { l: 'x²', v: '$x^2$' },
-        { l: 'a/b', v: '$\\frac{a}{b}$' },
-        { l: '√x', v: '$\\sqrt{x}$' },
-        { l: 'Â', v: '$\\widehat{A}$' },
-        { l: 'AB⃗', v: '$\\overrightarrow{AB}$' },
-        { l: '≤', v: '$\\le$' },
-        { l: '≥', v: '$\\ge$' },
-        { l: '≠', v: '$\\ne$' },
-        { l: '∈', v: '$\\in$' },
-        { l: 'π', v: '$\\pi$' },
-        { l: 'α, β', v: '$\\alpha, \\beta$' },
-        { l: '∆', v: '$\\Delta$' },
-      ];
-      const pRow = mk('div', 'sb-pills-row');
-      pills.forEach((p) => {
-        const b = mk('button', '', p.l);
-        b.type = 'button';
-        b.title = 'Chèn ' + p.v;
-        b.onclick = (e) => {
-          e.preventDefault();
-          ta.setRangeText(p.v, ta.selectionStart, ta.selectionEnd, 'end');
-          o[key] = ta.value;
-          renderObj(o); sodo.refreshConns([o.id]); commit();
-          ta.focus();
-        };
-        pRow.appendChild(b);
-      });
-
-      ta.parentNode.insertBefore(bar, ta);
-      ta.parentNode.insertBefore(pRow, ta);
-
-      ta.addEventListener('keydown', (e) => {
-        if (e.ctrlKey && e.key.toLowerCase() === 'm') {
-          e.preventDefault();
-          doFx(false);
-        }
-      });
-    }
     // dựng nhanh bằng nút bấm từ các điểm đã chọn trên hình
     const quickEd = (dim) => {
       const sel = ptSel(o), N = sel.length, Q = (t) => t, PLS = dim === 3 ? plSel(o) : [], NP = PLS.length;
@@ -1463,12 +1363,28 @@
       (MH.FIELDS[o.ve] || []).filter((f) => MH.fieldUse(o, f[0])).forEach((f) => {
         const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: (o.ve === 'machdien' || o.ve === 'code' || o.ve === 'flow' || o.ve === 'scratch') ? 8 : (o.ve === 'badge' ? 4 : 5) } : f[3]));
         if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
-        if (o.type === 'soanbai' && (f[0] === 'noiDung' || f[0] === 'chuyi')) {
-          attachSoanBaiMathHelper(el, o, f[0]);
+        const ta = el.querySelector('textarea');
+        if (ta && o.type === 'soanbai') {
+          ta.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+              e.preventDefault();
+              const s1 = ta.selectionStart, s2 = ta.selectionEnd;
+              const selText = ta.value.slice(s1, s2).trim();
+              let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
+              openFx(initTex, (latex) => {
+                if (latex === null) return;
+                const ins = '$' + latex + '$';
+                ta.setRangeText(ins, s1, s2, 'end');
+                o[f[0]] = ta.value;
+                renderObj(o); sodo.refreshConns([o.id]); commit();
+                ta.focus();
+              });
+            }
+          });
         }
       });
       if (o.type === 'soanbai' && o.kieu === 'box') {
-        btn('📝 Mở cửa sổ soạn bài chi tiết & xem trước', () => editSoanBai(o), true);
+        btn('📝 Soạn nội dung (hoặc nhấp đúp trên hình)', () => editSoanBai(o), true);
       }
       if (MH.HELP[o.ve]) help(MH.HELP[o.ve]);
       if (o.type === 'minhhoa') add(field('color', 'Màu chữ, màu nét', 'color'));
