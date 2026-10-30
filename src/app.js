@@ -705,6 +705,178 @@
     el.addEventListener('keydown', onKey);
   }
 
+  function editSoanBai(o) {
+    let d = document.getElementById('sbdlg');
+    if (!d) {
+      d = document.createElement('dialog');
+      d.id = 'sbdlg';
+      d.className = 'tvdlg';
+      document.body.appendChild(d);
+    }
+    d.innerHTML = `
+      <div class="tvhead">
+        <b>📖 Soạn nội dung: ${esc(o.tieuDe || 'Định lý / Định nghĩa')} ${esc(o.so || '')}</b>
+        <button class="tvx" title="Đóng (Esc)">✕</button>
+      </div>
+      <div class="tvbody" style="padding:14px 18px;max-height:85vh;overflow-y:auto;">
+        <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center;">
+          <label style="flex:2;font-weight:600;font-size:13px;color:#223344;">Tiêu đề thẻ:
+            <input type="text" id="sbDlgTitle" value="${esc(o.tieuDe || '')}" style="width:100%;margin-top:4px;padding:6px 9px;border:1px solid #9fb3cd;border-radius:5px;font-size:14px;box-sizing:border-box;">
+          </label>
+          <label style="flex:1;font-weight:600;font-size:13px;color:#223344;">Số thứ tự:
+            <input type="text" id="sbDlgNum" value="${esc(o.so || '')}" placeholder="vd: 1" style="width:100%;margin-top:4px;padding:6px 9px;border:1px solid #9fb3cd;border-radius:5px;font-size:14px;box-sizing:border-box;">
+          </label>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <b style="font-size:13.5px;color:#1a3b66;">Nội dung kiến thức (Định lý / Định nghĩa / Khái niệm):</b>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="primary" id="sbDlgFxBtn" style="padding:4px 11px;font-size:12.5px;background:#1a5fb4;color:#fff;border:0;border-radius:5px;cursor:pointer;font-weight:600;">📐 Soạn công thức trực quan (MathLive)</button>
+              <button type="button" id="sbDlgDispFxBtn" style="padding:4px 9px;font-size:12px;border:1px solid #9fb3cd;border-radius:5px;cursor:pointer;background:#f0f4f8;">➕ Khối riêng ($$)</button>
+            </div>
+          </div>
+          <div class="sb-pills-row" id="sbDlgPills" style="margin-bottom:6px;"></div>
+          <textarea id="sbDlgBody" rows="5" spellcheck="false" style="width:100%;padding:8px 10px;border:1px solid #9fb3cd;border-radius:6px;font-family:'Times New Roman',serif;font-size:15px;line-height:1.5;box-sizing:border-box;">${esc(o.noiDung || '')}</textarea>
+          <div style="font-size:12px;color:#667a92;margin-top:3px;">💡 Nhấn <b>📐 Soạn công thức trực quan</b> hoặc phím tắt <b>Ctrl+M</b> để mở bảng gõ công thức MathLive trực quan, không cần nhớ mã LaTeX.</div>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <b style="font-size:13px;color:#b35900;">⚠️ Chú ý / Lưu ý / Nhận xét (tuỳ chọn):</b>
+            <button type="button" id="sbDlgChuyiFxBtn" style="padding:3px 9px;font-size:12px;border:1px solid #c9a063;border-radius:5px;cursor:pointer;background:#fff8e6;color:#804000;font-weight:500;">📐 Chèn công thức vào chú ý</button>
+          </div>
+          <textarea id="sbDlgChuyi" rows="2" spellcheck="false" placeholder="Nhập chú ý hoặc để trống nếu không có..." style="width:100%;padding:6px 10px;border:1px solid #9fb3cd;border-radius:6px;font-family:'Times New Roman',serif;font-size:14px;box-sizing:border-box;">${esc(o.chuyi || '')}</textarea>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <b style="font-size:12.5px;color:#4a5868;display:block;margin-bottom:6px;">Xem trước kết quả chuẩn SGK:</b>
+          <div id="sbDlgPrev" style="padding:10px;background:#f8f9fa;border:1px dashed #ccd5e0;border-radius:8px;display:flex;justify-content:center;overflow:hidden;min-height:90px;"></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #dde3ea;padding-top:12px;">
+          <button type="button" id="sbDlgCancel" style="padding:6px 14px;border:1px solid #9fb3cd;border-radius:5px;background:#fff;cursor:pointer;">Huỷ</button>
+          <button type="button" id="sbDlgOk" class="primary" style="padding:6px 20px;border:0;border-radius:5px;background:#1a5fb4;color:#fff;cursor:pointer;font-weight:600;">Xong (Ctrl+Enter)</button>
+        </div>
+      </div>
+    `;
+
+    const titleIn = d.querySelector('#sbDlgTitle');
+    const numIn = d.querySelector('#sbDlgNum');
+    const bodyIn = d.querySelector('#sbDlgBody');
+    const chuyiIn = d.querySelector('#sbDlgChuyi');
+    const prevEl = d.querySelector('#sbDlgPrev');
+    const closeBtn = d.querySelector('.tvx');
+    const cancelBtn = d.querySelector('#sbDlgCancel');
+    const okBtn = d.querySelector('#sbDlgOk');
+
+    const updatePrev = () => {
+      if (!prevEl || typeof SoanBai === 'undefined') return;
+      const previewObj = Object.assign({}, o, {
+        tieuDe: titleIn.value,
+        so: numIn.value,
+        noiDung: bodyIn.value,
+        chuyi: chuyiIn.value
+      });
+      const pw = previewObj.w || 380, ph = previewObj.h || 160;
+      const res = SoanBai.render(previewObj, pw, ph, { tex: (expr, inline) => tex(expr, inline) });
+      prevEl.innerHTML = `<div style="position:relative;width:${pw}px;height:${ph}px;"><svg width="${pw}" height="${ph}" viewBox="0 0 ${pw} ${ph}" xmlns="http://www.w3.org/2000/svg">${res.svg}</svg>${res.html || ''}</div>`;
+    };
+
+    const doFx = (ta, isDisplay) => {
+      const s1 = ta.selectionStart, s2 = ta.selectionEnd;
+      const selText = ta.value.slice(s1, s2).trim();
+      let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
+      openFx(initTex, (latex) => {
+        if (latex === null) return;
+        const q = isDisplay ? '\n$$' : '$';
+        const qEnd = isDisplay ? '$$\n' : '$';
+        const ins = q + latex + qEnd;
+        ta.setRangeText(ins, s1, s2, 'end');
+        updatePrev();
+        ta.focus();
+      });
+    };
+
+    d.querySelector('#sbDlgFxBtn').onclick = (e) => { e.preventDefault(); doFx(bodyIn, false); };
+    d.querySelector('#sbDlgDispFxBtn').onclick = (e) => { e.preventDefault(); doFx(bodyIn, true); };
+    d.querySelector('#sbDlgChuyiFxBtn').onclick = (e) => { e.preventDefault(); doFx(chuyiIn, false); };
+
+    const pills = [
+      { l: 'x²', v: '$x^2$' },
+      { l: 'a/b', v: '$\\frac{a}{b}$' },
+      { l: '√x', v: '$\\sqrt{x}$' },
+      { l: 'Â', v: '$\\widehat{A}$' },
+      { l: 'AB⃗', v: '$\\overrightarrow{AB}$' },
+      { l: '≤', v: '$\\le$' },
+      { l: '≥', v: '$\\ge$' },
+      { l: '≠', v: '$\\ne$' },
+      { l: '∈', v: '$\\in$' },
+      { l: 'π', v: '$\\pi$' },
+      { l: 'α, β', v: '$\\alpha, \\beta$' },
+      { l: '∆', v: '$\\Delta$' },
+    ];
+    const pillsBox = d.querySelector('#sbDlgPills');
+    pills.forEach((p) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = p.l;
+      b.title = 'Chèn ' + p.v;
+      b.onclick = (e) => {
+        e.preventDefault();
+        bodyIn.setRangeText(p.v, bodyIn.selectionStart, bodyIn.selectionEnd, 'end');
+        updatePrev();
+        bodyIn.focus();
+      };
+      pillsBox.appendChild(b);
+    });
+
+    [titleIn, numIn, bodyIn, chuyiIn].forEach((input) => {
+      input.addEventListener('input', updatePrev);
+    });
+
+    bodyIn.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        doFx(bodyIn, false);
+      }
+    });
+    chuyiIn.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        doFx(chuyiIn, false);
+      }
+    });
+
+    const applyDone = () => {
+      o.tieuDe = titleIn.value;
+      o.so = numIn.value;
+      o.noiDung = bodyIn.value;
+      o.chuyi = chuyiIn.value;
+      d.close();
+      renderObj(o);
+      buildProps();
+      commit();
+    };
+
+    okBtn.onclick = applyDone;
+    closeBtn.onclick = () => d.close();
+    cancelBtn.onclick = () => d.close();
+
+    d.onkeydown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        applyDone();
+      } else if (e.key === 'Escape') {
+        d.close();
+      }
+    };
+
+    d.showModal();
+    bodyIn.focus();
+    updatePrev();
+  }
+
   // ---------- Chuột ----------
   const pagePt = (e) => { const r = page.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left) / S.zoom), y: Math.round((e.clientY - r.top) / S.zoom) }; };
   function newTextAt(p) {
@@ -832,9 +1004,17 @@
           const newStr = q + v + q;
           if (o.noiDung && o.noiDung.includes(oldStr)) o.noiDung = o.noiDung.replace(oldStr, newStr);
           else if (o.chuyi && o.chuyi.includes(oldStr)) o.chuyi = o.chuyi.replace(oldStr, newStr);
+          else {
+            const escaped = rawTex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp(q.replace(/\$/g, '\\$') + '\\s*' + escaped + '\\s*' + q.replace(/\$/g, '\\$'));
+            if (o.noiDung && re.test(o.noiDung)) o.noiDung = o.noiDung.replace(re, newStr);
+            else if (o.chuyi && re.test(o.chuyi)) o.chuyi = o.chuyi.replace(re, newStr);
+          }
           renderObj(o); buildProps(); commit();
         });
+        return;
       }
+      editSoanBai(o);
     }
   });
   stage.addEventListener('pointerdown', (e) => { if (e.target === stage) select(null); });
@@ -878,6 +1058,76 @@
     const btn = (label, fn, primary) => { const b = mk('button', primary ? 'primary' : '', label); b.onclick = fn; return add(b); };
     const help = (html) => add(mk('div', 'help', html));
     const h4 = (t) => add(mk('h4', '', t));
+    function attachSoanBaiMathHelper(wrap, o, key) {
+      const ta = wrap.querySelector('textarea');
+      if (!ta) return;
+      const bar = mk('div', 'sb-math-bar');
+      const btnFx = mk('button', 'primary', '📐 Soạn công thức trực quan (MathLive)');
+      btnFx.type = 'button';
+      btnFx.title = 'Mở bảng gõ công thức trực quan (MathLive), không cần nhớ mã LaTeX';
+      const doFx = (isDisplay) => {
+        const s1 = ta.selectionStart, s2 = ta.selectionEnd;
+        const selText = ta.value.slice(s1, s2).trim();
+        let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
+        openFx(initTex, (latex) => {
+          if (latex === null) return;
+          const q = isDisplay ? '\n$$' : '$';
+          const qEnd = isDisplay ? '$$\n' : '$';
+          const ins = q + latex + qEnd;
+          ta.setRangeText(ins, s1, s2, 'end');
+          o[key] = ta.value;
+          renderObj(o); sodo.refreshConns([o.id]); commit();
+          ta.focus();
+        });
+      };
+      btnFx.onclick = (e) => { e.preventDefault(); doFx(false); };
+
+      const btnDisp = mk('button', '', '➕ Khối riêng ($$)');
+      btnDisp.type = 'button';
+      btnDisp.title = 'Chèn công thức riêng một dòng (căn giữa)';
+      btnDisp.onclick = (e) => { e.preventDefault(); doFx(true); };
+
+      bar.append(btnFx, btnDisp);
+
+      const pills = [
+        { l: 'x²', v: '$x^2$' },
+        { l: 'a/b', v: '$\\frac{a}{b}$' },
+        { l: '√x', v: '$\\sqrt{x}$' },
+        { l: 'Â', v: '$\\widehat{A}$' },
+        { l: 'AB⃗', v: '$\\overrightarrow{AB}$' },
+        { l: '≤', v: '$\\le$' },
+        { l: '≥', v: '$\\ge$' },
+        { l: '≠', v: '$\\ne$' },
+        { l: '∈', v: '$\\in$' },
+        { l: 'π', v: '$\\pi$' },
+        { l: 'α, β', v: '$\\alpha, \\beta$' },
+        { l: '∆', v: '$\\Delta$' },
+      ];
+      const pRow = mk('div', 'sb-pills-row');
+      pills.forEach((p) => {
+        const b = mk('button', '', p.l);
+        b.type = 'button';
+        b.title = 'Chèn ' + p.v;
+        b.onclick = (e) => {
+          e.preventDefault();
+          ta.setRangeText(p.v, ta.selectionStart, ta.selectionEnd, 'end');
+          o[key] = ta.value;
+          renderObj(o); sodo.refreshConns([o.id]); commit();
+          ta.focus();
+        };
+        pRow.appendChild(b);
+      });
+
+      ta.parentNode.insertBefore(bar, ta);
+      ta.parentNode.insertBefore(pRow, ta);
+
+      ta.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+          e.preventDefault();
+          doFx(false);
+        }
+      });
+    }
     // dựng nhanh bằng nút bấm từ các điểm đã chọn trên hình
     const quickEd = (dim) => {
       const sel = ptSel(o), N = sel.length, Q = (t) => t, PLS = dim === 3 ? plSel(o) : [], NP = PLS.length;
@@ -1211,9 +1461,15 @@
       for (const k in MH.KINDS) if (o.type === 'minhhoa' || o.type === 'soanbai' || MH.MON[k] === MH.MON[o.kind]) kinds[k] = MH.KINDS[k][0];
       add(field('kind', 'Mẫu (chọn lại sẽ thay nội dung bên dưới)', 'sel', kinds));
       (MH.FIELDS[o.ve] || []).filter((f) => MH.fieldUse(o, f[0])).forEach((f) => {
-        const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: (o.ve === 'machdien' || o.ve === 'code' || o.ve === 'flow' || o.ve === 'scratch') ? 8 : 5 } : f[3]));
+        const el = add(field(f[0], MH.fieldLabel(o, f[0], f[1]), f[2] === 'area' ? 'area' : f[2] || 'text', f[2] === 'area' ? { rows: (o.ve === 'machdien' || o.ve === 'code' || o.ve === 'flow' || o.ve === 'scratch') ? 8 : (o.ve === 'badge' ? 4 : 5) } : f[3]));
         if (f[2] === 'sel') el.querySelector('select').addEventListener('change', () => buildProps());
+        if (o.type === 'soanbai' && (f[0] === 'noiDung' || f[0] === 'chuyi')) {
+          attachSoanBaiMathHelper(el, o, f[0]);
+        }
       });
+      if (o.type === 'soanbai' && o.kieu === 'box') {
+        btn('📝 Mở cửa sổ soạn bài chi tiết & xem trước', () => editSoanBai(o), true);
+      }
       if (MH.HELP[o.ve]) help(MH.HELP[o.ve]);
       if (o.type === 'minhhoa') add(field('color', 'Màu chữ, màu nét', 'color'));
       help('Kéo ô vuông ở góc để đổi kích thước. Hình được vẽ lại bằng nét, in rõ ở mọi cỡ.');
@@ -1545,7 +1801,7 @@
     if (e.key === 'Escape' && S.placing) { S.placing = false; page.classList.remove('placing'); msg('Sẵn sàng'); return; }
     if (typing()) return;
     const o = cur(), k = e.key.toLowerCase();
-    if (o && e.key === 'F2') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); else if (o.type === 'shape' && sodo.CLOSED.includes(o.kind)) editShapeText(o); return; }
+    if (o && e.key === 'F2') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); else if (o.type === 'shape' && sodo.CLOSED.includes(o.kind)) editShapeText(o); else if (o.type === 'soanbai' && o.kieu === 'box') editSoanBai(o); return; }
     // sơ đồ tư duy: Tab thêm nhánh con cho ô đang chọn; Enter gõ chữ trong ô
     if (o && e.key === 'Tab' && !many() && o.type === 'shape' && sodo.CLOSED.includes(o.kind)) { e.preventDefault(); const n = sodo.addBranch(o); if (n) setTimeout(() => editShapeText(n, true), 0); return; }
     if (o && e.key === 'Enter' && !many() && o.type === 'shape' && sodo.CLOSED.includes(o.kind)) { e.preventDefault(); editShapeText(o); return; }
@@ -1555,7 +1811,7 @@
     if (!o) return;
     if (e.ctrlKey && k === 'g') { e.preventDefault(); run(e.shiftKey ? 'ungroup' : 'group'); return; }
     if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); run('del'); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (o.type === 'formula') editFormula(o); else if (o.type === 'text') editText(o); else if (o.type === 'soanbai' && o.kieu === 'box') editSoanBai(o); }
     else if (e.ctrlKey && k === 'd') { e.preventDefault(); run('dup'); }
     else if (e.ctrlKey && (k === 'c' || k === 'x')) {
       e.preventDefault();

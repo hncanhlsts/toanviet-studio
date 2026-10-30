@@ -56,12 +56,17 @@ thu('sơ đồ khối: tự sinh từ Python (tuần tự, rẽ nhánh if-else, 
 
 thu('khối Scratch: nhận diện song ngữ (tiếng Anh & tiếng Việt) và render không lỗi', () => {
   const enScript = 'when flag clicked\nrepeat (10)\n  move (10) steps\nend\nsay [Xin chào!]';
-  const rEn = TinHoc.render({ ve: 'scratch', src: enScript }, 360, 240);
+  const rEn = TinHoc.render({ ve: 'scratch', lang: 'en', src: enScript }, 360, 240);
   dung(!rEn.errors.length, 'Scratch tiếng Anh: ' + rEn.errors.join('; '));
 
   const viScript = 'khi bấm vào cờ xanh\nlặp lại (10)\n  di chuyển (10) bước\nkết thúc\nnói [Xin chào!]';
-  const rVi = TinHoc.render({ ve: 'scratch', src: viScript }, 360, 240);
+  const rVi = TinHoc.render({ ve: 'scratch', lang: 'vi', src: viScript }, 360, 240);
   dung(!rVi.errors.length, 'Scratch tiếng Việt: ' + rVi.errors.join('; '));
+
+  // Tự động dịch mã tiếng Anh sang tiếng Việt khi chọn lang = 'vi'
+  const rAutoTranslate = TinHoc.render({ ve: 'scratch', lang: 'vi', src: enScript }, 360, 240);
+  dung(!rAutoTranslate.errors.length, 'Dịch sang tiếng Việt không lỗi: ' + rAutoTranslate.errors.join('; '));
+  dung(rAutoTranslate.svg.includes('bước') || rAutoTranslate.svg.includes('lặp') || rAutoTranslate.svg.includes('cờ xanh'), 'Khối dịch sang tiếng Việt thành công');
 
   // Kiểm tra SVG hợp lệ và dùng chuẩn scratchblocks scratch.mit.edu
   dung(/sb3-|scratchblocks/.test(rVi.svg), 'Scratch dùng chuẩn scratchblocks scratch.mit.edu');

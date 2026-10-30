@@ -62,6 +62,23 @@ thu('khung Định lý / Định nghĩa: hỗ trợ công thức Toán học và
   dung(dly.html.includes('90^\\circ') || dly.html.includes('90'), 'Chú ý chứa công thức toán');
 });
 
+thu('khung Định nghĩa / Định lý: hỗ trợ công thức toán phức tạp (phân số, căn thức, góc, số mũ)', () => {
+  const dng = SoanBai.render({
+    ve: 'badge',
+    kieu: 'box',
+    icon: 'book',
+    tieuDe: 'Định nghĩa',
+    so: '',
+    mau: 'xanhduong',
+    noiDung: 'Cho tam giác $ABC$ vuông tại $A$. Cạnh huyền là $BC$, hai cạnh góc vuông là $AB$ và $AC$.\nTa có: $\\cos B = \\frac{AB}{BC}$, $\\sin B = \\frac{AC}{BC}$, $\\tan B = \\frac{AC}{AB}$.\nĐộ dài: $BC = \\sqrt{AB^2 + AC^2}$.\nGóc: $\\widehat{BAC} = 90^\\circ$.',
+    chuyi: 'Định lý này còn được gọi là Định lý Pythagore.'
+  }, 420, 200);
+
+  dung(dng.html.includes('data-tex'), 'Các công thức toán học có thuộc tính data-tex để nhấp đúp chỉnh sửa trực quan');
+  dung(dng.html.includes('sb-chuyi'), 'Có khối chú ý');
+  dung(dng.html.includes('Pythagore'), 'Có nội dung chú ý');
+});
+
 thu('bảng màu nhận diện SGK phong phú và đồng bộ', () => {
   const themes = ['xanhduong', 'cam', 'xanhla', 'tim', 'do', 'ngoc', 'vang', 'xam'];
   themes.forEach((m) => {

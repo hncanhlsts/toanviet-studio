@@ -731,8 +731,14 @@
     if (SB) {
       try {
         sbViFix(SB);
-        const src = String(o.src || '').trim() || 'when flag clicked\nrepeat (10)\n  move (10) steps\nend\nsay [Hoàn thành!] for (2) seconds';
+        const src = String(o.src || '').trim() || 'khi bấm vào cờ xanh\nlặp lại (10)\n  di chuyển (10) bước\nkết thúc\nnói [Hoàn thành!] trong (2) giây';
         const doc = SB.parse(src, { languages: ['en', 'vi'] });
+        const lang = o.lang || 'vi';
+        if (lang === 'vi' && SB.allLanguages && SB.allLanguages.vi) {
+          doc.translate(SB.allLanguages.vi);
+        } else if (lang === 'en' && SB.allLanguages && SB.allLanguages.en) {
+          doc.translate(SB.allLanguages.en);
+        }
         const view = SB.newView(doc, { style: 'scratch3', scale: 1 });
         const svgEl = view.render();
         const s = view.exportSVGString();
@@ -950,8 +956,10 @@
       flowLap: ['Sơ đồ khối vòng lặp (while)', { ve: 'flow', code: 's = 0\ni = 1\nwhile i <= n:\n    s = s + i\n    i = i + 1\nprint(s)', fs: 14, w: 380, h: 440 }]
     }],
     ['Khối lệnh Scratch', 'tin', {
-      scratchMau: ['Khối Scratch (di chuyển & tính điểm)', { ve: 'scratch', src: 'when flag clicked\nset [diem v] to (0)\nrepeat (10)\n  move (10) steps\n  change [diem v] by (1)\nend\nsay [Hoàn thành!] for (2) seconds', w: 340, h: 220 }],
-      scratchReNhanh: ['Khối Scratch rẽ nhánh (nếu - thì)', { ve: 'scratch', src: 'when flag clicked\nif <(diem) > (5)> then\n  say [Đạt] for (2) seconds\nelse\n  say [Chưa đạt] for (2) seconds\nend', w: 340, h: 240 }]
+      scratchVi: ['Khối Scratch tiếng Việt (di chuyển & tính điểm)', { ve: 'scratch', lang: 'vi', src: 'khi bấm vào cờ xanh\nđặt [điểm v] thành (0)\nlặp lại (10)\n  di chuyển (10) bước\n  thay đổi [điểm v] một lượng (1)\nkết thúc\nnói [Hoàn thành!] trong (2) giây', w: 340, h: 220 }],
+      scratchViReNhanh: ['Khối Scratch tiếng Việt rẽ nhánh (nếu - thì)', { ve: 'scratch', lang: 'vi', src: 'khi bấm vào cờ xanh\nnếu <(điểm) > (5)> thì\n  nói [Đạt] trong (2) giây\nnếu không\n  nói [Chưa đạt] trong (2) giây\nkết thúc', w: 340, h: 240 }],
+      scratchMau: ['Khối Scratch tiếng Anh (move & score)', { ve: 'scratch', lang: 'en', src: 'when flag clicked\nset [score v] to (0)\nrepeat (10)\n  move (10) steps\n  change [score v] by (1)\nend\nsay [Done!] for (2) seconds', w: 340, h: 220 }],
+      scratchReNhanh: ['Khối Scratch tiếng Anh (if - else)', { ve: 'scratch', lang: 'en', src: 'when flag clicked\nif <(score) > (5)> then\n  say [Passed] for (2) seconds\nelse\n  say [Try again] for (2) seconds\nend', w: 340, h: 240 }]
     }]
   ];
 
@@ -979,6 +987,7 @@
       ['color', 'Màu nét', 'color']
     ],
     scratch: [
+      ['lang', 'Giao diện khối lệnh', 'sel', { vi: 'Tiếng Việt (SGK)', en: 'Tiếng Anh (English)' }],
       ['src', 'Kịch bản khối Scratch (mỗi dòng một lệnh)', 'area']
     ]
   };
