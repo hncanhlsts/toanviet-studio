@@ -122,7 +122,7 @@
           }
           case 'ngoaitiep': { const n = names(rest), c = circum(pt(n[0]), pt(n[1]), pt(n[2])); cmds.push({ k: 'circle', c, r: dist(c, pt(n[0])) }); break; }
           case 'noitiep': { const n = names(rest), c = incenter(pt(n[0]), pt(n[1]), pt(n[2])); cmds.push({ k: 'circle', c, r: dist(c, foot(c, pt(n[0]), pt(n[1]))) }); break; }
-          case 'cung': case 'quat': { const n = names(rest); if (n.length !== 3) throw new Error('viết: ' + kw + ' O A B'); cmds.push({ k: kw === 'cung' ? 'arc' : 'sector', c: n[0], a: n[1], b: n[2] }); break; }
+          case 'cung': case 'quat': { const n = names(rest); if (n.length !== 3) throw new Error('viết: ' + kw + ' O A B'); cmds.push({ k: kw === 'cung' ? 'arc' : 'sector', c: n[0], a: n[1], b: n[2], color }); break; }
           case 'goc': case 'vuong': {
             const xm = rest.match(/\bx(\d)\s*$/); if (xm) rest = rest.replace(/\bx\d\s*$/, '');
             groups().forEach((g) => {
@@ -311,8 +311,9 @@
         const sweep = ((t2 - t1) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); // ngược chiều kim đồng hồ từ A đến B
         const end = [ct[0] + R * Math.cos(t2), ct[1] - R * Math.sin(t2)];
         const d = `M${r1(a[0])},${r1(a[1])}A${r1(R)},${r1(R)} 0 ${sweep > Math.PI ? 1 : 0} 0 ${r1(end[0])},${r1(end[1])}`;
-        if (c.k === 'sector') fills.push(`<path d="${d}L${r1(ct[0])},${r1(ct[1])}Z" fill="#aed6f1" fill-opacity="0.45" stroke="none"/>`);
-        parts.push(`<path d="${d}" fill="none" stroke="${col}" stroke-width="${sw}"/>`);
+        if (c.k === 'sector') fills.push(`<path d="${d}L${r1(ct[0])},${r1(ct[1])}Z" fill="${c.color || '#aed6f1'}" fill-opacity="0.45" stroke="none"/>`);
+        const strokeCol = c.color || col, strokeW = c.color ? sw * 1.6 : sw;
+        parts.push(`<path d="${d}" fill="none" stroke="${strokeCol}" stroke-width="${strokeW}"/>`);
       } else if (c.k === 'fill') {
         fills.push(`<polygon points="${c.pts.map((n) => r1(S[n][0]) + ',' + r1(S[n][1])).join(' ')}" fill="${c.color}" fill-opacity="0.4" stroke="none"/>`);
       } else if (c.k === 'angle') {

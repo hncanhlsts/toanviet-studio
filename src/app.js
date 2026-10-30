@@ -509,6 +509,19 @@
   $('#kbClose').onclick = () => { kbHide(); mf.focus(); };
   addEventListener('resize', () => { if (document.body.classList.contains('kb-open')) kbSync(); });
 
+  const SYM_TITLE = {
+    '\\widehat{#?}': 'Góc (dấu mũ nhọn)',
+    '\\overarc{#?}': 'Cung tròn (dấu cong tròn)',
+    '\\text{sđ}\\,\\overarc{#?}': 'Số đo cung tròn',
+    '\\angle': 'Ký hiệu góc ∠',
+    '\\dongdang': 'Đồng dạng ∽ (SGK)',
+    '\\perp': 'Vuông góc ⊥',
+    '⫽': 'Song song ⫽ (chuẩn SGK)',
+    '\\triangle': 'Tam giác △',
+    '\\overrightarrow{#?}': 'Vectơ',
+    '\\vec{#?}': 'Vectơ (nét ngắn)',
+    '\\overline{#?}': 'Đoạn thẳng / Gạch trên',
+  };
   function showTab(ti) {
     fTab = ti;
     const tabs = $('#tabs'), pal = $('#palette');
@@ -541,7 +554,8 @@
       b.type = 'button';
       if (tab.wide) b.className = 'wide';
       b.innerHTML = tex(shown, true);
-      b.title = (SCREV.has(code) ? SCREV.get(code) + '  ·  ' : '') + code.replace(/#@|#\?/g, '□');
+      const desc = SYM_TITLE[code] || (Array.isArray(item) && SYM_TITLE[item[1]]) || '';
+      b.title = (desc ? desc + '  ·  ' : '') + (SCREV.has(code) ? SCREV.get(code) + '  ·  ' : '') + code.replace(/#@|#\?/g, '□');
       b.onmousedown = (e) => e.preventDefault(); // giữ con trỏ trong ô công thức
       b.onclick = () => fIns(code);
       pal.appendChild(b);
