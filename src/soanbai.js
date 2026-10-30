@@ -166,7 +166,7 @@
       // Toàn bộ dòng là công thức display $$...$$
       const mDisp = trimmed.match(/^\$\$([\s\S]+?)\$\$$/);
       if (mDisp) {
-        return `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(mDisp[1])}" title="Nhấp đúp để sửa công thức" style="text-align:center;margin:6px 0;">${getTex(mDisp[1], false)}</div>`;
+        return `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(mDisp[1])}" title="Nhấp đúp để sửa công thức" style="display:block;width:100%;text-align:center;margin:8px 0;clear:both;">${getTex(mDisp[1], false)}</div>`;
       }
       // Tách $...$ và $$...$$ trong dòng
       let out = '', last = 0;
@@ -177,7 +177,7 @@
         const isD = m[1] !== undefined;
         const code = isD ? m[1] : m[2];
         if (isD) {
-          out += `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(code)}" title="Nhấp đúp để sửa công thức" style="text-align:center;margin:6px 0;">${getTex(code, false)}</div>`;
+          out += `<div class="sb-disp-fx ifx disp" data-tex="${encodeURIComponent(code)}" title="Nhấp đúp để sửa công thức" style="display:block;width:100%;text-align:center;margin:8px 0;clear:both;">${getTex(code, false)}</div>`;
         } else {
           out += `<span class="ifx" data-tex="${encodeURIComponent(code)}" title="Nhấp đúp để sửa công thức">${getTex(code, true)}</span>`;
         }

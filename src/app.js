@@ -732,8 +732,8 @@
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <b style="font-size:13.5px;color:#1a3b66;">Nội dung kiến thức (Định lý / Định nghĩa / Khái niệm):</b>
             <div style="display:flex;gap:6px;">
-              <button type="button" class="primary" id="sbDlgFxBtn" style="padding:4px 11px;font-size:12.5px;background:#1a5fb4;color:#fff;border:0;border-radius:5px;cursor:pointer;font-weight:600;">📐 Soạn công thức trực quan (MathLive)</button>
-              <button type="button" id="sbDlgDispFxBtn" style="padding:4px 9px;font-size:12px;border:1px solid #9fb3cd;border-radius:5px;cursor:pointer;background:#f0f4f8;">➕ Khối riêng ($$)</button>
+              <button type="button" class="primary" id="sbDlgFxBtn" title="Chèn công thức toán vào dòng chữ đang gõ (inline math $...$)" style="padding:4px 11px;font-size:12.5px;background:#1a5fb4;color:#fff;border:0;border-radius:5px;cursor:pointer;font-weight:600;">📐 Soạn công thức trong dòng ($)</button>
+              <button type="button" id="sbDlgDispFxBtn" title="Đưa công thức ra dòng riêng và tự động căn giữa chuẩn SGK ($$...$$)" style="padding:4px 10px;font-size:12px;border:1px solid #9fb3cd;border-radius:5px;cursor:pointer;background:#f0f4f8;font-weight:600;color:#1a3b66;">➕ Công thức riêng dòng (Căn giữa $$)</button>
             </div>
           </div>
           <textarea id="sbDlgBody" rows="5" spellcheck="false" style="width:100%;padding:8px 10px;border:1px solid #9fb3cd;border-radius:6px;font-family:'Times New Roman',serif;font-size:15px;line-height:1.5;box-sizing:border-box;">${esc(o.noiDung || '')}</textarea>
@@ -788,9 +788,16 @@
       let initTex = selText.replace(/^\$\$([\s\S]*)\$\$$/, '$1').replace(/^\$([\s\S]*)\$$/, '$1').trim();
       openFx(initTex, (latex) => {
         if (latex === null) return;
-        const q = isDisplay ? '\n$$' : '$';
-        const qEnd = isDisplay ? '$$\n' : '$';
-        const ins = q + latex + qEnd;
+        let ins;
+        if (isDisplay) {
+          const before = ta.value.slice(0, s1);
+          const needsNlBefore = before.length > 0 && !before.endsWith('\n');
+          const after = ta.value.slice(s2);
+          const needsNlAfter = after.length > 0 && !after.startsWith('\n');
+          ins = (needsNlBefore ? '\n' : '') + '$$' + latex + '$$' + (needsNlAfter ? '\n' : '');
+        } else {
+          ins = '$' + latex + '$';
+        }
         ta.setRangeText(ins, s1, s2, 'end');
         updatePrev();
         ta.focus();

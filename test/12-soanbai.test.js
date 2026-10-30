@@ -56,6 +56,7 @@ thu('khung Định lý / Định nghĩa: hỗ trợ công thức Toán học và
 
   dung(dly.html.includes('sb-body'), 'Có phần thân HTML sb-body');
   dung(dly.html.includes('sb-disp-fx'), 'Có công thức display căn giữa sb-disp-fx');
+  dung(dly.html.includes('display:block') && dly.html.includes('text-align:center'), 'Công thức riêng dòng có thuộc tính căn giữa toàn bộ chiều rộng');
   dung(dly.html.includes('ifx'), 'Có thẻ inline formula ifx');
   dung(dly.html.includes('sb-chuyi'), 'Có khối chú ý sb-chuyi');
   dung(dly.html.includes('⚠️ Chú ý:'), 'Có nhãn ⚠️ Chú ý');
