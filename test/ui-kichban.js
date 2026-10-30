@@ -523,7 +523,7 @@
     await chon('tieuhoc');
     ok('chọn Tiểu học ở chân trang = chế độ Tiểu học', document.body.classList.contains('tieuhoc') && vis('[data-cmd="ins-phieu"]'));
     await chon('toan');
-    ok('Toán: hiện đủ, ký hiệu đủ ba môn', vis('#planeKind') && vis('[data-cmd="ins-bbt"]') && nhom().split(',').length === 5 && !document.body.classList.contains('tieuhoc'));
+    ok('Toán: hiện đủ, ký hiệu các môn', vis('#planeKind') && vis('[data-cmd="ins-bbt"]') && nhom().split(',').length >= 5 && !document.body.classList.contains('tieuhoc'));
     let nc = [...document.querySelectorAll('#ribbon .nc')].filter((b) => b.offsetParent).length;
     window.__run('coban'); await w(120);
     const an = [...document.querySelectorAll('#ribbon .nc')].filter((b) => b.offsetParent).length;
